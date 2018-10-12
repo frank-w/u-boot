@@ -147,4 +147,11 @@ config MPC83XX_TIMER
 	  Select this to enable support for the timer found on
 	  devices based on the MPC83xx family of SoCs.
 
+config MTK_TIMER
+	bool "MediaTek timer support"
+	depends on TIMER
+	help
+	  Select this to enable support for the timer found on
+	  MediaTek devices.
+
 endmenu

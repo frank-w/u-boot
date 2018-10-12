@@ -115,6 +115,7 @@ dumpimage-mkimage-objs := aisimage.o \
 			$(LIBFDT_OBJS) \
 			gpimage.o \
 			gpimage-common.o \
+			mtkimage.o \
 			$(RSA_OBJS-y)
 
 dumpimage-objs := $(dumpimage-mkimage-objs) dumpimage.o

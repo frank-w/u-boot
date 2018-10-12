@@ -852,6 +852,8 @@ ALL-y += u-boot-tegra.bin u-boot-nodtb-tegra.bin
 ALL-$(CONFIG_OF_SEPARATE) += u-boot-dtb-tegra.bin
 endif
 
+ALL-$(CONFIG_ARCH_MEDIATEK) += u-boot-mtk.bin
+
 # Add optional build target if defined in board/cpu/soc headers
 ifneq ($(CONFIG_BUILD_TARGET),)
 ALL-y += $(CONFIG_BUILD_TARGET:"%"=%)
@@ -1353,6 +1355,26 @@ quiet_cmd_u-boot-elf ?= LD      $@
 u-boot.elf: u-boot.bin
 	$(Q)$(OBJCOPY) -I binary $(PLATFORM_ELFFLAGS) $< u-boot-elf.o
 	$(call if_changed,u-boot-elf)
+
+# MediaTek's ARM-based u-boot needs a header to contains its load address
+# which is parsed by the BootROM.
+# If the SPL build is enabled, the header will be added to the spl binary,
+# and the spl binary and the u-boot.img will be combined into one file.
+# Otherwise the header will be added to the u-boot.bin directly.
+
+ifeq ($(CONFIG_SPL),y)
+OBJCOPYFLAGS_u-boot-mtk.bin = -I binary -O binary \
+	--pad-to=$(CONFIG_SPL_PAD_TO)
+u-boot-mtk.bin: spl/u-boot-spl-mtk.bin u-boot.img FORCE
+	$(call if_changed,pad_cat)
+else
+MKIMAGEFLAGS_u-boot-mtk.bin = -T mtkimage \
+	-a $(CONFIG_SYS_TEXT_BASE) -e $(CONFIG_SYS_TEXT_BASE) \
+	-n "$(patsubst "%",%,$(CONFIG_MTK_BROM_HEADER_INFO))"
+
+u-boot-mtk.bin: u-boot.bin FORCE
+	$(call if_changed,mkimage)
+endif
 
 ARCH_POSTLINK := $(wildcard $(srctree)/arch/$(ARCH)/Makefile.postlink)
 

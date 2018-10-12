@@ -1,0 +1,24 @@
+if ARCH_MEDIATEK
+
+config SYS_SOC
+	default "mediatek"
+
+config SYS_VENDOR
+	default "mediatek"
+
+choice
+	prompt "MediaTek board select"
+
+config TARGET_MT7629
+	bool "MediaTek MT7629 SoC"
+	select CPU_V7A
+	select SPL
+	select ARCH_MISC_INIT
+	help
+		Support MediaTek MT7629 SoC.
+
+endchoice
+
+source "board/mediatek/mt7629/Kconfig"
+
+endif

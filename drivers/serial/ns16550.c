@@ -148,6 +148,13 @@ int ns16550_calc_divisor(NS16550_t port, int clock, int baudrate)
 
 static void NS16550_setbrg(NS16550_t com_port, int baud_divisor)
 {
+#ifdef CONFIG_ARCH_MEDIATEK
+	/*
+	 * MediaTek UARTs has an extra highspeed register.
+	 * We need to clear it if baudrate <= 115200.
+	 */
+	serial_out(0, &com_port->reg9);
+#endif
 	serial_out(UART_LCR_BKSE | UART_LCRVAL, &com_port->lcr);
 	serial_out(baud_divisor & 0xff, &com_port->dll);
 	serial_out((baud_divisor >> 8) & 0xff, &com_port->dlm);
@@ -261,6 +268,9 @@ static inline void _debug_uart_init(void)
 	serial_dout(&com_port->mcr, UART_MCRVAL);
 	serial_dout(&com_port->fcr, UART_FCR_DEFVAL);
 
+#ifdef CONFIG_ARCH_MEDIATEK
+	serial_dout(&com_port->reg9, 0);
+#endif
 	serial_dout(&com_port->lcr, UART_LCR_BKSE | UART_LCRVAL);
 	serial_dout(&com_port->dll, baud_divisor & 0xff);
 	serial_dout(&com_port->dlm, (baud_divisor >> 8) & 0xff);

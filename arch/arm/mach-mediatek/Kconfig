@@ -9,6 +9,13 @@ config SYS_VENDOR
 choice
 	prompt "MediaTek board select"
 
+config TARGET_MT7623
+	bool "MediaTek MT7623 SoC"
+	select CPU_V7A
+	select ARCH_MISC_INIT
+	help
+		Support MediaTek MT7623 SoC.
+
 config TARGET_MT7629
 	bool "MediaTek MT7629 SoC"
 	select CPU_V7A
@@ -19,6 +26,7 @@ config TARGET_MT7629
 
 endchoice
 
+source "board/mediatek/mt7623/Kconfig"
 source "board/mediatek/mt7629/Kconfig"
 
 endif

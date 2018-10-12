@@ -176,6 +176,7 @@ struct mtk_pinctrl_priv {
 
 extern const struct pinctrl_ops mtk_pinctrl_ops;
 
+void mtk_rmw(struct udevice *dev, u32 reg, u32 mask, u32 set);
 int mtk_pinctrl_probe(struct udevice *dev,
 		      struct mtk_pinctrl_soc *soc);
 

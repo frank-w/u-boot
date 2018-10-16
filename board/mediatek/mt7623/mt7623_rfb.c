@@ -19,7 +19,7 @@ int mmc_get_boot_dev(void)
 {
 	int g_mmc_devid = -1;
 	char *uflag = (char *)0x81DFFFF0;
-	if((uflag[0] == 'e') && (uflag[1] == 'M') && (uflag[2] == 'M') && (uflag[3] == 'C'))
+	if (strncmp(uflag,"eMMC",4)==0)
 	{
 		g_mmc_devid = 0;
 		printf("Boot From Emmc(id:%d)\n\n", g_mmc_devid);

@@ -4,6 +4,7 @@
  */
 
 #include <common.h>
+#include <mmc.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -29,10 +30,6 @@ int mmc_get_boot_dev(void)
 		g_mmc_devid = 1;
 		printf("Boot From SD(id:%d)\n\n", g_mmc_devid);
 	}
-	//try to register a env-var, but seems not working (maybe overidden by default env)
-	char intstr[2];
-	sprintf(intstr, "%d", g_mmc_devid);
-	env_set("bootdev", intstr);
 	return g_mmc_devid;
 }
 
@@ -56,7 +53,12 @@ int mmc_get_env_addr(struct mmc *mmc, int copy, u32 *env_addr)
 static int do_mmc_get_boot_dev(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	printf("%s:%d %s\n",__FILE__,__LINE__,__FUNCTION__);
-	return mmc_get_boot_dev();
+	int g_mmc_devid = mmc_get_boot_dev();
+	//try to register a env-var, but seems not working (maybe overidden by default env)
+	char intstr[2];
+	sprintf(intstr, "%d", g_mmc_devid);
+	env_set("bootdev", intstr);
+	return g_mmc_devid;
 }
 
 U_BOOT_CMD(

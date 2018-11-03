@@ -22,7 +22,9 @@ case $1 in
 		umount /media/$USER/BPI-BOOT
 		umount /media/$USER/BPI-ROOT
 	;;
-
+	"board")
+		nano board/mediatek/mt7623/mt7623_rfb.c
+	;;
 	*)
 		make;
 	;;

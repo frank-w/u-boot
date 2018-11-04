@@ -12,6 +12,9 @@ case $1 in
 	"importconfig")
 		make mt7623n_bpir2_defconfig;
 	;;
+	"defconfig")
+		nano configs/mt7623n_bpir2_defconfig;
+	;;
 	"install")
 		dev=/dev/sdb
 		read -e -i "$dev" -p "Please enter target device: " dev
@@ -24,6 +27,9 @@ case $1 in
 	;;
 	"board")
 		nano board/mediatek/mt7623/mt7623_rfb.c
+	;;
+	"soc")
+		nano ./include/configs/mt7623.h
 	;;
 	*)
 		make;

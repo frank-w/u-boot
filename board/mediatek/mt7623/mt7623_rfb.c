@@ -5,6 +5,7 @@
 
 #include <common.h>
 #include <mmc.h>
+#include <configs/mt7623.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 

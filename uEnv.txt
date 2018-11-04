@@ -7,6 +7,7 @@ partition=1:1
 bootenv=uEnv.txt
 kernel=uImage
 loadaddr=0x80200000
+#default bootargs will be overridden by buildargs (newboot)
 bootargs=console=ttyS0,115200 root=/dev/mmcblk0p2 rw rootwait ip=dhcp
 
 console=earlyprintk console=tty1 fbcon=map:0 console=ttyS0,115200
@@ -18,10 +19,12 @@ buildargs=setenv bootargs "board=${board} console=${console} root=${root} ${boot
 
 loadbootenv=fatload ${device} ${partition} ${scriptaddr} ${bpi}/${board}/${service}/${bootenv}
 importenv=env import -t ${scriptaddr} ${filesize}
+resetenv=env default -a;printenv;
+
 checksd=fatinfo ${device} 1:1
 selectmmc=if run checksd; then echo Boot from SD ; setenv partition 1:1;else echo Boot from eMMC; setenv partition 0:1 ; fi;
 
-newboot=run selectmmc; run buildargs;fatload ${device} ${partition} ${loadaddr} ${bpi}/${board}/${service}/${kernel}; bootm
+newboot=run buildargs;printenv bootargs;fatload ${device} ${partition} ${loadaddr} ${bpi}/${board}/${service}/${kernel}; bootm
 
 #bootmenu
 reloadmenu=run selectmmc; run loadbootenv; run importenv; bootmenu

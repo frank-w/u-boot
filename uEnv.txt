@@ -1,0 +1,45 @@
+scriptaddr=0x83000000
+bpi=bananapi
+board=bpi-r2
+service=linux
+device=mmc
+partition=1:1
+bootenv=uEnv.txt
+kernel=uImage
+loadaddr=0x80200000
+#default bootargs will be overidden by buildargs
+bootargs=console=ttyS0,115200 root=/dev/mmcblk0p2 rw rootwait ip=dhcp
+
+console=earlyprintk console=tty1 fbcon=map:0 console=ttyS0,115200
+root=/dev/mmcblk0p2 rootfstype=ext4 rootwait
+bootopts=vmalloc=496M debug=7 initcall_debug=0
+graphic=video=1920x1080 drm.debug=0x7
+
+buildargs=setenv bootargs "board=${board} console=${console} root=${root} ${bootopts} ${graphic}"
+
+loadbootenv=fatload ${device} ${partition} ${scriptaddr} ${bpi}/${board}/${service}/${bootenv}
+importenv=env import -t ${scriptaddr} ${filesize}
+resetenv=env default -a;printenv;
+
+checksd=fatinfo ${device} 1:1
+selectmmc=if run checksd; then echo Boot from SD ; setenv partition 1:1;else echo Boot from eMMC; setenv partition 0:1 ; fi;
+
+newboot=run buildargs;printenv bootargs;fatload ${device} ${partition} ${loadaddr} ${bpi}/${board}/${service}/${kernel}; bootm
+
+reloadmenu=run selectmmc; run loadbootenv; run importenv; bootmenu
+
+lskernel=ls ${device} ${partition} ${bpi}/${board}/${service};
+askkernel=askenv kernelinput "enter uImage-name:";
+
+#bootmenu
+boot0=run lskernel;run askkernel;if printenv kernelinput ;then setenv kernel ${kernelinput}; run newboot; fi
+boot1=run selectmmc; run loadbootenv; run importenv; run newboot;
+
+bootmenu_default=1
+
+bootmenu_0=1. Enter kernel-name to boot from SD/EMMC.=run boot0
+bootmenu_1=2. Boot from SD/EMMC.=run boot1
+
+#automatic reload from sd/emmc
+bootdelay=0
+bootcmd=setenv bootdelay 3; run reloadmenu;

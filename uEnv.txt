@@ -17,6 +17,7 @@ graphic=video=1920x1080 drm.debug=0x7
 
 buildargs=setenv bootargs "board=${board} console=${console} root=${root} ${bootopts} ${graphic}"
 
+checkenv=test -e ${device} ${partition} ${bpi}/${board}/${service}/${bootenv}
 loadbootenv=fatload ${device} ${partition} ${scriptaddr} ${bpi}/${board}/${service}/${bootenv}
 importenv=env import -t ${scriptaddr} ${filesize}
 resetenv=env default -a;printenv;
@@ -26,7 +27,7 @@ selectmmc=if run checksd; then echo Boot from SD ; setenv partition 1:1;else ech
 
 newboot=run buildargs;printenv bootargs;fatload ${device} ${partition} ${loadaddr} ${bpi}/${board}/${service}/${kernel}; bootm
 
-reloadmenu=run selectmmc; run loadbootenv; run importenv; bootmenu
+reloadmenu=run selectmmc;if run checkenv; then run loadbootenv; run importenv; else echo file not found; fi;bootmenu;
 
 lskernel=ls ${device} ${partition} ${bpi}/${board}/${service};
 askkernel=askenv kernelinput "enter uImage-name:";

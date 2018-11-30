@@ -37,8 +37,8 @@ int mmc_get_boot_dev(void)
 int mmc_get_env_dev(void)
 {
 	printf("%s:%d %s\n",__FILE__,__LINE__,__FUNCTION__);
-	mmc_get_boot_dev();
-	return CONFIG_SYS_MMC_ENV_DEV; //have to replaced by g_mmc_devid if sdcard-offset is implemented
+	return mmc_get_boot_dev();
+	//return CONFIG_SYS_MMC_ENV_DEV; //have to replaced by g_mmc_devid if sdcard-offset is implemented
 }
 /*
 int mmc_get_env_addr(struct mmc *mmc, int copy, u32 *env_addr)

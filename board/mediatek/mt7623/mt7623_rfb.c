@@ -39,24 +39,7 @@ int mmc_get_env_dev(void)
 	printf("%s:%d %s\n",__FILE__,__LINE__,__FUNCTION__);
 	return mmc_get_boot_dev();
 }
-/*
-int mmc_get_env_addr(struct mmc *mmc, int copy, u32 *env_addr)
-{
-	s64 offset = CONFIG_ENV_OFFSET;
-	#ifdef CONFIG_ENV_OFFSET_REDUND
-	if (copy)
-		offset = CONFIG_ENV_OFFSET_REDUND;
-	#endif
-	if (offset < 0)
-		offset += mmc->capacity;
-	//If mmc is SD, then set offset 1Mb
-	if(mmc_get_boot_dev() == 1)
-		*env_addr = offset + 0x100000;
-	else
-		*env_addr = offset;
-	return 0;
-}
-*/
+
 static int do_mmc_get_boot_dev(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	printf("%s:%d %s\n",__FILE__,__LINE__,__FUNCTION__);

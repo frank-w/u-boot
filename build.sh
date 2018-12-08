@@ -2,9 +2,21 @@
 export ARCH=arm;
 export CROSS_COMPILE=arm-linux-gnueabihf-
 
+#values in kB
+UBOOT_START=320
+ENV_START=1024
+
+MAXSIZE=$(( ($ENV_START - $UBOOT_START)*1024 -1 ))
+
 case $1 in
 	"build")
 		make;
+		FILESIZE=$(stat -c%s "u-boot.bin");
+		if [[ $FILESIZE -gt $MAXSIZE ]]; then
+			echo "=============== WARNING ==============="
+			echo "u-boot will overwrite env-storage area!"
+			echo "if you use this u-boot.bin don't use saveenv!"
+		fi;
 	;;
 	"config")
 		make menuconfig;
@@ -32,6 +44,6 @@ case $1 in
 		nano ./include/configs/mt7623.h
 	;;
 	*)
-		make;
+		$0 build;
 	;;
 esac

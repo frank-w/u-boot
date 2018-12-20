@@ -37,6 +37,9 @@ case $1 in
 		umount /media/$USER/BPI-BOOT
 		umount /media/$USER/BPI-ROOT
 	;;
+	"uenv")
+		nano /media/$USER/BPI-BOOT/bananapi/bpi-r2/linux/uEnv.txt
+	;;
 	"board")
 		nano board/mediatek/mt7623/mt7623_rfb.c
 	;;

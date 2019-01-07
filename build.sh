@@ -2,6 +2,11 @@
 export ARCH=arm;
 export CROSS_COMPILE=arm-linux-gnueabihf-
 
+uver=$(make ubootversion)
+ubranch=$(git branch --contains $(git log -n 1 --pretty='%h') | grep -v '(HEAD' | head -1 | sed 's/^..//')
+
+#echo "ver:$uver,ubranch:$ubranch"
+
 #values in kB
 UBOOT_START=320
 ENV_START=1024
@@ -10,7 +15,7 @@ MAXSIZE=$(( ($ENV_START - $UBOOT_START)*1024 -1 ))
 
 case $1 in
 	"build")
-		make;
+		make LOCALVERSION="-$ubranch";
 		FILESIZE=$(stat -c%s "u-boot.bin");
 		if [[ $FILESIZE -gt $MAXSIZE ]]; then
 			echo "=============== WARNING ==============="

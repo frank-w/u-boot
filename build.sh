@@ -3,9 +3,9 @@ export ARCH=arm;
 export CROSS_COMPILE=arm-linux-gnueabihf-
 
 uver=$(make ubootversion)
-ubranch=$(git branch --contains $(git log -n 1 --pretty='%h') | grep -v '(HEAD' | head -1 | sed 's/^..//')
+ubranch=$(git branch --contains $(git log -n 1 --pretty='%h') | grep -v '(HEAD' | head -1 | sed 's/^..//'| sed 's/^[0-9.-]*//')
 
-#echo "ver:$uver,ubranch:$ubranch"
+echo "ver:$uver,ubranch:$ubranch"
 
 #values in kB
 UBOOT_START=320

@@ -10,6 +10,12 @@ loadaddr=0x80200000
 #default bootargs will be overidden by buildargs
 bootargs=console=ttyS0,115200 root=/dev/mmcblk0p2 rw rootwait ip=dhcp
 
+kernel414=uImage_4.14.91-main
+
+kernel419_nodt=uImage_4.19.13-main_nodt
+fdt419=4.19.13-main.dtb
+dtolist419=bpi-r2-mac.dtb
+
 console=earlyprintk console=tty1 fbcon=map:0 console=ttyS0,115200
 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait
 bootopts=vmalloc=496M debug=7 initcall_debug=0
@@ -30,17 +36,24 @@ newboot=run buildargs;printenv bootargs;fatload ${device} ${partition} ${loadadd
 reloadmenu=run selectmmc;if run checkenv; then run loadbootenv; else echo file not found; fi;bootmenu;
 
 lskernel=ls ${device} ${partition} ${bpi}/${board}/${service};
+lsdtb=ls ${device} ${partition} ${bpi}/${board}/${service}/dtb
 askkernel=askenv kernelinput "enter uImage-name:";
+askdtb=askenv dtbinput "enter dtb-name:";
 
 #bootmenu
-boot0=run lskernel;run askkernel;if printenv kernelinput ;then setenv kernel ${kernelinput}; run newboot; fi
+boot0=run lskernel;run askkernel;if printenv kernelinput ;then setenv kernel ${kernelinput};run lsdtb;run askdtb;if printenv dtbinput ;then setenv fdt ${dtbinput};fi; run newboot2; fi;
 boot1=run selectmmc; run loadbootenv; run importenv; run newboot;
+boot14=setenv kernel ${kernel414}; run newboot;
+boot19=setenv kernel ${kernel419}; run newboot;
+boot19_dt=setenv kernel ${kernel419_nodt}; setenv fdt ${fdt419}; setenv dtolist ${dtolist419}; run newboot2;
 
 bootmenu_default=2
 
 bootmenu_0=1. Enter kernel-name to boot from SD/EMMC.=run boot0
 bootmenu_1=2. Boot kernel from TFTP.=run bootnet
 bootmenu_2=3. Boot from SD/EMMC.=run boot1
+bootmenu_3=4. Boot from SD/EMMC 4.14.=run boot14
+bootmenu_4=5. Boot from SD/EMMC 4.19 (fdt/dto).=run boot19_dt
 
 #Netboot
 ipaddr=192.168.0.11
@@ -54,16 +67,11 @@ netbootargs=console=ttyS0,115200 root=/dev/mmcblk0p2 rw rootwait
 lstftp=tftp ${loadaddr} ${serverip}:files.lst;setexpr listend ${loadaddr} + ${filesize};mw.b ${listend} 00 2;strings ${loadaddr};
 #md.b ${loadaddr} 60;
 
-bootnet=printenv; setenv bootargs ${netbootargs};tftp ${loadaddr} ${bootfile};bootm
+bootnet=run lstftp;run askkernel;if printenv kernelinput ;then setenv bootfile "${kernelinput}"; fi;printenv; setenv bootargs ${netbootargs};tftp ${loadaddr} ${bootfile};bootm
 
 #separate fdt+dto
-loadaddr=82000000
 dtaddr=0x83f00000
 fdt_high=0xffffffff
-
-#kernel419_nodt=uImage_4.19.13-main_nodt
-#fdt419=4.19.13-main.dtb
-#dtolist419=bpi-r2-mac.dtb
     
 loadfdt=fatload ${device} ${partition} ${dtaddr} ${bpi}/${board}/${service}/dtb/${fdt}
 loadkernel=echo "loading kernel ${kernel}...";fatload ${device} ${partition} ${loadaddr} ${bpi}/${board}/${service}/${kernel}
@@ -71,10 +79,8 @@ loadkernel=echo "loading kernel ${kernel}...";fatload ${device} ${partition} ${l
 loaddto=echo "loaddto:${dto}";fdt addr ${dtaddr};fdt resize 8192; setexpr fdtovaddr ${dtaddr} + F000;fatload ${device} ${partition} ${fdtovaddr} ${bpi}/${board}/${service}/dtb/${dto} && fdt apply ${fdtovaddr}
 loaddtolist=for dto in ${dtolist} ; do run loaddto ; done
 
-bootall=if printenv fdt; then run loadfdt; if printenv dtolist;then run loaddtolist;fi;  bootm ${loadaddr} - ${dtaddr} ;else echo "bootm"; bootm; fi
+bootall=if printenv fdt; then run loadfdt; if printenv dtolist;then run loaddtolist;fi; bootm ${loadaddr} - ${dtaddr} ;else bootm; fi
 newboot2=run buildargs; printenv bootargs; run loadkernel; run bootall;
-
-#boot19_dt=setenv kernel ${kernel419_nodt}; setenv fdt ${fdt419}; setenv dtolist ${dtolist419}; run newboot2;
 
 #automatic reload from sd/emmc
 bootdelay=0

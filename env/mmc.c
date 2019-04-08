@@ -245,7 +245,28 @@ fini:
 
 static int env_mmc_erase(void)
 {
-	return 0;//1 on error
+	int dev = mmc_get_env_dev();
+	struct mmc *mmc = find_mmc_device(dev);
+	int	n, blk, cnt;
+
+	if (!mmc)
+		return CMD_RET_FAILURE;
+
+	blk = CONFIG_ENV_OFFSET / mmc->read_bl_len;
+	cnt = CONFIG_ENV_SIZE / mmc->read_bl_len;
+
+	printf("\nMMC erase env: dev # %d, block # %d (0x%x), count %d (0x%x)\n",
+	       dev, blk, blk * mmc->read_bl_len,
+	       cnt, cnt * mmc->read_bl_len);
+
+	if (mmc_getwp(mmc) == 1) {
+		printf("Error: card is write protected!\n");
+		return CMD_RET_FAILURE;
+	}
+	n = blk_derase(mmc_get_blk_desc(mmc), blk, cnt);
+	printf("%d blocks erased: %s\n", n, (n == cnt) ? "OK" : "ERROR");
+
+	return (n == cnt) ? CMD_RET_SUCCESS : CMD_RET_FAILURE;
 }
 
 #endif /* CONFIG_CMD_SAVEENV && !CONFIG_SPL_BUILD */

@@ -441,37 +441,6 @@ static int do_mmc_erase(cmd_tbl_t *cmdtp, int flag,
 
 	return (n == cnt) ? CMD_RET_SUCCESS : CMD_RET_FAILURE;
 }
-
-static int do_mmc_erase_env(cmd_tbl_t *cmdtp, int flag,
-			    int argc, char * const argv[])
-{
-	struct mmc *mmc;
-	u32 blk, cnt, n;
-
-	if (argc != 1)
-		return CMD_RET_USAGE;
-
-	mmc = init_mmc_device(curr_device, false);
-
-	if (!mmc)
-		return CMD_RET_FAILURE;
-
-	blk = CONFIG_ENV_OFFSET / mmc->read_bl_len;
-	cnt = CONFIG_ENV_SIZE / mmc->read_bl_len;
-
-	printf("\nMMC erase env: dev # %d, block # %d (0x%8x), count %d (0x%8x)",
-	       curr_device, blk, blk * mmc->read_bl_len,
-		   cnt, cnt * mmc->read_bl_len);
-
-	if (mmc_getwp(mmc) == 1) {
-		printf("Error: card is write protected!\n");
-		return CMD_RET_FAILURE;
-	}
-	n = blk_derase(mmc_get_blk_desc(mmc), blk, cnt);
-	printf("%d blocks erased: %s\n", n, (n == cnt) ? "OK" : "ERROR");
-
-	return (n == cnt) ? CMD_RET_SUCCESS : CMD_RET_FAILURE;
-}
 #endif
 
 static int do_mmc_rescan(cmd_tbl_t *cmdtp, int flag,
@@ -909,7 +878,6 @@ static cmd_tbl_t cmd_mmc[] = {
 #if CONFIG_IS_ENABLED(MMC_WRITE)
 	U_BOOT_CMD_MKENT(write, 4, 0, do_mmc_write, "", ""),
 	U_BOOT_CMD_MKENT(erase, 3, 0, do_mmc_erase, "", ""),
-	U_BOOT_CMD_MKENT(eraseenv, 1, 0, do_mmc_erase_env, "", ""),
 #endif
 #if CONFIG_IS_ENABLED(CMD_MMC_SWRITE)
 	U_BOOT_CMD_MKENT(swrite, 3, 0, do_mmc_sparse_write, "", ""),
@@ -972,7 +940,6 @@ U_BOOT_CMD(
 	"mmc swrite addr blk#\n"
 #endif
 	"mmc erase blk# cnt\n"
-	"mmc eraseenv - erase environment\n"
 	"mmc rescan\n"
 	"mmc part - lists available partition on current mmc device\n"
 	"mmc dev [dev] [part] - show or set current mmc device [partition]\n"

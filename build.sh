@@ -13,6 +13,22 @@ ENV_START=1024
 
 MAXSIZE=$(( ($ENV_START - $UBOOT_START)*1024 -1 ))
 
+if [[ -e "build.conf" ]];
+then
+	. build.conf
+fi
+
+function upload {
+	imagename="u-boot_${uver}-${ubranch}.bin"
+	read -e -i $imagename -p "u-boot-filename: " input
+	imagename="${input:-$imagename}"
+
+	echo "Name: $imagename"
+	echo "uploading to ${uploadserver}:${uploaddir}..."
+
+	scp u-boot.bin ${uploaduser}@${uploadserver}:${uploaddir}/${imagename}
+}
+
 case $1 in
 	"build")
 		make LOCALVERSION="-$ubranch";
@@ -50,6 +66,9 @@ case $1 in
 	;;
 	"soc")
 		nano ./include/configs/mt7623.h
+	;;
+	"upload")
+		upload
 	;;
 	*)
 		$0 build;

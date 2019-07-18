@@ -778,9 +778,51 @@ static int mt7623_pericfg_probe(struct udevice *dev)
 	return mtk_common_clk_gate_init(dev, &mt7623_clk_tree, peri_cgs);
 }
 
+#define RALINK_REG(x)	(*((volatile u32 *)(x)))
+#define HIF_PWR_CON	(0x100062A4)
 static int mt7623_ethsys_probe(struct udevice *dev)
 {
-	return mtk_common_clk_gate_init(dev, &mt7623_clk_tree, eth_cgs);
+	int ret;
+	u32 temp;
+
+	ret = mtk_common_clk_gate_init(dev, &mt7623_clk_tree, eth_cgs);
+
+	// Power on HIFSYS
+	temp = (RALINK_REG(HIF_PWR_CON) & 0x0000f000) >> 12;
+	if(temp == 0x0) {
+	        printf("HIF already turn on and power on flow will be skipped\n");
+
+	} else {
+	        printf("Init HIFSYS power\n");
+		temp = RALINK_REG(HIF_PWR_CON);
+		RALINK_REG(HIF_PWR_CON) = temp | 0x4;		// PWR_ON
+		temp = RALINK_REG(HIF_PWR_CON);
+		RALINK_REG(HIF_PWR_CON) = temp | 0x8;		// PWR_ON_S
+
+		udelay(5); // wait power settle time (min delay is 1us)
+
+		temp = RALINK_REG(HIF_PWR_CON);
+		RALINK_REG(HIF_PWR_CON) = temp & ~0x10;		// PWR_CLK_DIS
+		temp = RALINK_REG(HIF_PWR_CON);
+		RALINK_REG(HIF_PWR_CON) = temp & ~0x2;		// PWR_ISO
+		temp = RALINK_REG(HIF_PWR_CON);
+		RALINK_REG(HIF_PWR_CON) = temp & ~0x100;	// SRAM_PDN 0
+		temp = RALINK_REG(HIF_PWR_CON);
+		RALINK_REG(HIF_PWR_CON) = temp & ~0x200;	// SRAM_PDN 1
+		temp = RALINK_REG(HIF_PWR_CON);
+		RALINK_REG(HIF_PWR_CON) = temp & ~0x400;	// SRAM_PDN 2
+		temp = RALINK_REG(HIF_PWR_CON);
+		RALINK_REG(HIF_PWR_CON) = temp & ~0x800;	// SRAM_PDN 3
+
+		udelay(5); // wait SRAM settle time (min delay is 1Us)
+
+		temp = RALINK_REG(HIF_PWR_CON);
+		RALINK_REG(HIF_PWR_CON) = temp | 0x1;		// PWR_RST_B
+
+		udelay(5);
+	}
+
+	return (ret);
 }
 
 static int mt7623_ethsys_bind(struct udevice *dev)

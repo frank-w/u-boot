@@ -593,10 +593,16 @@ static int ahci_port_start(struct ahci_uc_priv *uc_priv, u8 port)
 	pp->cmd_tbl_sg =
 			(struct ahci_sg *)(uintptr_t)virt_to_phys((void *)mem);
 
-	writel_with_flush((unsigned long)pp->cmd_slot,
-			  port_mmio + PORT_LST_ADDR);
+
+	writel_with_flush((u32)pp->cmd_slot, port_mmio + PORT_LST_ADDR);
+#ifndef CONFIG_PHYS_64BIT
+	writel_with_flush(0, port_mmio + PORT_LST_ADDR_HI);
+#endif
 
 	writel_with_flush(pp->rx_fis, port_mmio + PORT_FIS_ADDR);
+#ifndef CONFIG_PHYS_64BIT
+	writel_with_flush(0, port_mmio + PORT_FIS_ADDR_HI);
+#endif
 
 #ifdef CONFIG_SUNXI_AHCI
 	sunxi_dma_init(port_mmio);

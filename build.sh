@@ -50,9 +50,16 @@ case $1 in
 	;;
 	"install")
 		dev=/dev/sdb
+		choice=y
 		read -e -i "$dev" -p "Please enter target device: " dev
-		sudo dd of=$dev if=u-boot.bin bs=1k seek=320;
-		sync
+		if ! [[ "$(lsblk ${dev}1 -o label -n)" == "BPI-BOOT" ]]; then
+			read -e -p "this device seems not to be a BPI-R2 SD-Card, do you really want to use this device? [yn]" choice
+		fi
+		if [[ "$choice" == "y" ]];then
+			echo "writing to $dev"
+			sudo dd of=$dev if=u-boot.bin bs=1k seek=320;
+			sync
+		fi
 	;;
 	"umount")
 		umount /media/$USER/BPI-BOOT

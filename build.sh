@@ -64,6 +64,12 @@ case $1 in
 	"board")
 		nano board/mediatek/mt7623/mt7623_rfb.c
 	;;
+	"dts")
+		nano arch/arm/dts/mt7623n-bananapi-bpi-r2.dts
+	;;
+	"dtsi")
+		nano arch/arm/dts/mt7623.dtsi
+	;;
 	"soc")
 		nano ./include/configs/mt7623.h
 	;;

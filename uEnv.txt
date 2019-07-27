@@ -70,9 +70,15 @@ lstftp=tftp ${loadaddr} ${serverip}:files.lst;setexpr listend ${loadaddr} + ${fi
 lstftpu=tftp ${loadaddr} ${serverip}:bootfiles.lst;setexpr listend ${loadaddr} + ${filesize};mw.b ${listend} 00 2;strings ${loadaddr};
 #md.b ${loadaddr} 60;
 
+#NFS
+nfsip=192.168.0.10
+nfsrfs=/var/nfs/bpi-r2
+setnfsargs=setenv netbootargs "root=/dev/nfs rw nfsroot=${nfsip}:${nfsrfs},nfsvers=3,tcp nfsrootdebug";
+
 ubootaddr=0x81E00000
 bootnet=run lstftp;run askkernel;if printenv kernelinput ;then setenv bootfile "${kernelinput}"; fi;printenv; setenv bootargs "${netbootargs} ${console} ${graphic}";tftp ${loadaddr} ${bootfile};bootm
 ubootnet=run lstftpu;run askuboot;if printenv ubootinput ;then setenv ubootfile "${ubootinput}"; fi; tftp ${ubootaddr} ${ubootfile};icache off;dcache off;go ${ubootaddr}
+bootnfs=run setnfsargs bootnet
 
 #separate fdt+dto
 dtaddr=0x83f00000

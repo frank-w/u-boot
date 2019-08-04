@@ -16,10 +16,10 @@ kernel419_nodt=uImage_4.19.13-main_nodt
 fdt419=4.19.13-main.dtb
 dtolist419=bpi-r2-mac.dtb
 
-console=earlyprintk console=tty1 fbcon=map:0 console=ttyS0,115200
+console=earlyprintk console=ttyS0,115200
 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait
 bootopts=vmalloc=496M debug=7 initcall_debug=0
-graphic=video=1920x1080 drm.debug=0x7
+graphic=video=1920x1080 console=tty1 fbcon=map:0 drm.debug=0x7
 
 buildargs=setenv bootargs "board=${board} ${console} root=${root} ${bootopts} ${graphic}"
 

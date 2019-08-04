@@ -96,3 +96,20 @@ newboot2=run buildargs; printenv bootargs; run loadkernel; run bootall;
 #automatic reload from sd/emmc
 bootdelay=0
 bootcmd=setenv bootdelay 3; run reloadmenu;
+
+#sata/ahci
+initsata=pci enum;scsi scan;
+
+partsata=0:1
+dirsata=EFI/ubuntu
+filesata=test.txt
+kernelsata=uImage_4.14.117-main
+
+loadfilesata=fatload scsi ${partsata} ${scriptaddr} ${dirsata}/${filesata};setexpr listend ${scriptaddr} + ${filesize};mw.b ${listend} 00 2;strings ${scriptaddr};
+loadkernelsata=fatload scsi ${partsata} ${loadaddr} ${dirsata}/${kernelsata};bootm
+lssata=ls scsi ${partsata} ${$dirsata}
+
+png=ping ${serverip}
+askaddr=askenv addrinput "enter address:";
+lsmem=run askaddr;if printenv addrinput;then setenv baseaddr ${addrinput};run listmem; fi
+listmem=if printenv baseaddr;then setenv i 0;while test ${i} -lt 10;do setenv j 0;while test ${j} -lt 10;do setenv offset "${i}${j}00";setexpr addr $baseaddr + ${offset};md $addr;setexpr j ${j} + 1; done;setexpr i ${i} + 1;done;fi

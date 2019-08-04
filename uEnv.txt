@@ -12,10 +12,6 @@ bootargs=console=ttyS0,115200 root=/dev/mmcblk0p2 rw rootwait ip=dhcp
 
 kernel414=uImage_4.14.91-main
 
-kernel419_nodt=uImage_4.19.13-main_nodt
-fdt419=4.19.13-main.dtb
-dtolist419=bpi-r2-mac.dtb
-
 console=earlyprintk console=ttyS0,115200
 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait
 bootopts=vmalloc=496M debug=7 initcall_debug=0
@@ -56,6 +52,12 @@ bootmenu_2=3. Boot from SD/EMMC.=run boot1
 bootmenu_3=4. Boot from SD/EMMC 4.14.=run boot14
 bootmenu_4=5. Boot from SD/EMMC 4.19 (fdt/dto).=run boot19_dt
 
+#automatic reload from sd/emmc
+bootdelay=0
+bootcmd=setenv bootdelay 3; run reloadmenu;
+
+png=ping ${serverip}
+
 #Netboot
 ipaddr=192.168.0.11
 netmask=255.255.255.0
@@ -70,19 +72,23 @@ lstftp=tftp ${loadaddr} ${serverip}:files.lst;setexpr listend ${loadaddr} + ${fi
 lstftpu=tftp ${loadaddr} ${serverip}:bootfiles.lst;setexpr listend ${loadaddr} + ${filesize};mw.b ${listend} 00 2;strings ${loadaddr};
 #md.b ${loadaddr} 60;
 
+ubootaddr=0x81E00000
+bootnet=run lstftp;run askkernel;if printenv kernelinput ;then setenv bootfile "${kernelinput}"; fi;printenv; setenv bootargs "${netbootargs} ${console} ${graphic}";tftp ${loadaddr} ${bootfile};bootm
+ubootnet=run lstftpu;run askuboot;if printenv ubootinput ;then setenv ubootfile "${ubootinput}"; fi; tftp ${ubootaddr} ${ubootfile};icache off;dcache off;go ${ubootaddr}
+
 #NFS
 nfsip=192.168.0.10
 nfsrfs=/var/nfs/bpi-r2
 setnfsargs=setenv netbootargs "root=/dev/nfs rw nfsroot=${nfsip}:${nfsrfs},nfsvers=3,tcp nfsrootdebug";
-
-ubootaddr=0x81E00000
-bootnet=run lstftp;run askkernel;if printenv kernelinput ;then setenv bootfile "${kernelinput}"; fi;printenv; setenv bootargs "${netbootargs} ${console} ${graphic}";tftp ${loadaddr} ${bootfile};bootm
-ubootnet=run lstftpu;run askuboot;if printenv ubootinput ;then setenv ubootfile "${ubootinput}"; fi; tftp ${ubootaddr} ${ubootfile};icache off;dcache off;go ${ubootaddr}
 bootnfs=run setnfsargs bootnet
 
 #separate fdt+dto
 dtaddr=0x83f00000
 fdt_high=0xffffffff
+
+kernel419_nodt=uImage_4.19.13-main_nodt
+fdt419=4.19.13-main.dtb
+dtolist419=bpi-r2-mac.dtb
 
 loadfdt=fatload ${device} ${partition} ${dtaddr} ${bpi}/${board}/${service}/dtb/${fdt}
 loadkernel=echo "loading kernel ${kernel}...";fatload ${device} ${partition} ${loadaddr} ${bpi}/${board}/${service}/${kernel}
@@ -92,10 +98,6 @@ loaddtolist=for dto in ${dtolist} ; do run loaddto ; done
 
 bootall=if printenv fdt; then run loadfdt; if printenv dtolist;then run loaddtolist;fi; bootm ${loadaddr} - ${dtaddr} ;else bootm; fi
 newboot2=run buildargs; printenv bootargs; run loadkernel; run bootall;
-
-#automatic reload from sd/emmc
-bootdelay=0
-bootcmd=setenv bootdelay 3; run reloadmenu;
 
 #sata/ahci
 initsata=pci enum;scsi scan;
@@ -109,7 +111,6 @@ loadfilesata=fatload scsi ${partsata} ${scriptaddr} ${dirsata}/${filesata};setex
 loadkernelsata=fatload scsi ${partsata} ${loadaddr} ${dirsata}/${kernelsata};bootm
 lssata=ls scsi ${partsata} ${$dirsata}
 
-png=ping ${serverip}
 askaddr=askenv addrinput "enter address:";
 lsmem=run askaddr;if printenv addrinput;then setenv baseaddr ${addrinput};run listmem; fi
 listmem=if printenv baseaddr;then setenv i 0;while test ${i} -lt 10;do setenv j 0;while test ${j} -lt 10;do setenv offset "${i}${j}00";setexpr addr $baseaddr + ${offset};md $addr;setexpr j ${j} + 1; done;setexpr i ${i} + 1;done;fi

@@ -31,13 +31,19 @@ function upload {
 
 case $1 in
 	"build")
-		make LOCALVERSION="-$ubranch";
-		FILESIZE=$(stat -c%s "u-boot.bin");
-		if [[ $FILESIZE -gt $MAXSIZE ]]; then
-			echo "=============== WARNING ==============="
-			echo "u-boot will overwrite env-storage area!"
-			echo "if you use this u-boot.bin don't use saveenv!"
-		fi;
+		LANG=C
+		CFLAGS=-j$(grep ^processor /proc/cpuinfo  | wc -l)
+		make LOCALVERSION="-$ubranch" ${CFLAGS} 2> build.log;
+		if [[ $? -eq 0 ]];then
+			FILESIZE=$(stat -c%s "u-boot.bin");
+			if [[ $FILESIZE -gt $MAXSIZE ]]; then
+				echo "=============== WARNING ==============="
+				echo "u-boot will overwrite env-storage area!"
+				echo "if you use this u-boot.bin don't use saveenv!"
+			fi;
+		else
+			echo "build failed!"
+		fi
 	;;
 	"config")
 		make menuconfig;

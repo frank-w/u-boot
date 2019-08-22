@@ -68,13 +68,13 @@ ubootfile=u-boot.bin
 netbootargs=root=/dev/mmcblk0p2 rw rootwait
 #ip=dhcp sets ip on eth0 instead of wan
 
-lstftp=tftp ${loadaddr} ${serverip}:files.lst;setexpr listend ${loadaddr} + ${filesize};mw.b ${listend} 00 2;strings ${loadaddr};
-lstftpu=tftp ${loadaddr} ${serverip}:bootfiles.lst;setexpr listend ${loadaddr} + ${filesize};mw.b ${listend} 00 2;strings ${loadaddr};
+lstftp=if tftp ${loadaddr} ${serverip}:files.lst;then setexpr listend ${loadaddr} + ${filesize};mw.b ${listend} 00 2;strings ${loadaddr};else echo "tftp download failed";fi
+lstftpu=if tftp ${loadaddr} ${serverip}:bootfiles.lst;then setexpr listend ${loadaddr} + ${filesize};mw.b ${listend} 00 2;strings ${loadaddr};else echo "tftp download failed";fi
 #md.b ${loadaddr} 60;
 
 ubootaddr=0x81E00000
-bootnet=run lstftp;run askkernel;if printenv kernelinput ;then setenv bootfile "${kernelinput}"; fi;printenv; setenv bootargs "${netbootargs} ${console} ${graphic}";tftp ${loadaddr} ${bootfile};bootm
-ubootnet=run lstftpu;run askuboot;if printenv ubootinput ;then setenv ubootfile "${ubootinput}"; fi; tftp ${ubootaddr} ${ubootfile};icache off;dcache off;go ${ubootaddr}
+bootnet=run lstftp;run askkernel;if printenv kernelinput ;then setenv bootfile "${kernelinput}"; fi;printenv; setenv bootargs "${netbootargs} ${console} ${graphic}";if tftp ${loadaddr} ${bootfile};then bootm;fi
+ubootnet=run lstftpu;run askuboot;if printenv ubootinput ;then setenv ubootfile "${ubootinput}"; fi; if tftp ${ubootaddr} ${ubootfile};then icache off;dcache off;go ${ubootaddr};fi
 
 #NFS
 nfsip=192.168.0.10

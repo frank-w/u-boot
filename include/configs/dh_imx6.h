@@ -23,7 +23,6 @@
 
 /* SPL */
 #include "imx6_spl.h"			/* common IMX6 SPL configuration */
-#define CONFIG_SYS_SPI_U_BOOT_OFFS	0x11400
 #define CONFIG_SPL_TARGET		"u-boot-with-spl.imx"
 
 /* Miscellaneous configurable options */
@@ -48,16 +47,7 @@
 #define CONFIG_FEC_MXC_PHYADDR		0
 #define CONFIG_ARP_TIMEOUT		200UL
 
-/* I2C Configs */
-#define CONFIG_SYS_I2C
-#define CONFIG_SYS_I2C_MXC
-#define CONFIG_SYS_I2C_MXC_I2C1		/* enable I2C bus 1 */
-#define CONFIG_SYS_I2C_MXC_I2C2		/* enable I2C bus 2 */
-#define CONFIG_SYS_I2C_MXC_I2C3		/* enable I2C bus 3 */
-#define CONFIG_SYS_I2C_SPEED		100000
-
 /* MMC Configs */
-#define CONFIG_FSL_USDHC
 #define CONFIG_SYS_FSL_ESDHC_ADDR	0
 #define CONFIG_SYS_FSL_USDHC_NUM	3
 #define CONFIG_SYS_MMC_ENV_DEV		2 /* 1 = SDHC3, 2 = SDHC4 (eMMC) */
@@ -98,7 +88,6 @@
 #endif
 
 /* Watchdog */
-#define CONFIG_WATCHDOG_TIMEOUT_MSECS	60000
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE

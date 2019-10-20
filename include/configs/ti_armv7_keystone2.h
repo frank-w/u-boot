@@ -15,7 +15,6 @@
 #define CONFIG_SKIP_LOWLEVEL_INIT	/* U-Boot is a 2nd stage loader */
 
 /* SoC Configuration */
-#define CONFIG_ARCH_CPU_INIT
 #define CONFIG_SPL_TARGET		"u-boot-spi.gph"
 
 /* Memory Configuration */
@@ -44,7 +43,6 @@
 					CONFIG_SYS_SPL_MALLOC_SIZE + \
 					SPL_MALLOC_F_SIZE + \
 					KEYSTONE_SPL_STACK_SIZE - 4)
-#define CONFIG_SYS_SPI_U_BOOT_OFFS	CONFIG_SPL_PAD_TO
 
 /* SRAM scratch space entries  */
 #define SRAM_SCRATCH_SPACE_ADDR	CONFIG_SPL_STACK + 0x8
@@ -154,7 +152,6 @@
 #define CONFIG_SYS_NAND_MASK_CLE		0x4000
 #define CONFIG_SYS_NAND_MASK_ALE		0x2000
 #define CONFIG_SYS_NAND_CS			2
-#define CONFIG_SYS_NAND_USE_FLASH_BBT
 #define CONFIG_SYS_NAND_4BIT_HW_ECC_OOBFIRST
 
 #define CONFIG_SYS_NAND_LARGEPAGE
@@ -175,7 +172,6 @@
 	DFU_ALT_INFO_MMC \
 
 /* U-Boot general configuration */
-#define CONFIG_MX_CYCLIC
 #define CONFIG_TIMESTAMP
 
 /* EDMA3 */
@@ -221,8 +217,8 @@
 	"addr_secdb_key=0xc000000\0"					\
 	"name_kern=zImage\0"						\
 	"addr_mon=0x87000000\0"						\
-	"addr_non_sec_mon=0x0c087fc0\0"					\
-	"addr_load_sec_bm=0x0c08c000\0"					\
+	"addr_non_sec_mon=0x0c097fc0\0"					\
+	"addr_load_sec_bm=0x0c09c000\0"					\
 	"run_mon=mon_install ${addr_mon}\0"				\
 	"run_mon_hs=mon_install ${addr_non_sec_mon} "			\
 			"${addr_load_sec_bm}\0"				\
@@ -240,12 +236,10 @@
 	"get_mon_net=dhcp ${addr_mon} ${tftp_root}/${name_mon}\0"	\
 	"get_mon_nfs=nfs ${addr_mon} ${nfs_root}/boot/${name_mon}\0"	\
 	"get_mon_ubi=ubifsload ${addr_mon} ${bootdir}/${name_mon}\0"	\
-	"get_fit_net=dhcp ${fit_loadaddr} ${tftp_root}"			\
-						"/${fit_bootfile}\0"	\
-	"get_fit_nfs=nfs ${fit_loadaddr} ${nfs_root}/boot/${fit_bootfile}\0"\
-	"get_fit_ubi=ubifsload ${fit_loadaddr} ${bootdir}/${fit_bootfile}\0"\
-	"get_fit_mmc=load mmc ${bootpart} ${fit_loadaddr} "		\
-					"${bootdir}/${fit_bootfile}\0"	\
+	"get_fit_net=dhcp ${addr_fit} ${tftp_root}/${name_fit}\0"	\
+	"get_fit_nfs=nfs ${addr_fit} ${nfs_root}/boot/${name_fit}\0"	\
+	"get_fit_ubi=ubifsload ${addr_fit} ${bootdir}/${name_fit}\0"	\
+	"get_fit_mmc=load mmc ${bootpart} ${addr_fit} ${bootdir}/${name_fit}\0" \
 	"get_uboot_net=dhcp ${loadaddr} ${tftp_root}/${name_uboot}\0"	\
 	"get_uboot_nfs=nfs ${loadaddr} ${nfs_root}/boot/${name_uboot}\0" \
 	"burn_uboot_spi=sf probe; sf erase 0 0x100000; "		\
@@ -261,8 +255,7 @@
 	"get_fdt_ramfs=dhcp ${fdtaddr} ${tftp_root}/${name_fdt}\0"	\
 	"get_kern_ramfs=dhcp ${loadaddr} ${tftp_root}/${name_kern}\0"	\
 	"get_mon_ramfs=dhcp ${addr_mon} ${tftp_root}/${name_mon}\0"	\
-	"get_fit_ramfs=dhcp ${fit_loadaddr} ${tftp_root}"		\
-						"/${fit_bootfile}\0"	\
+	"get_fit_ramfs=dhcp ${addr_fit} ${tftp_root}/${name_fit}\0"	\
 	"get_fs_ramfs=dhcp ${rdaddr} ${tftp_root}/${name_fs}\0"	\
 	"get_ubi_net=dhcp ${addr_ubi} ${tftp_root}/${name_ubi}\0"	\
 	"get_ubi_nfs=nfs ${addr_ubi} ${nfs_root}/boot/${name_ubi}\0"	\
@@ -290,7 +283,7 @@
 	"run run_mon_hs; "						\
 	"run init_${boot}; "						\
 	"run get_fit_${boot}; "						\
-	"bootm ${fit_loadaddr}#${name_fdt}"
+	"bootm ${addr_fit}#${name_fdt}"
 #endif
 #endif
 

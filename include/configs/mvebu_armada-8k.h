@@ -15,7 +15,6 @@
 #define CONFIG_SYS_SDRAM_BASE	0x00000000
 
 /* auto boot */
-#define CONFIG_PREBOOT
 
 #define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, \
 					  115200, 230400, 460800, 921600 }
@@ -39,7 +38,6 @@
 /*
  * Other required minimal configurations
  */
-#define CONFIG_ARCH_CPU_INIT		/* call arch_cpu_init() */
 #define CONFIG_SYS_LOAD_ADDR	0x00800000	/* default load adr- 8M */
 #define CONFIG_SYS_MEMTEST_START 0x00800000	/* 8M */
 #define CONFIG_SYS_MEMTEST_END	0x00ffffff	/*(_16M -1) */
@@ -59,7 +57,6 @@
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
 #define CONFIG_SYS_NAND_MAX_CHIPS	1
 #define CONFIG_SYS_NAND_ONFI_DETECTION
-#define CONFIG_SYS_NAND_USE_FLASH_BBT
 
 /*
  * Ethernet Driver configuration

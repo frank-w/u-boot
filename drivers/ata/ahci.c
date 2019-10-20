@@ -548,6 +548,7 @@ static int ahci_port_start(struct ahci_uc_priv *uc_priv, u8 port)
 {
 	struct ahci_ioports *pp = &(uc_priv->port[port]);
 	void __iomem *port_mmio = pp->port_mmio;
+	u64 dma_addr;
 	u32 port_status;
 	void __iomem *mem;
 
@@ -593,16 +594,12 @@ static int ahci_port_start(struct ahci_uc_priv *uc_priv, u8 port)
 	pp->cmd_tbl_sg =
 			(struct ahci_sg *)(uintptr_t)virt_to_phys((void *)mem);
 
-
-	writel_with_flush((u32)pp->cmd_slot, port_mmio + PORT_LST_ADDR);
-#ifndef CONFIG_PHYS_64BIT
-	writel_with_flush(0, port_mmio + PORT_LST_ADDR_HI);
-#endif
-
-	writel_with_flush(pp->rx_fis, port_mmio + PORT_FIS_ADDR);
-#ifndef CONFIG_PHYS_64BIT
-	writel_with_flush(0, port_mmio + PORT_FIS_ADDR_HI);
-#endif
+	dma_addr = (ulong)pp->cmd_slot;
+	writel_with_flush(dma_addr, port_mmio + PORT_LST_ADDR);
+	writel_with_flush(dma_addr >> 32, port_mmio + PORT_LST_ADDR_HI);
+	dma_addr = (ulong)pp->rx_fis;
+	writel_with_flush(dma_addr, port_mmio + PORT_FIS_ADDR);
+	writel_with_flush(dma_addr >> 32, port_mmio + PORT_FIS_ADDR_HI);
 
 #ifdef CONFIG_SUNXI_AHCI
 	sunxi_dma_init(port_mmio);
@@ -1172,6 +1169,14 @@ int ahci_probe_scsi(struct udevice *ahci_dev, ulong base)
 	ret = ahci_start_ports(uc_priv);
 	if (ret)
 		return ret;
+
+	/*
+	 * scsi_scan_dev() scans devices up-to the number of max_id.
+	 * Update max_id if the number of detected ports exceeds max_id.
+	 * This allows SCSI to scan all detected ports.
+	 */
+	uc_plat->max_id = max_t(unsigned long, uc_priv->n_ports,
+				uc_plat->max_id);
 
 	return 0;
 }

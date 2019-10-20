@@ -33,14 +33,11 @@
 
 /* Misc CPU related */
 #define CONFIG_SKIP_LOWLEVEL_INIT
-#define CONFIG_ARCH_CPU_INIT
 #define CONFIG_SETUP_MEMORY_TAGS
 #define CONFIG_INITRD_TAG
 #define CONFIG_SERIAL_TAG
 #define CONFIG_REVISION_TAG
 #define CONFIG_CMDLINE_TAG			/* enable passing of ATAGs */
-
-#define CONFIG_PREBOOT				/* enable preboot variable */
 
 /*
  * Hardware drivers

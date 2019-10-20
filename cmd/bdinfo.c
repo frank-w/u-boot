@@ -9,6 +9,7 @@
  */
 #include <common.h>
 #include <command.h>
+#include <env.h>
 #include <linux/compiler.h>
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -328,7 +329,7 @@ static int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc,
 	print_num("reloc off", gd->reloc_off);
 	print_num("irq_sp", gd->irq_sp);	/* irq stack pointer */
 	print_num("sp start ", gd->start_addr_sp);
-#if defined(CONFIG_LCD) || defined(CONFIG_VIDEO)
+#if defined(CONFIG_LCD) || defined(CONFIG_VIDEO) || defined(CONFIG_DM_VIDEO)
 	print_num("FB base  ", gd->fb_base);
 #endif
 	/*

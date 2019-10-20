@@ -12,13 +12,9 @@
 
 #include <asm/arch/rmobile.h>
 
-#define CONFIG_ARCH_CPU_INIT
-
 #define CONFIG_CMDLINE_TAG
 #define CONFIG_SETUP_MEMORY_TAGS
 #define CONFIG_INITRD_TAG
-
-#undef  CONFIG_SHOW_BOOT_PROGRESS
 
 /* MEMORY */
 #define KZM_SDRAM_BASE	(0x40000000)

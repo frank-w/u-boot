@@ -28,9 +28,6 @@
 #define CONFIG_SYS_FSL_ESDHC_ADDR	0
 #define CONFIG_SYS_FSL_USDHC_NUM	1
 
-#undef CONFIG_BOOTM_PLAN9
-#undef CONFIG_BOOTM_RTEMS
-
 /* I2C configs */
 #define CONFIG_SYS_I2C_SPEED		100000
 
@@ -59,19 +56,6 @@
 		"tftp ${fdt_addr_r} " FDT_FILE " && " \
 		"run fdt_fixup && bootz ${kernel_addr_r} - ${fdt_addr_r}\0" \
 
-#define SD_BOOTCMD \
-	"set_sdargs=setenv sdargs root=PARTUUID=${uuid} ro rootwait\0" \
-	"sdboot=run setup; run sdfinduuid; run set_sdargs; " \
-	"setenv bootargs ${defargs} ${sdargs} " \
-	"${setupargs} ${vidargs}; echo Booting from MMC/SD card...; " \
-	"load mmc ${sddev}:${sdbootpart} ${kernel_addr_r} ${kernel_file} && " \
-	"load mmc ${sddev}:${sdbootpart} ${fdt_addr_r} " FDT_FILE " && " \
-	"run fdt_fixup && bootz ${kernel_addr_r} - ${fdt_addr_r}\0" \
-	"sdbootpart=1\0" \
-	"sddev=0\0" \
-	"sdfinduuid=part uuid mmc ${sddev}:${sdrootpart} uuid\0" \
-	"sdrootpart=2\0"
-
 #define UBI_BOOTCMD \
 	"ubiargs=ubi.mtd=ubi root=ubi0:rootfs rw rootfstype=ubifs " \
 		"ubi.fm_autoconvert=1\0" \
@@ -98,7 +82,6 @@
 	BOOTENV \
 	MEM_LAYOUT_ENV_SETTINGS \
 	NFS_BOOTCMD \
-	SD_BOOTCMD \
 	UBI_BOOTCMD \
 	"console=ttymxc0\0" \
 	"defargs=user_debug=30\0" \
@@ -123,7 +106,7 @@
 		"${board}/flash_blk.img && source ${loadaddr}\0" \
 	"splashpos=m,m\0" \
 	"videomode=video=ctfb:x:640,y:480,depth:18,pclk:39722,le:48,ri:16,up:33,lo:10,hs:96,vs:2,sync:0,vmode:0\0" \
-	"vidargs=video=mxsfb:640x480-16@60"
+	"vidargs=video=mxsfb:640x480M-16@60"
 
 #define CONFIG_SYS_MEMTEST_START	0x80000000
 #define CONFIG_SYS_MEMTEST_END		(CONFIG_SYS_MEMTEST_START + 0x08000000)
@@ -153,7 +136,6 @@
 /* used to initialize CONFIG_SYS_NAND_BASE_LIST which is unused */
 #define CONFIG_SYS_NAND_BASE		-1
 #define CONFIG_SYS_NAND_ONFI_DETECTION
-#define CONFIG_SYS_NAND_USE_FLASH_BBT
 
 /* USB Configs */
 #define CONFIG_EHCI_HCD_INIT_AFTER_RESET
@@ -170,7 +152,7 @@
 #define CONFIG_SYS_DFU_DATA_BUF_SIZE	SZ_16M
 #define DFU_DEFAULT_POLL_TIMEOUT	300
 
-#ifdef CONFIG_VIDEO
+#if defined(CONFIG_VIDEO) || defined(CONFIG_DM_VIDEO)
 #define CONFIG_VIDEO_MXS
 #define MXS_LCDIF_BASE MX6UL_LCDIF1_BASE_ADDR
 #define CONFIG_VIDEO_LOGO

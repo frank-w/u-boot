@@ -24,6 +24,7 @@ config USB_XHCI_DWC3
 config USB_XHCI_DWC3_OF_SIMPLE
 	bool "DesignWare USB3 DRD Generic OF Simple Glue Layer"
 	depends on DM_USB
+	default y if ARCH_ROCKCHIP
 	default y if DRA7XX
 	help
 	  Support USB2/3 functionality in simple SoC integrations with
@@ -235,6 +236,13 @@ config USB_OHCI_HCD
 	  based system where you're not sure, the "lspci -v" entry will list the
 	  right "prog-if" for your USB controller(s):  EHCI, OHCI, or UHCI.
 
+config USB_OHCI_PCI
+	bool "Support for PCI-based OHCI USB controller"
+	depends on DM_USB
+	default n
+	help
+	  Enables support for the PCI-based OHCI controller.
+
 if USB_OHCI_HCD
 
 config USB_OHCI_GENERIC
@@ -292,3 +300,12 @@ config USB_DWC2_BUFFER_SIZE
 	  because larger transactions could be split in smaller ones.
 
 endif # USB_DWC2
+
+config USB_R8A66597_HCD
+	bool "Renesas R8A66597 USB Core support"
+	depends on OF_CONTROL
+	depends on DM_USB
+	select USB_HOST
+	---help---
+	  This enables support for the on-chip Renesas R8A66597 USB 2.0
+	  controller, present in various RZ and SH SoCs.

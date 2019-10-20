@@ -9,6 +9,7 @@
 #include <common.h>
 #include <command.h>
 #include <efi_loader.h>
+#include <env.h>
 #include <exports.h>
 #include <hexdump.h>
 #include <malloc.h>
@@ -329,7 +330,7 @@ out:
 }
 
 /**
- * do_env_print_efi() - set UEFI variable
+ * do_env_set_efi() - set UEFI variable
  *
  * @cmdtp:	Command table
  * @flag:	Command flag

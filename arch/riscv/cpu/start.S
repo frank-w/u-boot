@@ -13,7 +13,6 @@
 #include <config.h>
 #include <common.h>
 #include <elf.h>
-#include <asm/csr.h>
 #include <asm/encoding.h>
 #include <generated/asm-offsets.h>
 
@@ -40,8 +39,8 @@ secondary_harts_relocation_error:
 .section .text
 .globl _start
 _start:
-#ifdef CONFIG_RISCV_MMODE
-	csrr	a0, mhartid
+#if CONFIG_IS_ENABLED(RISCV_MMODE)
+	csrr	a0, CSR_MHARTID
 #endif
 
 	/* save hart id and dtb pointer */
@@ -63,7 +62,7 @@ _start:
 
 #ifdef CONFIG_SMP
 	/* set xSIE bit to receive IPIs */
-#ifdef CONFIG_RISCV_MMODE
+#if CONFIG_IS_ENABLED(RISCV_MMODE)
 	li	t0, MIE_MSIE
 #else
 	li	t0, SIE_SSIE
@@ -76,7 +75,11 @@ _start:
  */
 call_board_init_f:
 	li	t0, -16
+#if defined(CONFIG_SPL_BUILD) && defined(CONFIG_SPL_STACK)
+	li	t1, CONFIG_SPL_STACK
+#else
 	li	t1, CONFIG_SYS_INIT_SP_ADDR
+#endif
 	and	sp, t1, t0		/* force 16 byte alignment */
 
 call_board_init_f_0:
@@ -160,7 +163,57 @@ wait_for_gd_init:
 
 	mv	a0, zero		/* a0 <-- boot_flags = 0 */
 	la	t5, board_init_f
-	jr	t5			/* jump to board_init_f() */
+	jalr	t5			/* jump to board_init_f() */
+
+#ifdef CONFIG_SPL_BUILD
+spl_clear_bss:
+	la	t0, __bss_start
+	la	t1, __bss_end
+	beq	t0, t1, spl_stack_gd_setup
+
+spl_clear_bss_loop:
+	SREG	zero, 0(t0)
+	addi	t0, t0, REGBYTES
+	bne	t0, t1, spl_clear_bss_loop
+
+spl_stack_gd_setup:
+	jal	spl_relocate_stack_gd
+
+	/* skip setup if we did not relocate */
+	beqz	a0, spl_call_board_init_r
+	mv	s0, a0
+
+	/* setup stack on main hart */
+#ifdef CONFIG_SMP
+	/* tp: hart id */
+	slli	t0, tp, CONFIG_STACK_SIZE_SHIFT
+	sub	sp, s0, t0
+#else
+	mv	sp, s0
+#endif
+
+	/* set new stack and global data pointer on secondary harts */
+spl_secondary_hart_stack_gd_setup:
+	la	a0, secondary_hart_relocate
+	mv	a1, s0
+	mv	a2, s0
+	jal	smp_call_function
+
+	/* hang if relocation of secondary harts has failed */
+	beqz	a0, 1f
+	mv	a1, a0
+	la	a0, secondary_harts_relocation_error
+	jal	printf
+	jal	hang
+
+	/* set new global data pointer on main hart */
+1:	mv	gp, s0
+
+spl_call_board_init_r:
+	mv	a0, zero
+	mv	a1, zero
+	jal	board_init_r
+#endif
 
 /*
  * void relocate_code (addr_sp, gd, addr_moni)
@@ -216,7 +269,7 @@ fix_rela_dyn:
 /*
  * skip first reserved entry: address, type, addend
  */
-	bne	t1, t2, 7f
+	j	10f
 
 6:
 	LREG	t5, -(REGBYTES*2)(t1)	/* t5 <-- relocation info:type */
@@ -227,9 +280,7 @@ fix_rela_dyn:
 	add	t5, t5, t6		/* t5 <-- location to fix up in RAM */
 	add	t3, t3, t6		/* t3 <-- location to fix up in RAM */
 	SREG	t5, 0(t3)
-7:
-	addi	t1, t1, (REGBYTES*3)
-	ble	t1, t2, 6b
+	j	10f
 
 8:
 	la	t4, __dyn_sym_start
@@ -246,13 +297,15 @@ fix_rela_dyn:
 	li	t5, SYM_SIZE
 	mul	t0, t0, t5
 	add	s5, t4, t0
+	LREG	t0, -(REGBYTES)(t1)	/* t0 <-- addend */
 	LREG	t5, REGBYTES(s5)
+	add	t5, t5, t0
 	add	t5, t5, t6		/* t5 <-- location to fix up in RAM */
 	add	t3, t3, t6		/* t3 <-- location to fix up in RAM */
 	SREG	t5, 0(t3)
 10:
 	addi	t1, t1, (REGBYTES*3)
-	ble	t1, t2, 9b
+	ble	t1, t2, 6b
 
 /*
  * trap update
@@ -345,7 +398,7 @@ secondary_hart_loop:
 
 #ifdef CONFIG_SMP
 	csrr	t0, MODE_PREFIX(ip)
-#ifdef CONFIG_RISCV_MMODE
+#if CONFIG_IS_ENABLED(RISCV_MMODE)
 	andi	t0, t0, MIE_MSIE
 #else
 	andi	t0, t0, SIE_SSIE

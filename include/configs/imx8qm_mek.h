@@ -10,7 +10,6 @@
 #include <asm/arch/imx-regs.h>
 
 #ifdef CONFIG_SPL_BUILD
-#define CONFIG_SPL_TEXT_BASE				0x0
 #define CONFIG_SPL_MAX_SIZE				(124 * 1024)
 #define CONFIG_SYS_MONITOR_LEN				(1024 * 1024)
 #define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_USE_SECTOR
@@ -45,9 +44,7 @@
 #undef CONFIG_CMD_IMLS
 
 #undef CONFIG_CMD_CRC32
-#undef CONFIG_BOOTM_NETBSD
 
-#define CONFIG_FSL_USDHC
 #define CONFIG_SYS_FSL_ESDHC_ADDR       0
 #define USDHC1_BASE_ADDR                0x5B010000
 #define USDHC2_BASE_ADDR                0x5B020000
@@ -66,7 +63,7 @@
 	"fdt_addr=0x83000000\0"			\
 	"fdt_high=0xffffffffffffffff\0"		\
 	"boot_fdt=try\0" \
-	"fdt_file=fsl-imx8qxp-mek.dtb\0" \
+	"fdt_file=imx8qm-mek.dtb\0" \
 	"initrd_addr=0x83800000\0"		\
 	"initrd_high=0xffffffffffffffff\0" \
 	"mmcdev="__stringify(CONFIG_SYS_MMC_ENV_DEV)"\0" \

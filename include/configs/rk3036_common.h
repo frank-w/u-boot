@@ -8,13 +8,13 @@
 #include <asm/arch-rockchip/hardware.h>
 #include "rockchip-common.h"
 
-#define CONFIG_SYS_MALLOC_LEN		(32 << 20)
 #define CONFIG_SYS_CBSIZE		1024
 #define CONFIG_SKIP_LOWLEVEL_INIT
 
-#define CONFIG_SYS_TIMER_RATE		(24 * 1000 * 1000)
-#define CONFIG_SYS_TIMER_BASE		0x200440a0 /* TIMER5 */
-#define CONFIG_SYS_TIMER_COUNTER	(CONFIG_SYS_TIMER_BASE + 8)
+#define CONFIG_ROCKCHIP_STIMER_BASE	0x200440a0
+#define COUNTER_FREQUENCY		24000000
+#define CONFIG_SYS_ARCH_TIMER
+#define CONFIG_SYS_HZ_CLOCK		24000000
 
 #define CONFIG_SYS_INIT_SP_ADDR		0x60100000
 #define CONFIG_SYS_LOAD_ADDR		0x60800800
@@ -27,15 +27,8 @@
 #define SDRAM_BANK_SIZE			(512UL << 20UL)
 #define SDRAM_MAX_SIZE                  (CONFIG_NR_DRAM_BANKS * SDRAM_BANK_SIZE)
 
-#define CONFIG_SPI_FLASH_GIGADEVICE
-
 #ifndef CONFIG_SPL_BUILD
-/* usb otg */
 
-/* usb mass storage */
-#define CONFIG_CMD_USB_MASS_STORAGE
-
-/* usb host */
 #define ENV_MEM_LAYOUT_SETTINGS \
 	"scriptaddr=0x60000000\0" \
 	"pxefile_addr_r=0x60100000\0" \
@@ -54,7 +47,5 @@
 	ENV_MEM_LAYOUT_SETTINGS \
 	BOOTENV
 #endif
-
-#define CONFIG_PREBOOT
 
 #endif

@@ -356,17 +356,23 @@ static int setup_spl_handoff(void)
 	return 0;
 }
 
+__weak int handoff_arch_save(struct spl_handoff *ho)
+{
+	return 0;
+}
+
 static int write_spl_handoff(void)
 {
 	struct spl_handoff *ho;
+	int ret;
 
 	ho = bloblist_find(BLOBLISTT_SPL_HANDOFF, sizeof(struct spl_handoff));
 	if (!ho)
 		return -ENOENT;
 	handoff_save_dram(ho);
-#ifdef CONFIG_SANDBOX
-	ho->arch.magic = TEST_HANDOFF_MAGIC;
-#endif
+	ret = handoff_arch_save(ho);
+	if (ret)
+		return ret;
 	debug(SPL_TPL_PROMPT "Wrote SPL handoff\n");
 
 	return 0;
@@ -404,23 +410,6 @@ static int spl_common_init(bool setup_malloc)
 		return ret;
 	}
 #endif
-	if (CONFIG_IS_ENABLED(BLOBLIST)) {
-		ret = bloblist_init();
-		if (ret) {
-			debug("%s: Failed to set up bloblist: ret=%d\n",
-			      __func__, ret);
-			return ret;
-		}
-	}
-	if (CONFIG_IS_ENABLED(HANDOFF)) {
-		int ret;
-
-		ret = setup_spl_handoff();
-		if (ret) {
-			puts(SPL_TPL_PROMPT "Cannot set up SPL handoff\n");
-			hang();
-		}
-	}
 	if (CONFIG_IS_ENABLED(OF_CONTROL) && !CONFIG_IS_ENABLED(OF_PLATDATA)) {
 		ret = fdtdec_setup();
 		if (ret) {
@@ -566,6 +555,24 @@ static int boot_from_devices(struct spl_image_info *spl_image,
 	return -ENODEV;
 }
 
+#if defined(CONFIG_SPL_FRAMEWORK_BOARD_INIT_F)
+void board_init_f(ulong dummy)
+{
+	if (CONFIG_IS_ENABLED(OF_CONTROL)) {
+		int ret;
+
+		ret = spl_early_init();
+		if (ret) {
+			debug("spl_early_init() failed: %d\n", ret);
+			hang();
+		}
+	}
+
+	if (CONFIG_IS_ENABLED(SERIAL_SUPPORT))
+		preloader_console_init();
+}
+#endif
+
 void board_init_r(gd_t *dummy1, ulong dummy2)
 {
 	u32 spl_boot_list[] = {
@@ -598,12 +605,30 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 	 */
 	timer_init();
 #endif
+	if (CONFIG_IS_ENABLED(BLOBLIST)) {
+		ret = bloblist_init();
+		if (ret) {
+			debug("%s: Failed to set up bloblist: ret=%d\n",
+			      __func__, ret);
+			puts(SPL_TPL_PROMPT "Cannot set up bloblist\n");
+			hang();
+		}
+	}
+	if (CONFIG_IS_ENABLED(HANDOFF)) {
+		int ret;
+
+		ret = setup_spl_handoff();
+		if (ret) {
+			puts(SPL_TPL_PROMPT "Cannot set up SPL handoff\n");
+			hang();
+		}
+	}
 
 #if CONFIG_IS_ENABLED(BOARD_INIT)
 	spl_board_init();
 #endif
 
-#if defined(CONFIG_SPL_WATCHDOG_SUPPORT) && defined(CONFIG_WDT)
+#if defined(CONFIG_SPL_WATCHDOG_SUPPORT) && CONFIG_IS_ENABLED(WDT)
 	initr_watchdog();
 #endif
 
@@ -659,6 +684,12 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 				(void *)spl_image.entry_point);
 		break;
 #endif
+#if CONFIG_IS_ENABLED(OPENSBI)
+	case IH_OS_OPENSBI:
+		debug("Jumping to U-Boot via RISC-V OpenSBI\n");
+		spl_invoke_opensbi(&spl_image);
+		break;
+#endif
 #ifdef CONFIG_SPL_OS_BOOT
 	case IH_OS_LINUX:
 		debug("Jumping to Linux\n");
@@ -710,6 +741,28 @@ void preloader_console_init(void)
 #endif
 
 /**
+ * This function is called before the stack is changed from initial stack to
+ * relocated stack. It tries to dump the stack size used
+ */
+__weak void spl_relocate_stack_check(void)
+{
+#if CONFIG_IS_ENABLED(SYS_REPORT_STACK_F_USAGE)
+	ulong init_sp = gd->start_addr_sp;
+	ulong stack_bottom = init_sp - CONFIG_VAL(SIZE_LIMIT_PROVIDE_STACK);
+	u8 *ptr = (u8 *)stack_bottom;
+	ulong i;
+
+	for (i = 0; i < CONFIG_VAL(SIZE_LIMIT_PROVIDE_STACK); i++) {
+		if (*ptr != CONFIG_VAL(SYS_STACK_F_CHECK_BYTE))
+			break;
+		ptr++;
+	}
+	printf("SPL initial stack usage: %lu bytes\n",
+	       CONFIG_VAL(SIZE_LIMIT_PROVIDE_STACK) - i);
+#endif
+}
+
+/**
  * spl_relocate_stack_gd() - Relocate stack ready for board_init_r() execution
  *
  * Sometimes board_init_f() runs with a stack in SRAM but we want to use SDRAM
@@ -733,6 +786,9 @@ ulong spl_relocate_stack_gd(void)
 	gd_t *new_gd;
 	ulong ptr = CONFIG_SPL_STACK_R_ADDR;
 
+	if (CONFIG_IS_ENABLED(SYS_REPORT_STACK_F_USAGE))
+		spl_relocate_stack_check();
+
 #if defined(CONFIG_SPL_SYS_MALLOC_SIMPLE) && CONFIG_VAL(SYS_MALLOC_F_LEN)
 	if (CONFIG_SPL_STACK_R_MALLOC_SIMPLE_LEN) {
 		debug("SPL malloc() before relocation used 0x%lx bytes (%ld KB)\n",
@@ -750,7 +806,7 @@ ulong spl_relocate_stack_gd(void)
 #if CONFIG_IS_ENABLED(DM)
 	dm_fixup_for_gd_move(new_gd);
 #endif
-#if !defined(CONFIG_ARM)
+#if !defined(CONFIG_ARM) && !defined(CONFIG_RISCV)
 	gd = new_gd;
 #endif
 	return ptr;

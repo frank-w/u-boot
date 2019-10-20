@@ -26,7 +26,10 @@ endif
 
 extra-$(CONFIG_$(SPL_TPL_)X86_16BIT_INIT) += resetvec.o start16.o
 
-obj-y	+= cpu.o cpu_x86.o
+obj-y	+= cpu.o
+ifndef CONFIG_TPL_BUILD
+obj-y	+= cpu_x86.o
+endif
 
 ifndef CONFIG_$(SPL_)X86_64
 AFLAGS_REMOVE_call32.o := -mregparm=3 \
@@ -42,6 +45,7 @@ obj-$(CONFIG_INTEL_BAYTRAIL) += baytrail/
 obj-$(CONFIG_INTEL_BRASWELL) += braswell/
 obj-$(CONFIG_INTEL_BROADWELL) += broadwell/
 obj-$(CONFIG_SYS_COREBOOT) += coreboot/
+obj-$(CONFIG_SYS_SLIMBOOTLOADER) += slimbootloader/
 obj-$(CONFIG_EFI) += efi/
 obj-$(CONFIG_QEMU) += qemu/
 obj-$(CONFIG_NORTHBRIDGE_INTEL_IVYBRIDGE) += ivybridge/

@@ -15,6 +15,7 @@
 #include <asm/arch/iomux-vf610.h>
 #include <asm/gpio.h>
 #include <asm/io.h>
+#include <env.h>
 #include <fdt_support.h>
 #include <fsl_dcu_fb.h>
 #include <g_dnl.h>
@@ -430,7 +431,9 @@ int checkboard(void)
 #if defined(CONFIG_OF_LIBFDT) && defined(CONFIG_OF_BOARD_SETUP)
 int ft_board_setup(void *blob, bd_t *bd)
 {
+#ifndef CONFIG_DM_VIDEO
 	int ret = 0;
+#endif
 #ifdef CONFIG_FDT_FIXUP_PARTITIONS
 	static const struct node_info nodes[] = {
 		{ "fsl,vf610-nfc", MTD_DEV_TYPE_NAND, }, /* NAND flash */
@@ -440,7 +443,7 @@ int ft_board_setup(void *blob, bd_t *bd)
 	puts("   Updating MTD partitions...\n");
 	fdt_fixup_mtdparts(blob, nodes, ARRAY_SIZE(nodes));
 #endif
-#ifdef CONFIG_VIDEO_FSL_DCU_FB
+#if defined(CONFIG_VIDEO_FSL_DCU_FB) && !defined(CONFIG_DM_VIDEO)
 	ret = fsl_dcu_fixedfb_setup(blob);
 	if (ret)
 		return ret;

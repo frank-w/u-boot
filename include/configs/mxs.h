@@ -45,7 +45,7 @@
 
 /* SPL */
 #ifndef CONFIG_SPL_FRAMEWORK
-#define CONFIG_SPL_NO_CPU_SUPPORT_CODE
+#define CONFIG_SPL_NO_CPU_SUPPORT
 #define CONFIG_SPL_START_S_PATH	"arch/arm/cpu/arm926ejs/mxs"
 #endif
 
@@ -94,12 +94,6 @@
 /*
  * Drivers
  */
-
-/* APBH DMA */
-
-/* GPIO */
-#define CONFIG_MXS_GPIO
-
 /*
  * DUART Serial Driver.
  * Conflicts with AUART driver which can be set by board.

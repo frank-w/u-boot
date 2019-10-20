@@ -79,7 +79,7 @@ int ofnode_read_u64(ofnode node, const char *propname, u64 *outp)
 	return 0;
 }
 
-int ofnode_read_u64_default(ofnode node, const char *propname, u64 def)
+u64 ofnode_read_u64_default(ofnode node, const char *propname, u64 def)
 {
 	assert(ofnode_valid(node));
 	ofnode_read_u64(node, propname, &def);
@@ -212,7 +212,11 @@ ofnode ofnode_get_parent(ofnode node)
 
 const char *ofnode_get_name(ofnode node)
 {
-	assert(ofnode_valid(node));
+	if (!ofnode_valid(node)) {
+		debug("%s node not valid\n", __func__);
+		return NULL;
+	}
+
 	if (ofnode_is_np(node))
 		return strrchr(node.np->full_name, '/') + 1;
 
@@ -257,12 +261,15 @@ fdt_addr_t ofnode_get_addr_size_index(ofnode node, int index, fdt_size_t *size)
 
 	if (ofnode_is_np(node)) {
 		const __be32 *prop_val;
+		u64 size64;
 		uint flags;
 
-		prop_val = of_get_address(ofnode_to_np(node), index,
-					  (u64 *)size, &flags);
+		prop_val = of_get_address(ofnode_to_np(node), index, &size64,
+					  &flags);
 		if (!prop_val)
 			return FDT_ADDR_T_NONE;
+		if (size)
+			*size = size64;
 
 		ns = of_n_size_cells(ofnode_to_np(node));
 
@@ -613,7 +620,7 @@ int ofnode_read_pci_addr(ofnode node, enum fdt_pci_space type,
 			if ((fdt32_to_cpu(*cell) & type) == type) {
 				addr->phys_hi = fdt32_to_cpu(cell[0]);
 				addr->phys_mid = fdt32_to_cpu(cell[1]);
-				addr->phys_lo = fdt32_to_cpu(cell[1]);
+				addr->phys_lo = fdt32_to_cpu(cell[2]);
 				break;
 			}
 
@@ -770,6 +777,14 @@ u64 ofnode_translate_address(ofnode node, const fdt32_t *in_addr)
 		return fdt_translate_address(gd->fdt_blob, ofnode_to_offset(node), in_addr);
 }
 
+u64 ofnode_translate_dma_address(ofnode node, const fdt32_t *in_addr)
+{
+	if (ofnode_is_np(node))
+		return of_translate_dma_address(ofnode_to_np(node), in_addr);
+	else
+		return fdt_translate_dma_address(gd->fdt_blob, ofnode_to_offset(node), in_addr);
+}
+
 int ofnode_device_is_compatible(ofnode node, const char *compat)
 {
 	if (ofnode_is_np(node))
@@ -876,5 +891,5 @@ int ofnode_set_enabled(ofnode node, bool value)
 	if (value)
 		return ofnode_write_string(node, "status", "okay");
 	else
-		return ofnode_write_string(node, "status", "disable");
+		return ofnode_write_string(node, "status", "disabled");
 }

@@ -47,18 +47,18 @@ int mmc_set_ios(struct mmc *mmc)
 	return dm_mmc_set_ios(mmc->dev);
 }
 
-int dm_mmc_wait_dat0(struct udevice *dev, int state, int timeout)
+int dm_mmc_wait_dat0(struct udevice *dev, int state, int timeout_us)
 {
 	struct dm_mmc_ops *ops = mmc_get_ops(dev);
 
 	if (!ops->wait_dat0)
 		return -ENOSYS;
-	return ops->wait_dat0(dev, state, timeout);
+	return ops->wait_dat0(dev, state, timeout_us);
 }
 
-int mmc_wait_dat0(struct mmc *mmc, int state, int timeout)
+int mmc_wait_dat0(struct mmc *mmc, int state, int timeout_us)
 {
-	return dm_mmc_wait_dat0(mmc->dev, state, timeout);
+	return dm_mmc_wait_dat0(mmc->dev, state, timeout_us);
 }
 
 int dm_mmc_get_wp(struct udevice *dev)
@@ -121,6 +121,20 @@ int mmc_set_enhanced_strobe(struct mmc *mmc)
 	return dm_mmc_set_enhanced_strobe(mmc->dev);
 }
 #endif
+
+int dm_mmc_host_power_cycle(struct udevice *dev)
+{
+	struct dm_mmc_ops *ops = mmc_get_ops(dev);
+
+	if (ops->host_power_cycle)
+		return ops->host_power_cycle(dev);
+	return 0;
+}
+
+int mmc_host_power_cycle(struct mmc *mmc)
+{
+	return dm_mmc_host_power_cycle(mmc->dev);
+}
 
 int mmc_of_parse(struct udevice *dev, struct mmc_config *cfg)
 {
@@ -360,6 +374,7 @@ static int mmc_select_hwpart(struct udevice *bdev, int hwpart)
 	struct udevice *mmc_dev = dev_get_parent(bdev);
 	struct mmc *mmc = mmc_get_mmc_dev(mmc_dev);
 	struct blk_desc *desc = dev_get_uclass_platdata(bdev);
+	int ret;
 
 	if (desc->hwpart == hwpart)
 		return 0;
@@ -367,7 +382,11 @@ static int mmc_select_hwpart(struct udevice *bdev, int hwpart)
 	if (mmc->part_config == MMCPART_NOAVAILABLE)
 		return -EMEDIUMTYPE;
 
-	return mmc_switch_part(mmc, hwpart);
+	ret = mmc_switch_part(mmc, hwpart);
+	if (!ret)
+		blkcache_invalidate(desc->if_type, desc->devnum);
+
+	return ret;
 }
 
 static int mmc_blk_probe(struct udevice *dev)
@@ -422,10 +441,6 @@ U_BOOT_DRIVER(mmc_blk) = {
 };
 #endif /* CONFIG_BLK */
 
-U_BOOT_DRIVER(mmc) = {
-	.name	= "mmc",
-	.id	= UCLASS_MMC,
-};
 
 UCLASS_DRIVER(mmc) = {
 	.id		= UCLASS_MMC,

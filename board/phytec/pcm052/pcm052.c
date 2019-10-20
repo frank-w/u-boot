@@ -13,8 +13,8 @@
 #include <asm/arch/ddrmc-vf610.h>
 #include <asm/arch/crm_regs.h>
 #include <asm/arch/clock.h>
+#include <env.h>
 #include <led.h>
-#include <environment.h>
 #include <miiphy.h>
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -376,7 +376,7 @@ int board_late_init(void)
 	if ((reg & SRC_SBMR1_BOOTCFG1_SDMMC) &&
 	    !(reg & SRC_SBMR1_BOOTCFG1_MMC)) {
 		printf("------ SD card boot -------\n");
-		set_default_env("!LVFBootloader", 0);
+		env_set_default("!LVFBootloader", 0);
 		env_set("bootcmd",
 			"run prepare_install_bk4r1_envs; run install_bk4r1rs");
 	}
@@ -403,7 +403,20 @@ int board_phy_config(struct phy_device *phydev)
 int checkboard(void)
 {
 #ifdef CONFIG_TARGET_BK4R1
-	puts("Board: BK4r1 (L333)\n");
+	u32 *gpio3_pdir = (u32 *)(GPIO3_BASE_ADDR + 0x10);
+
+	/*
+	 * USB_RESET_N (PTC30 - GPIO103 - PORT3[7]):
+	 * L333 -> pull up added -> read 1
+	 * L320 -> no pull up -> read 0
+	 *
+	 * Default iomuxc_ptc30 value after reset: 0x300061 -> RCON28
+	 * - input enabled, pull (up/down) disabled
+	 */
+	if (*gpio3_pdir & BIT(7))
+		puts("Board: BK4r1 (L333)\n");
+	else
+		puts("Board: BK4r1 (L320)\n");
 #else
 	puts("Board: PCM-052\n");
 #endif

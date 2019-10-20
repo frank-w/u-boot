@@ -31,7 +31,7 @@ static int mmc_select_mode_and_width(struct mmc *mmc, uint card_caps);
 
 #if !CONFIG_IS_ENABLED(DM_MMC)
 
-static int mmc_wait_dat0(struct mmc *mmc, int state, int timeout)
+static int mmc_wait_dat0(struct mmc *mmc, int state, int timeout_us)
 {
 	return -ENOSYS;
 }
@@ -230,12 +230,12 @@ int mmc_send_status(struct mmc *mmc, unsigned int *status)
 	return -ECOMM;
 }
 
-int mmc_poll_for_busy(struct mmc *mmc, int timeout)
+int mmc_poll_for_busy(struct mmc *mmc, int timeout_ms)
 {
 	unsigned int status;
 	int err;
 
-	err = mmc_wait_dat0(mmc, 1, timeout);
+	err = mmc_wait_dat0(mmc, 1, timeout_ms * 1000);
 	if (err != -ENOSYS)
 		return err;
 
@@ -256,13 +256,13 @@ int mmc_poll_for_busy(struct mmc *mmc, int timeout)
 			return -ECOMM;
 		}
 
-		if (timeout-- <= 0)
+		if (timeout_ms-- <= 0)
 			break;
 
 		udelay(1000);
 	}
 
-	if (timeout <= 0) {
+	if (timeout_ms <= 0) {
 #if !defined(CONFIG_SPL_BUILD) || defined(CONFIG_SPL_LIBCOMMON_SUPPORT)
 		pr_err("Timeout waiting card ready\n");
 #endif
@@ -750,17 +750,17 @@ static int __mmc_switch(struct mmc *mmc, u8 set, u8 index, u8 value,
 {
 	unsigned int status, start;
 	struct mmc_cmd cmd;
-	int timeout = DEFAULT_CMD6_TIMEOUT_MS;
+	int timeout_ms = DEFAULT_CMD6_TIMEOUT_MS;
 	bool is_part_switch = (set == EXT_CSD_CMD_SET_NORMAL) &&
 			      (index == EXT_CSD_PART_CONF);
 	int retries = 3;
 	int ret;
 
 	if (mmc->gen_cmd6_time)
-		timeout = mmc->gen_cmd6_time * 10;
+		timeout_ms = mmc->gen_cmd6_time * 10;
 
 	if (is_part_switch  && mmc->part_switch_time)
-		timeout = mmc->part_switch_time * 10;
+		timeout_ms = mmc->part_switch_time * 10;
 
 	cmd.cmdidx = MMC_CMD_SWITCH;
 	cmd.resp_type = MMC_RSP_R1b;
@@ -778,7 +778,7 @@ static int __mmc_switch(struct mmc *mmc, u8 set, u8 index, u8 value,
 	start = get_timer(0);
 
 	/* poll dat0 for rdy/buys status */
-	ret = mmc_wait_dat0(mmc, 1, timeout);
+	ret = mmc_wait_dat0(mmc, 1, timeout_ms * 1000);
 	if (ret && ret != -ENOSYS)
 		return ret;
 
@@ -788,11 +788,11 @@ static int __mmc_switch(struct mmc *mmc, u8 set, u8 index, u8 value,
 	 * stated timeout to be sufficient.
 	 */
 	if (ret == -ENOSYS && !send_status)
-		mdelay(timeout);
+		mdelay(timeout_ms);
 
 	/* Finally wait until the card is ready or indicates a failure
 	 * to switch. It doesn't hurt to use CMD13 here even if send_status
-	 * is false, because by now (after 'timeout' ms) the bus should be
+	 * is false, because by now (after 'timeout_ms' ms) the bus should be
 	 * reliable.
 	 */
 	do {
@@ -806,7 +806,7 @@ static int __mmc_switch(struct mmc *mmc, u8 set, u8 index, u8 value,
 		if (!ret && (status & MMC_STATUS_RDY_FOR_DATA))
 			return 0;
 		udelay(100);
-	} while (get_timer(start) < timeout);
+	} while (get_timer(start) < timeout_ms);
 
 	return -ETIMEDOUT;
 }
@@ -1543,6 +1543,16 @@ static int mmc_set_ios(struct mmc *mmc)
 
 	if (mmc->cfg->ops->set_ios)
 		ret = mmc->cfg->ops->set_ios(mmc);
+
+	return ret;
+}
+
+static int mmc_host_power_cycle(struct mmc *mmc)
+{
+	int ret = 0;
+
+	if (mmc->cfg->ops->host_power_cycle)
+		ret = mmc->cfg->ops->host_power_cycle(mmc);
 
 	return ret;
 }
@@ -2577,7 +2587,7 @@ static int mmc_startup(struct mmc *mmc)
 	bdesc->lba = lldiv(mmc->capacity, mmc->read_bl_len);
 #if !defined(CONFIG_SPL_BUILD) || \
 		(defined(CONFIG_SPL_LIBCOMMON_SUPPORT) && \
-		!defined(CONFIG_USE_TINY_PRINTF))
+		!CONFIG_IS_ENABLED(USE_TINY_PRINTF))
 	sprintf(bdesc->vendor, "Man %06x Snr %04x%04x",
 		mmc->cid[0] >> 24, (mmc->cid[2] & 0xffff),
 		(mmc->cid[3] >> 16) & 0xffff);
@@ -2715,6 +2725,11 @@ static int mmc_power_cycle(struct mmc *mmc)
 	ret = mmc_power_off(mmc);
 	if (ret)
 		return ret;
+
+	ret = mmc_host_power_cycle(mmc);
+	if (ret)
+		return ret;
+
 	/*
 	 * SD spec recommends at least 1ms of delay. Let's wait for 2ms
 	 * to be on the safer side.
@@ -2819,12 +2834,12 @@ int mmc_start_init(struct mmc *mmc)
 			 MMC_CAP(MMC_LEGACY) | MMC_MODE_1BIT;
 
 #if !defined(CONFIG_MMC_BROKEN_CD)
-	/* we pretend there's no card when init is NULL */
 	no_card = mmc_getcd(mmc) == 0;
 #else
 	no_card = 0;
 #endif
 #if !CONFIG_IS_ENABLED(DM_MMC)
+	/* we pretend there's no card when init is NULL */
 	no_card = no_card || (mmc->cfg->ops->init == NULL);
 #endif
 	if (no_card) {
@@ -2997,6 +3012,30 @@ int mmc_initialize(bd_t *bis)
 	mmc_do_preinit();
 	return 0;
 }
+
+#if CONFIG_IS_ENABLED(DM_MMC)
+int mmc_init_device(int num)
+{
+	struct udevice *dev;
+	struct mmc *m;
+	int ret;
+
+	ret = uclass_get_device(UCLASS_MMC, num, &dev);
+	if (ret)
+		return ret;
+
+	m = mmc_get_mmc_dev(dev);
+	if (!m)
+		return 0;
+#ifdef CONFIG_FSL_ESDHC_ADAPTER_IDENT
+	mmc_set_preinit(m, 1);
+#endif
+	if (m->preinit)
+		mmc_start_init(m);
+
+	return 0;
+}
+#endif
 
 #ifdef CONFIG_CMD_BKOPS_ENABLE
 int mmc_set_bkops_enable(struct mmc *mmc)

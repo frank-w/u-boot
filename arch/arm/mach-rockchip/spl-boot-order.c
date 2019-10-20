@@ -8,7 +8,7 @@
 #include <mmc.h>
 #include <spl.h>
 
-#if CONFIG_IS_ENABLED(OF_CONTROL)
+#if CONFIG_IS_ENABLED(OF_LIBFDT)
 /**
  * spl_node_to_boot_device() - maps from a DT-node to a SPL boot device
  * @node:	of_offset of the node
@@ -134,7 +134,7 @@ void board_boot_order(u32 *spl_boot_list)
 		/* Try to resolve the config item (or alias) as a path */
 		node = fdt_path_offset(blob, conf);
 		if (node < 0) {
-			debug("%s: could not find %s in FDT", __func__, conf);
+			debug("%s: could not find %s in FDT\n", __func__, conf);
 			continue;
 		}
 

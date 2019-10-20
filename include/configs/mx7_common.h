@@ -40,18 +40,13 @@
 #define CONFIG_MXC_UART
 
 /* MMC */
-#define CONFIG_FSL_USDHC
 
 #define CONFIG_ARMV7_SECURE_BASE	0x00900000
 
 #define CONFIG_ARMV7_PSCI_1_0
 
-/* Secure boot (HAB) support */
-#ifdef CONFIG_SECURE_BOOT
-#define CONFIG_CSF_SIZE			0x4000
 #ifdef CONFIG_SPL_BUILD
 #define CONFIG_SPL_DRIVERS_MISC_SUPPORT
-#endif
 #endif
 
 /*

@@ -9,15 +9,16 @@
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/interrupt-controller/irq.h>
 #include <dt-bindings/interrupt-controller/arm-gic.h>
+#include <dt-bindings/phy/phy.h>
 #include <dt-bindings/power/mt7623-power.h>
-#include <dt-bindings/reset/mtk-reset.h>
+#include <dt-bindings/reset/mt7623-reset.h>
 #include "skeleton.dtsi"
 
 / {
 	compatible = "mediatek,mt7623";
 	interrupt-parent = <&sysirq>;
-	#address-cells = <2>;
-	#size-cells = <2>;
+	#address-cells = <1>;
+	#size-cells = <1>;
 
 	cpus {
 		#address-cells = <1>;
@@ -98,28 +99,28 @@
 
 	topckgen: clock-controller@10000000 {
 		compatible = "mediatek,mt7623-topckgen";
-		reg = <0 0x10000000 0 0x1000>;
+		reg = <0x10000000 0x1000>;
 		#clock-cells = <1>;
 		u-boot,dm-pre-reloc;
 	};
 
 	infracfg: syscon@10001000 {
 		compatible = "mediatek,mt7623-infracfg", "syscon";
-		reg = <0 0x10001000 0 0x1000>;
+		reg = <0x10001000 0x1000>;
 		#clock-cells = <1>;
 		u-boot,dm-pre-reloc;
 	};
 
 	pericfg: syscon@10003000 {
 		compatible = "mediatek,mt7623-pericfg", "syscon";
-		reg = <0 0x10003000 0 0x1000>;
+		reg = <0x10003000 0x1000>;
 		#clock-cells = <1>;
 		u-boot,dm-pre-reloc;
 	};
 
 	pinctrl: pinctrl@10005000 {
 		compatible = "mediatek,mt7623-pinctrl";
-		reg = <0 0x10005000 0 0x1000>;
+		reg = <0x10005000 0x1000>;
 
 		gpio: gpio-controller {
 			gpio-controller;
@@ -130,7 +131,7 @@
 	scpsys: scpsys@10006000 {
 		compatible = "mediatek,mt7623-scpsys";
 		#power-domain-cells = <1>;
-		reg = <0 0x10006000 0 0x1000>;
+		reg = <0x10006000 0x1000>;
 		infracfg = <&infracfg>;
 		clocks = <&topckgen CLK_TOP_MM_SEL>,
 			 <&topckgen CLK_TOP_MFG_SEL>,
@@ -140,7 +141,7 @@
 
 	watchdog: watchdog@10007000 {
 		compatible = "mediatek,wdt";
-		reg = <0 0x10007000 0 0x100>;
+		reg = <0x10007000 0x100>;
 	};
 
 	wdt-reboot {
@@ -150,7 +151,7 @@
 
 	timer0: timer@10008000 {
 		compatible = "mediatek,timer";
-		reg = <0 0x10008000 0 0x80>;
+		reg = <0x10008000 0x80>;
 		interrupts = <GIC_SPI 112 IRQ_TYPE_LEVEL_LOW>;
 		clocks = <&system_clk>;
 		clock-names = "system-clk";
@@ -162,12 +163,12 @@
 		interrupt-controller;
 		#interrupt-cells = <3>;
 		interrupt-parent = <&gic>;
-		reg = <0 0x10200100 0 0x1c>;
+		reg = <0x10200100 0x1c>;
 	};
 
 	apmixedsys: clock-controller@10209000 {
 		compatible = "mediatek,mt7623-apmixedsys";
-		reg = <0 0x10209000 0 0x1000>;
+		reg = <0x10209000 0x1000>;
 		#clock-cells = <1>;
 		u-boot,dm-pre-reloc;
 	};
@@ -177,15 +178,15 @@
 		interrupt-controller;
 		#interrupt-cells = <3>;
 		interrupt-parent = <&gic>;
-		reg = <0 0x10211000 0 0x1000>,
-		      <0 0x10212000 0 0x1000>,
-		      <0 0x10214000 0 0x2000>,
-		      <0 0x10216000 0 0x2000>;
+		reg = <0x10211000 0x1000>,
+		      <0x10212000 0x1000>,
+		      <0x10214000 0x2000>,
+		      <0x10216000 0x2000>;
 	};
 
 	uart0: serial@11002000 {
 		compatible = "mediatek,hsuart";
-		reg = <0 0x11002000 0 0x400>;
+		reg = <0x11002000 0x400>;
 		reg-shift = <2>;
 		interrupts = <GIC_SPI 51 IRQ_TYPE_LEVEL_LOW>;
 		clocks = <&topckgen CLK_TOP_UART_SEL>,
@@ -196,7 +197,7 @@
 
 	uart1: serial@11003000 {
 		compatible = "mediatek,hsuart";
-		reg = <0 0x11003000 0 0x400>;
+		reg = <0x11003000 0x400>;
 		reg-shift = <2>;
 		interrupts = <GIC_SPI 52 IRQ_TYPE_LEVEL_LOW>;
 		clocks = <&topckgen CLK_TOP_UART_SEL>,
@@ -207,7 +208,7 @@
 
 	uart2: serial@11004000 {
 		compatible = "mediatek,hsuart";
-		reg = <0 0x11004000 0 0x400>;
+		reg = <0x11004000 0x400>;
 		reg-shift = <2>;
 		interrupts = <GIC_SPI 53 IRQ_TYPE_LEVEL_LOW>;
 		clocks = <&topckgen CLK_TOP_UART_SEL>,
@@ -219,7 +220,7 @@
 
 	uart3: serial@11005000 {
 		compatible = "mediatek,hsuart";
-		reg = <0 0x11005000 0 0x400>;
+		reg = <0x11005000 0x400>;
 		reg-shift = <2>;
 		interrupts = <GIC_SPI 54 IRQ_TYPE_LEVEL_LOW>;
 		clocks = <&topckgen CLK_TOP_UART_SEL>,
@@ -230,7 +231,7 @@
 
 	mmc0: mmc@11230000 {
 		compatible = "mediatek,mt7623-mmc";
-		reg = <0 0x11230000 0 0x1000>;
+		reg = <0x11230000 0x1000>;
 		interrupts = <GIC_SPI 39 IRQ_TYPE_LEVEL_LOW>;
 		clocks = <&pericfg CLK_PERI_MSDC30_0>,
 			 <&topckgen CLK_TOP_MSDC30_0_SEL>;
@@ -240,7 +241,7 @@
 
 	mmc1: mmc@11240000 {
 		compatible = "mediatek,mt7623-mmc";
-		reg = <0 0x11240000 0 0x1000>;
+		reg = <0x11240000 0x1000>;
 		interrupts = <GIC_SPI 40 IRQ_TYPE_LEVEL_LOW>;
 		clocks = <&pericfg CLK_PERI_MSDC30_1>,
 			 <&topckgen CLK_TOP_MSDC30_1_SEL>;
@@ -249,21 +250,19 @@
 	};
 
 	hifsys: syscon@1a000000 {
-		compatible = "mediatek,mt7623-hifsys",
-					"mediatek,mt2701-hifsys",
-					"syscon";
-		reg = <0 0x1a000000 0 0x1000>;
+		compatible = "mediatek,mt7623-hifsys", "syscon";
+		reg = <0x1a000000 0x1000>;
 		#clock-cells = <1>;
 		#reset-cells = <1>;
 	};
 
-	pcie: pcie-controller@1a140000 {
+	pcie: pcie@1a140000 {
 		compatible = "mediatek,mt7623-pcie";
 		device_type = "pci";
-		reg = <0 0x1a140000 0 0x1000>, /* PCIe shared registers */
-		      <0 0x1a142000 0 0x1000>, /* Port0 registers */
-		      <0 0x1a143000 0 0x1000>, /* Port1 registers */
-		      <0 0x1a144000 0 0x1000>; /* Port2 registers */
+		reg = <0x1a140000 0x1000>, /* PCIe shared registers */
+		      <0x1a142000 0x1000>, /* Port0 registers */
+		      <0x1a143000 0x1000>, /* Port1 registers */
+		      <0x1a144000 0x1000>; /* Port2 registers */
 		reg-names = "subsys", "port0", "port1", "port2";
 		#address-cells = <3>;
 		#size-cells = <2>;
@@ -277,22 +276,21 @@
 			 <&hifsys CLK_HIFSYS_PCIE1>,
 			 <&hifsys CLK_HIFSYS_PCIE2>;
 		clock-names = "free_ck", "sys_ck0", "sys_ck1", "sys_ck2";
-//		resets = <&hifsys MT2701_HIFSYS_PCIE0_RST>,
-//			 <&hifsys MT2701_HIFSYS_PCIE1_RST>,
-//			 <&hifsys MT2701_HIFSYS_PCIE2_RST>;
+		resets = <&hifsys HIFSYS_PCIE0_RST>,
+			 <&hifsys HIFSYS_PCIE1_RST>,
+			 <&hifsys HIFSYS_PCIE2_RST>;
 		reset-names = "pcie-rst0", "pcie-rst1", "pcie-rst2";
-//		phys = <&pcie0_port PHY_TYPE_PCIE>,
-//		       <&pcie1_port PHY_TYPE_PCIE>,
-//		       <&u3port1 PHY_TYPE_PCIE>;
+		phys = <&pcie0_port PHY_TYPE_PCIE>,
+		       <&pcie1_port PHY_TYPE_PCIE>,
+		       <&u3port1 PHY_TYPE_PCIE>;
 		phy-names = "pcie-phy0", "pcie-phy1", "pcie-phy2";
-//		power-domains = <&scpsys MT2701_POWER_DOMAIN_HIF>;
+		power-domains = <&scpsys MT7623_POWER_DOMAIN_HIF>;
 		bus-range = <0x00 0xff>;
-		status = "okay";
-		ranges = <0x81000000 0 0x1a160000 0 0x1a160000 0 0x00010000
-			  0x83000000 0 0x60000000 0 0x60000000 0 0x10000000>;
+		status = "disabled";
+		ranges = <0x81000000 0 0x1a160000 0x1a160000 0 0x00010000
+			  0x83000000 0 0x60000000 0x60000000 0 0x10000000>;
 
 		pcie@0,0 {
-			device_type = "pci";
 			reg = <0x0000 0 0 0 0>;
 			#address-cells = <3>;
 			#size-cells = <2>;
@@ -300,12 +298,10 @@
 			interrupt-map-mask = <0 0 0 0>;
 			interrupt-map = <0 0 0 0 &sysirq GIC_SPI 193 IRQ_TYPE_LEVEL_LOW>;
 			ranges;
-			num-lanes = <1>;
 			status = "disabled";
 		};
 
 		pcie@1,0 {
-			device_type = "pci";
 			reg = <0x0800 0 0 0 0>;
 			#address-cells = <3>;
 			#size-cells = <2>;
@@ -313,12 +309,10 @@
 			interrupt-map-mask = <0 0 0 0>;
 			interrupt-map = <0 0 0 0 &sysirq GIC_SPI 194 IRQ_TYPE_LEVEL_LOW>;
 			ranges;
-			num-lanes = <1>;
 			status = "disabled";
 		};
 
 		pcie@2,0 {
-			device_type = "pci";
 			reg = <0x1000 0 0 0 0>;
 			#address-cells = <3>;
 			#size-cells = <2>;
@@ -326,21 +320,20 @@
 			interrupt-map-mask = <0 0 0 0>;
 			interrupt-map = <0 0 0 0 &sysirq GIC_SPI 195 IRQ_TYPE_LEVEL_LOW>;
 			ranges;
-			num-lanes = <1>;
 			status = "disabled";
 		};
 	};
 
 	pcie0_phy: pcie-phy@1a149000 {
 		compatible = "mediatek,generic-tphy-v1";
-		reg = <0 0x1a149000 0 0x0700>;
-		#address-cells = <2>;
-		#size-cells = <2>;
+		reg = <0x1a149000 0x0700>;
+		#address-cells = <1>;
+		#size-cells = <1>;
 		ranges;
 		status = "disabled";
 
 		pcie0_port: pcie-phy@1a149900 {
-			reg = <0 0x1a149900 0 0x0700>;
+			reg = <0x1a149900 0x0700>;
 			clocks = <&clk26m>;
 			clock-names = "ref";
 			#phy-cells = <1>;
@@ -350,14 +343,39 @@
 
 	pcie1_phy: pcie-phy@1a14a000 {
 		compatible = "mediatek,generic-tphy-v1";
-		reg = <0 0x1a14a000 0 0x0700>;
-		#address-cells = <2>;
-		#size-cells = <2>;
+		reg = <0x1a14a000 0x0700>;
+		#address-cells = <1>;
+		#size-cells = <1>;
 		ranges;
 		status = "disabled";
 
 		pcie1_port: pcie-phy@1a14a900 {
-			reg = <0 0x1a14a900 0 0x0700>;
+			reg = <0x1a14a900 0x0700>;
+			clocks = <&clk26m>;
+			clock-names = "ref";
+			#phy-cells = <1>;
+			status = "okay";
+		};
+	};
+
+	u3phy2: usb-phy@1a244000 {
+		compatible = "mediatek,generic-tphy-v1";
+		reg = <0x1a244000 0x0700>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+		status = "disabled";
+
+		u2port1: usb-phy@1a244800 {
+			reg = <0x1a244800 0x0100>;
+			clocks = <&topckgen CLK_TOP_USB_PHY48M>;
+			clock-names = "ref";
+			#phy-cells = <1>;
+			status = "okay";
+		};
+
+		u3port1: usb-phy@1a244900 {
+			reg = <0x1a244900 0x0700>;
 			clocks = <&clk26m>;
 			clock-names = "ref";
 			#phy-cells = <1>;
@@ -367,14 +385,14 @@
 
 	ethsys: syscon@1b000000 {
 		compatible = "mediatek,mt7623-ethsys", "syscon";
-		reg = <0 0x1b000000 0 0x1000>;
+		reg = <0x1b000000 0x1000>;
 		#clock-cells = <1>;
 		#reset-cells = <1>;
 	};
 
 	eth: ethernet@1b100000 {
 		compatible = "mediatek,mt7623-eth", "syscon";
-		reg = <0 0x1b100000 0 0x20000>;
+		reg = <0x1b100000 0x20000>;
 		clocks = <&topckgen CLK_TOP_ETHIF_SEL>,
 			 <&ethsys CLK_ETHSYS_ESW>,
 			 <&ethsys CLK_ETHSYS_GP1>,

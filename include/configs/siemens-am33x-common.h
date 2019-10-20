@@ -94,8 +94,6 @@
 #define CONFIG_SYS_MMCSD_FS_BOOT_PARTITION	1
 #define CONFIG_SPL_FS_LOAD_PAYLOAD_NAME	"u-boot.img"
 
-#define CONFIG_SYS_SPI_U_BOOT_OFFS	0x20000
-
 #define CONFIG_SPL_NAND_BASE
 #define CONFIG_SPL_NAND_DRIVERS
 #define CONFIG_SPL_NAND_ECC
@@ -189,7 +187,6 @@
 /* UBI Support */
 
 /* Commen environment */
-#define CONFIG_PREBOOT
 #define COMMON_ENV_DFU_ARGS	"dfu_args=run bootargs_defaults;" \
 				"setenv bootargs ${bootargs};" \
 				"mtdparts default;" \

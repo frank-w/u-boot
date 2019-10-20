@@ -119,9 +119,6 @@
 /* U-Boot autoboot configuration */
 /*==============================*/
 
-#define CONFIG_MX_CYCLIC
-#define CONFIG_SHOW_BOOT_PROGRESS
-
 
 /*=========================================*/
 /* FPGA Registers (board info and control) */

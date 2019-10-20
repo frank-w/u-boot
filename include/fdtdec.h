@@ -54,7 +54,7 @@ struct bd_info;
 #define SPL_BUILD	0
 #endif
 
-#if CONFIG_IS_ENABLED(OF_PRIOR_STAGE)
+#ifdef CONFIG_OF_PRIOR_STAGE
 extern phys_addr_t prior_stage_fdt_address;
 #endif
 
@@ -415,23 +415,6 @@ fdt_addr_t fdtdec_get_addr(const void *blob, int node,
  */
 fdt_addr_t fdtdec_get_addr_size(const void *blob, int node,
 		const char *prop_name, fdt_size_t *sizep);
-
-/**
- * Look at an address property in a node and return the pci address which
- * corresponds to the given type in the form of fdt_pci_addr.
- * The property must hold one fdt_pci_addr with a lengh.
- *
- * @param blob		FDT blob
- * @param node		node to examine
- * @param type		pci address type (FDT_PCI_SPACE_xxx)
- * @param prop_name	name of property to find
- * @param addr		returns pci address in the form of fdt_pci_addr
- * @return 0 if ok, -ENOENT if the property did not exist, -EINVAL if the
- *		format of the property was invalid, -ENXIO if the requested
- *		address type was not found
- */
-int fdtdec_get_pci_addr(const void *blob, int node, enum fdt_pci_space type,
-		const char *prop_name, struct fdt_pci_addr *addr);
 
 /**
  * Look at the compatible property of a device node that represents a PCI

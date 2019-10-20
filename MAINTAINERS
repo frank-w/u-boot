@@ -50,6 +50,26 @@ so much easier [Ed]
 Maintainers List (try to look for most precise areas first)
 
 		-----------------------------------
+ANDROID AB
+M:	Igor Opaniuk <igor.opaniuk@gmail.com>
+R:	Sam Protsenko <semen.protsenko@linaro.org>
+S:	Maintained
+F:	cmd/ab_select.c
+F:	common/android_ab.c
+F:	doc/android/ab.txt
+F:	include/android_ab.h
+F:	test/py/tests/test_android/test_ab.py
+
+ANDROID AVB
+M:	Igor Opaniuk <igor.opaniuk@gmail.com>
+S:	Maintained
+F:	cmd/avb.c
+F:	common/avb_verify.c
+F:	doc/android/avb2.txt
+F:	include/avb_verify.h
+F:	lib/libavb/
+F:	test/py/tests/test_android/test_avb.py
+
 ARC
 M:	Alexey Brodkin <alexey.brodkin@synopsys.com>
 M:	Eugeniy Paltsev <Eugeniy.Paltsev@synopsys.com>
@@ -82,7 +102,7 @@ F:	doc/device-tree-bindings/mmc/snps,dw-mmc.txt
 F:	drivers/mmc/snps_dw_mmc.c
 
 ARM
-M:	Albert Aribaud <albert.u.boot@aribaud.net>
+M:	Tom Rini <trini@konsulko.com>
 S:	Maintained
 T:	git https://gitlab.denx.de/u-boot/custodians/u-boot-arm.git
 F:	arch/arm/
@@ -91,9 +111,11 @@ F:	cmd/arm/
 ARM ALTERA SOCFPGA
 M:	Marek Vasut <marex@denx.de>
 M:	Simon Goldschmidt <simon.k.r.goldschmidt@gmail.com>
+M:	Ley Foon Tan <ley.foon.tan@intel.com>
 S:	Maintainted
 T:	git https://gitlab.denx.de/u-boot/custodians/u-boot-socfpga.git
 F:	arch/arm/mach-socfpga/
+F:	drivers/sysreset/sysreset_socfpga*
 
 ARM AMLOGIC SOC SUPPORT
 M:	Neil Armstrong <narmstrong@baylibre.com>
@@ -115,6 +137,7 @@ F:	drivers/pinctrl/meson/
 F:	drivers/power/domain/meson-gx-pwrc-vpu.c
 F:	drivers/video/meson/
 F:	include/configs/meson64.h
+F:	include/configs/meson64_android.h
 N:	meson
 
 ARM BROADCOM BCM283X
@@ -167,9 +190,11 @@ F:	board/freescale/*mx*/
 
 ARM HISILICON
 M:	Peter Griffin <peter.griffin@linaro.org>
+M:	Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
 S:	Maintained
 F:	arch/arm/cpu/armv8/hisilicon
 F:	arch/arm/include/asm/arch-hi6220/
+F:	arch/arm/include/asm/arch-hi3660/
 
 ARM MARVELL KIRKWOOD ARMADA-XP ARMADA-38X ARMADA-37XX ARMADA-7K/8K
 M:	Stefan Roese <sr@denx.de>
@@ -195,6 +220,7 @@ F:	arch/arm/include/asm/arch-pxa/
 ARM MEDIATEK
 M:	Ryder Lee <ryder.lee@mediatek.com>
 M:	Weijie Gao <weijie.gao@mediatek.com>
+R:	GSS_MTK_Uboot_upstream <GSS_MTK_Uboot_upstream@mediatek.com>
 S:	Maintained
 F:	arch/arm/mach-mediatek/
 F:	arch/arm/include/asm/arch-mediatek/
@@ -205,7 +231,7 @@ F:	drivers/mmc/mtk-sd.c
 F:	drivers/pinctrl/mediatek/
 F:	drivers/power/domain/mtk-power-domain.c
 F:	drivers/ram/mediatek/
-F:	drivers/spi/mtk_qspi.c
+F:	drivers/spi/mtk_snfi_spi.c
 F:	drivers/timer/mtk_timer.c
 F:	drivers/watchdog/mtk_wdt.c
 F:	drivers/net/mtk_eth.c
@@ -297,25 +323,41 @@ ARM STM STM32MP
 M:	Patrick Delaunay <patrick.delaunay@st.com>
 M:	Patrice Chotard <patrice.chotard@st.com>
 L:	uboot-stm32@st-md-mailman.stormreply.com (moderated for non-subscribers)
-T:	git https://gitlab.denx.de/u-boot/custodians/u-boot-stm
+T:	git https://gitlab.denx.de/u-boot/custodians/u-boot-stm.git
 S:	Maintained
 F:	arch/arm/mach-stm32mp/
+F:	drivers/adc/stm32-adc*
 F:	drivers/clk/clk_stm32mp1.c
+F:	drivers/gpio/stm32_gpio.c
+F:	drivers/hwspinlock/stm32_hwspinlock.c
 F:	drivers/i2c/stm32f7_i2c.c
 F:	drivers/mailbox/stm32-ipcc.c
 F:	drivers/misc/stm32mp_fuse.c
+F:	drivers/misc/stm32_rcc.c
 F:	drivers/mmc/stm32_sdmmc2.c
+F:	drivers/mtd/nand/raw/stm32_fmc2_nand.c
 F:	drivers/phy/phy-stm32-usbphyc.c
 F:	drivers/pinctrl/pinctrl_stm32.c
 F:	drivers/power/pmic/stpmic1.c
 F:	drivers/power/regulator/stm32-vrefbuf.c
 F:	drivers/power/regulator/stpmic1.c
 F:	drivers/ram/stm32mp1/
-F:	drivers/misc/stm32_rcc.c
+F:	drivers/remoteproc/stm32_copro.c
 F:	drivers/reset/stm32-reset.c
+F:	drivers/rtc/stm32_rtc.c
+F:	drivers/serial/serial_stm32.*
 F:	drivers/spi/stm32_qspi.c
 F:	drivers/spi/stm32_spi.c
+F:	drivers/video/stm32/stm32_ltdc.c
 F:	drivers/watchdog/stm32mp_wdt.c
+F:	include/dt-bindings/clock/stm32fx-clock.h
+F:	include/dt-bindings/clock/stm32mp1-clks.h
+F:	include/dt-bindings/clock/stm32mp1-clksrc.h
+F:	include/dt-bindings/pinctrl/stm32-pinfunc.h
+F:	include/dt-bindings/reset/stm32mp1-resets.h
+F:	include/stm32_rcc.h
+F:	tools/stm32image.c
+
 
 ARM STM STV0991
 M:	Vikas Manocha <vikas.manocha@st.com>
@@ -325,7 +367,7 @@ F:	arch/arm/include/asm/arch-stv0991/
 
 ARM SUNXI
 M:	Jagan Teki <jagan@amarulasolutions.com>
-M:	Maxime Ripard <maxime.ripard@bootlin.com>
+M:	Maxime Ripard <mripard@kernel.org>
 S:	Maintained
 T:	git https://gitlab.denx.de/u-boot/custodians/u-boot-sunxi.git
 F:	arch/arm/cpu/armv7/sunxi/
@@ -363,6 +405,7 @@ M:	Michal Simek <michal.simek@xilinx.com>
 S:	Maintained
 T:	git https://gitlab.denx.de/u-boot/custodians/u-boot-microblaze.git
 F:	arch/arm/mach-versal/
+N:	(?<!uni)versal
 
 ARM VERSATILE EXPRESS DRIVERS
 M:	Liviu Dudau <liviu.dudau@foss.arm.com>
@@ -401,11 +444,13 @@ S:	Maintained
 T:	git https://gitlab.denx.de/u-boot/custodians/u-boot-microblaze.git
 F:	arch/arm/mach-zynqmp/
 F:	drivers/clk/clk_zynqmp.c
+F:	driver/firmware/firmware-zynqmp.c
 F:	drivers/fpga/zynqpl.c
 F:	drivers/gpio/zynq_gpio.c
 F:	drivers/i2c/i2c-cdns.c
 F:	drivers/i2c/muxes/pca954x.c
 F:	drivers/i2c/zynq_i2c.c
+F:	drivers/mailbox/zynqmp-ipi.c
 F:	drivers/mmc/zynq_sdhci.c
 F:	drivers/mtd/nand/raw/zynq_nand.c
 F:	drivers/net/phy/xilinx_phy.c
@@ -417,6 +462,7 @@ F:	drivers/timer/cadence-ttc.c
 F:	drivers/usb/host/ehci-zynq.c
 F:	drivers/watchdog/cdns_wdt.c
 F:	include/zynqmppl.h
+F:	include/zynqmp_firmware.h
 F:	tools/zynqmp*
 N:	ultra96
 N:	zynqmp
@@ -443,6 +489,13 @@ S:	Maintained
 T:	git https://gitlab.denx.de/u-boot/custodians/u-boot-cfi-flash.git
 F:	drivers/mtd/cfi_flash.c
 F:	drivers/mtd/jedec_flash.c
+
+CLOCK
+M:	Lukasz Majewski <lukma@denx.de>
+S:	Maintained
+T:	git git://git.denx.de/u-boot-dfu.git
+F:	drivers/clk/
+F:	drivers/clk/imx/
 
 COLDFIRE
 M:	Huan Wang <alison.wang@nxp.com>
@@ -476,9 +529,7 @@ M:	Heinrich Schuchardt <xypron.glpk@gmx.de>
 R:	Alexander Graf <agraf@csgraf.de>
 S:	Maintained
 T:	git https://gitlab.denx.de/u-boot/custodians/u-boot-efi.git
-F:	doc/README.uefi
-F:	doc/README.iscsi
-F:	doc/efi.rst
+F:	doc/uefi/*
 F:	include/capitalization.h
 F:	include/charset.h
 F:	include/cp1250.h
@@ -520,7 +571,7 @@ S:	Maintained
 T:	git https://gitlab.denx.de/u-boot/custodians/u-boot-freebsd.git
 
 FREESCALE QORIQ
-M:	Prabhakar Kushwaha <prabhakar.kushwaha@nxp.com>
+M:	Priyanka Jain <priyanka.jain@nxp.com>
 S:	Maintained
 T:	git https://gitlab.denx.de/u-boot/custodians/u-boot-fsl-qoriq.git
 F:	drivers/watchdog/sp805_wdt.c
@@ -606,7 +657,7 @@ T:	git https://gitlab.denx.de/u-boot/custodians/u-boot-nand-flash.git
 F:	drivers/mtd/nand/raw/
 
 NDS32
-M:	Macpaul Lin <macpaul@andestech.com>
+M:	Rick Chen <rick@andestech.com>
 S:	Maintained
 T:	git https://gitlab.denx.de/u-boot/custodians/u-boot-nds32.git
 F:	arch/nds32/
@@ -616,6 +667,7 @@ M:	Joe Hershberger <joe.hershberger@ni.com>
 S:	Maintained
 T:	git https://gitlab.denx.de/u-boot/custodians/u-boot-net.git
 F:	drivers/net/
+F:	include/net.h
 F:	net/
 
 NIOS
@@ -677,13 +729,13 @@ F:	arch/powerpc/cpu/mpc83xx/
 F:	arch/powerpc/include/asm/arch-mpc83xx/
 
 POWERPC MPC85XX
-M:	Prabhakar Kushwaha <prabhakar.kushwaha@nxp.com>
+M:	Priyanka Jain <priyanka.jain@nxp.com>
 S:	Maintained
 T:	git https://gitlab.denx.de/u-boot/custodians/u-boot-mpc85xx.git
 F:	arch/powerpc/cpu/mpc85xx/
 
 POWERPC MPC86XX
-M:	Prabhakar Kushwaha <prabhakar.kushwaha@nxp.com>
+M:	Priyanka Jain <priyanka.jain@nxp.com>
 S:	Maintained
 T:	git https://gitlab.denx.de/u-boot/custodians/u-boot-mpc86xx.git
 F:	arch/powerpc/cpu/mpc86xx/
@@ -775,6 +827,11 @@ S:	Maintained
 F:	drivers/tee/
 F:	include/tee.h
 F:	include/tee/
+
+TEE-lib
+M:	Bryan O'Donoghue <bryan.odonoghue@linaro.org>
+S:	Maintained
+F:	lib/optee
 
 UBI
 M:	Kyungmin Park <kmpark@infradead.org>

@@ -34,7 +34,7 @@ config USE_IMXIMG_PLUGIN
 	  i.MX6/7 supports DCD and Plugin. Enable this configuration
 	  to use Plugin, otherwise DCD will be used.
 
-config SECURE_BOOT
+config IMX_HAB
 	bool "Support i.MX HAB features"
 	depends on ARCH_MX7 || ARCH_MX6 || ARCH_MX5
 	select FSL_CAAM if HAS_CAAM
@@ -42,6 +42,13 @@ config SECURE_BOOT
 	help
 	  This option enables the support for secure boot (HAB).
 	  See doc/README.mxc_hab for more details.
+
+config CSF_SIZE
+	hex "Maximum size for Command Sequence File (CSF) binary"
+	default 0x2060
+	help
+	  Define the maximum size for Command Sequence File (CSF) binary
+	  this information is used to define the image boot data.
 
 config CMD_BMODE
 	bool "Support the 'bmode' command"
@@ -70,6 +77,17 @@ config CMD_HDMIDETECT
 	help
 	  This enables the 'hdmidet' command which detects if an HDMI monitor
 	  is connected.
+
+config CMD_NANDBCB
+	bool "i.MX6 NAND Boot Control Block(BCB) command"
+	depends on NAND && CMD_MTDPARTS
+	default y if ARCH_MX6 && NAND_MXS
+	help
+	  Unlike normal 'nand write/erase' commands, this command update
+	  Boot Control Block(BCB) for i.MX6 platform NAND IP's.
+
+	  This is similar to kobs-ng, which is used in Linux as separate
+	  rootfs package.
 
 config NXP_BOARD_REVISION
 	bool "Read NXP board revision from fuses"

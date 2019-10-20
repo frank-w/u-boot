@@ -14,15 +14,15 @@
 		spi0 = &qspi;
 		usb0 = &usbotg_hs;
 	};
+
+	dsi_host: dsi_host {
+		compatible = "synopsys,dw-mipi-dsi";
+		status = "okay";
+	};
 };
 
 &flash0 {
-	compatible = "jedec,spi-nor";
 	u-boot,dm-spl;
-};
-
-&flash1 {
-	compatible = "jedec,spi-nor";
 };
 
 &qspi {

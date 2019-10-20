@@ -457,15 +457,25 @@ struct dm_mmc_ops {
 	 *
 	 * @dev:	Device to check
 	 * @state:	target state
-	 * @timeout:	timeout in us
+	 * @timeout_us:	timeout in us
 	 * @return 0 if dat0 is in the target state, -ve on error
 	 */
-	int (*wait_dat0)(struct udevice *dev, int state, int timeout);
+	int (*wait_dat0)(struct udevice *dev, int state, int timeout_us);
 
 #if CONFIG_IS_ENABLED(MMC_HS400_ES_SUPPORT)
 	/* set_enhanced_strobe() - set HS400 enhanced strobe */
 	int (*set_enhanced_strobe)(struct udevice *dev);
 #endif
+
+	/**
+	 * host_power_cycle - host specific tasks in power cycle sequence
+	 *		      Called between mmc_power_off() and
+	 *		      mmc_power_on()
+	 *
+	 * @dev:	Device to check
+	 * @return 0 if not present, 1 if present, -ve on error
+	 */
+	int (*host_power_cycle)(struct udevice *dev);
 };
 
 #define mmc_get_ops(dev)        ((struct dm_mmc_ops *)(dev)->driver->ops)
@@ -476,15 +486,17 @@ int dm_mmc_set_ios(struct udevice *dev);
 int dm_mmc_get_cd(struct udevice *dev);
 int dm_mmc_get_wp(struct udevice *dev);
 int dm_mmc_execute_tuning(struct udevice *dev, uint opcode);
-int dm_mmc_wait_dat0(struct udevice *dev, int state, int timeout);
+int dm_mmc_wait_dat0(struct udevice *dev, int state, int timeout_us);
+int dm_mmc_host_power_cycle(struct udevice *dev);
 
 /* Transition functions for compatibility */
 int mmc_set_ios(struct mmc *mmc);
 int mmc_getcd(struct mmc *mmc);
 int mmc_getwp(struct mmc *mmc);
 int mmc_execute_tuning(struct mmc *mmc, uint opcode);
-int mmc_wait_dat0(struct mmc *mmc, int state, int timeout);
+int mmc_wait_dat0(struct mmc *mmc, int state, int timeout_us);
 int mmc_set_enhanced_strobe(struct mmc *mmc);
+int mmc_host_power_cycle(struct mmc *mmc);
 
 #else
 struct mmc_ops {
@@ -494,6 +506,7 @@ struct mmc_ops {
 	int (*init)(struct mmc *mmc);
 	int (*getcd)(struct mmc *mmc);
 	int (*getwp)(struct mmc *mmc);
+	int (*host_power_cycle)(struct mmc *mmc);
 };
 #endif
 
@@ -602,8 +615,8 @@ struct mmc {
 	u8 part_attr;
 	u8 wr_rel_set;
 	u8 part_config;
-	u8 gen_cmd6_time;
-	u8 part_switch_time;
+	u8 gen_cmd6_time;	/* units: 10 ms */
+	u8 part_switch_time;	/* units: 10 ms */
 	uint tran_speed;
 	uint legacy_speed; /* speed for the legacy mode provided by the card */
 	uint read_bl_len;
@@ -698,6 +711,7 @@ void mmc_destroy(struct mmc *mmc);
  */
 int mmc_unbind(struct udevice *dev);
 int mmc_initialize(bd_t *bis);
+int mmc_init_device(int num);
 int mmc_init(struct mmc *mmc);
 int mmc_send_tuning(struct mmc *mmc, u32 opcode, int *cmd_error);
 

@@ -14,7 +14,6 @@
 
 #include <configs/ti_omap3_common.h>
 
-#undef CONFIG_DM_I2C_COMPAT
 #define CONFIG_REVISION_TAG
 
 /* Hardware drivers */
@@ -27,18 +26,11 @@
  * Enable CONFIG_USB_MUSB_HOST for Host functionalities MSC, keyboard
  * Enable CONFIG_USB_MUSB_GADGET for Device functionalities.
  */
-
-#ifdef CONFIG_USB_MUSB_AM35X
-
-#ifdef CONFIG_USB_MUSB_HOST
-
-#ifdef CONFIG_USB_KEYBOARD
-#define CONFIG_PREBOOT "usb start"
-#endif /* CONFIG_USB_KEYBOARD */
-
-#endif /* CONFIG_USB_MUSB_HOST */
-
-#endif /* CONFIG_USB_MUSB_AM35X */
+#ifdef CONFIG_SPL_BUILD
+#undef CONFIG_USB_EHCI_OMAP
+#else
+#define CONFIG_OMAP_EHCI_PHY1_RESET_GPIO	57
+#endif
 
 /* I2C */
 

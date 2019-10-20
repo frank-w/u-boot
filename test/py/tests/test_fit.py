@@ -24,7 +24,7 @@ base_its = '''
                         type = "kernel";
                         arch = "sandbox";
                         os = "linux";
-                        compression = "none";
+                        compression = "%(compression)s";
                         load = <0x40000>;
                         entry = <0x8>;
                 };
@@ -39,11 +39,11 @@ base_its = '''
                 };
                 fdt@1 {
                         description = "snow";
-                        data = /incbin/("u-boot.dtb");
+                        data = /incbin/("%(fdt)s");
                         type = "flat_dt";
                         arch = "sandbox";
                         %(fdt_load)s
-                        compression = "none";
+                        compression = "%(compression)s";
                         signature@1 {
                                 algo = "sha1,rsa2048";
                                 key-name-hint = "dev";
@@ -56,7 +56,7 @@ base_its = '''
                         arch = "sandbox";
                         os = "linux";
                         %(ramdisk_load)s
-                        compression = "none";
+                        compression = "%(compression)s";
                 };
                 ramdisk@2 {
                         description = "snow";
@@ -221,6 +221,10 @@ def test_fit(u_boot_console):
             print(data, file=fd)
         return fname
 
+    def make_compressed(filename):
+        util.run_and_log(cons, ['gzip', '-f', '-k', filename])
+        return filename + '.gz'
+
     def find_matching(text, match):
         """Find a match in a line of text, and return the unmatched line portion
 
@@ -265,6 +269,11 @@ def test_fit(u_boot_console):
     def check_equal(expected_fname, actual_fname, failure_msg):
         """Check that a file matches its expected contents
 
+        This is always used on out-buffers whose size is decided by the test
+        script anyway, which in some cases may be larger than what we're
+        actually looking for. So it's safe to truncate it to the size of the
+        expected data.
+
         Args:
             expected_fname: Filename containing expected contents
             actual_fname: Filename containing actual contents
@@ -272,6 +281,8 @@ def test_fit(u_boot_console):
         """
         expected_data = read_file(expected_fname)
         actual_data = read_file(actual_fname)
+        if len(expected_data) < len(actual_data):
+            actual_data = actual_data[:len(expected_data)]
         assert expected_data == actual_data, failure_msg
 
     def check_not_equal(expected_fname, actual_fname, failure_msg):
@@ -312,6 +323,7 @@ def test_fit(u_boot_console):
         loadables1 = make_kernel('test-loadables1.bin', 'lenrek')
         loadables2 = make_ramdisk('test-loadables2.bin', 'ksidmar')
         kernel_out = make_fname('kernel-out.bin')
+        fdt = make_fname('u-boot.dtb')
         fdt_out = make_fname('fdt-out.dtb')
         ramdisk_out = make_fname('ramdisk-out.bin')
         loadables1_out = make_fname('loadables1-out.bin')
@@ -326,6 +338,7 @@ def test_fit(u_boot_console):
             'kernel_addr' : 0x40000,
             'kernel_size' : filesize(kernel),
 
+            'fdt' : fdt,
             'fdt_out' : fdt_out,
             'fdt_addr' : 0x80000,
             'fdt_size' : filesize(control_dtb),
@@ -351,6 +364,7 @@ def test_fit(u_boot_console):
             'loadables2_load' : '',
 
             'loadables_config' : '',
+            'compression' : 'none',
         }
 
         # Make a basic FIT and a script to load it
@@ -416,6 +430,21 @@ def test_fit(u_boot_console):
                         'Loadables1 (kernel) not loaded')
             check_equal(loadables2, loadables2_out,
                         'Loadables2 (ramdisk) not loaded')
+
+        # Kernel, FDT and Ramdisk all compressed
+        with cons.log.section('(Kernel + FDT + Ramdisk) compressed'):
+            params['compression'] = 'gzip'
+            params['kernel'] = make_compressed(kernel)
+            params['fdt'] = make_compressed(fdt)
+            params['ramdisk'] = make_compressed(ramdisk)
+            fit = make_fit(mkimage, params)
+            cons.restart_uboot()
+            output = cons.run_command_list(cmd.splitlines())
+            check_equal(kernel, kernel_out, 'Kernel not loaded')
+            check_equal(control_dtb, fdt_out, 'FDT not loaded')
+            check_not_equal(ramdisk, ramdisk_out, 'Ramdisk got decompressed?')
+            check_equal(ramdisk + '.gz', ramdisk_out, 'Ramdist not loaded')
+
 
     cons = u_boot_console
     try:

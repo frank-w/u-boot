@@ -14,11 +14,13 @@
 #include <console.h>
 #include <cpu.h>
 #include <dm.h>
-#include <environment.h>
+#include <env.h>
+#include <env_internal.h>
 #include <fdtdec.h>
 #include <fs.h>
 #include <i2c.h>
 #include <initcall.h>
+#include <lcd.h>
 #include <malloc.h>
 #include <mapmem.h>
 #include <os.h>
@@ -425,13 +427,6 @@ static int reserve_video(void)
 	gd->relocaddr = lcd_setmem(gd->relocaddr);
 	gd->fb_base = gd->relocaddr;
 #  endif /* CONFIG_FB_ADDR */
-#elif defined(CONFIG_VIDEO) && \
-		(!defined(CONFIG_PPC)) && \
-		!defined(CONFIG_ARM) && !defined(CONFIG_X86) && \
-		!defined(CONFIG_M68K)
-	/* reserve memory for video display (always full pages) */
-	gd->relocaddr = video_setmem(gd->relocaddr);
-	gd->fb_base = gd->relocaddr;
 #endif
 
 	return 0;
@@ -472,12 +467,38 @@ static int reserve_uboot(void)
 	return 0;
 }
 
+#ifdef CONFIG_SYS_NONCACHED_MEMORY
+static int reserve_noncached(void)
+{
+	/*
+	 * The value of gd->start_addr_sp must match the value of malloc_start
+	 * calculated in boatrd_f.c:initr_malloc(), which is passed to
+	 * board_r.c:mem_malloc_init() and then used by
+	 * cache.c:noncached_init()
+	 *
+	 * These calculations must match the code in cache.c:noncached_init()
+	 */
+	gd->start_addr_sp = ALIGN(gd->start_addr_sp, MMU_SECTION_SIZE) -
+		MMU_SECTION_SIZE;
+	gd->start_addr_sp -= ALIGN(CONFIG_SYS_NONCACHED_MEMORY,
+				   MMU_SECTION_SIZE);
+	debug("Reserving %dM for noncached_alloc() at: %08lx\n",
+	      CONFIG_SYS_NONCACHED_MEMORY >> 20, gd->start_addr_sp);
+
+	return 0;
+}
+#endif
+
 /* reserve memory for malloc() area */
 static int reserve_malloc(void)
 {
 	gd->start_addr_sp = gd->start_addr_sp - TOTAL_MALLOC_LEN;
 	debug("Reserving %dk for malloc() at: %08lx\n",
 	      TOTAL_MALLOC_LEN >> 10, gd->start_addr_sp);
+#ifdef CONFIG_SYS_NONCACHED_MEMORY
+	reserve_noncached();
+#endif
+
 	return 0;
 }
 

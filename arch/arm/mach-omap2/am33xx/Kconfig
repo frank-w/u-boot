@@ -89,6 +89,7 @@ config TARGET_AM335X_SHC
 
 config TARGET_AM335X_GUARDIAN
 	bool "Support am335x based guardian board from bosch"
+	select BOARD_LATE_INIT
 	select DM
 	select DM_SERIAL
 	select DM_GPIO
@@ -119,6 +120,10 @@ config TARGET_BAV335X
 
 config TARGET_BRXRE1
 	bool "Support BRXRE1"
+	select BOARD_LATE_INIT
+
+config TARGET_BRSMARC1
+	bool "Support BRSMARC1"
 	select BOARD_LATE_INIT
 
 config TARGET_BRPPT1

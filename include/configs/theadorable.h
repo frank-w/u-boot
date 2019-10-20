@@ -47,8 +47,6 @@
 
 #define PHY_ANEG_TIMEOUT	8000	/* PHY needs a longer aneg time */
 
-#define CONFIG_PREBOOT
-
 /* Keep device tree and initrd in lower memory so the kernel can access them */
 #define CONFIG_EXTRA_ENV_SETTINGS	\
 	"fdt_high=0x10000000\0"		\
@@ -108,7 +106,6 @@
 #define CONFIG_SPL_BOOTROM_SAVE		(CONFIG_SPL_STACK + 4)
 
 /* SPL related SPI defines */
-#define CONFIG_SYS_SPI_U_BOOT_OFFS	0x1a000
 #define CONFIG_SYS_U_BOOT_OFFS		CONFIG_SYS_SPI_U_BOOT_OFFS
 
 /* Enable DDR support in SPL (DDR3 training from Marvell bin_hdr) */

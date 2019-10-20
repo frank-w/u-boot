@@ -50,6 +50,16 @@ static const char j1[] = {0x6a, 0x31, 0xa1, 0x6c, 0x00};
 static const char j2[] = {0x6a, 0x32, 0xc3, 0xc3, 0x6c, 0x00};
 static const char j3[] = {0x6a, 0x33, 0xf0, 0x90, 0xf0, 0x00};
 
+static int unicode_test_u16_strlen(struct unit_test_state *uts)
+{
+	ut_asserteq(6, u16_strlen(c1));
+	ut_asserteq(8, u16_strlen(c2));
+	ut_asserteq(3, u16_strlen(c3));
+	ut_asserteq(6, u16_strlen(c4));
+	return 0;
+}
+UNICODE_TEST(unicode_test_u16_strlen);
+
 static int unicode_test_u16_strdup(struct unit_test_state *uts)
 {
 	u16 *copy = u16_strdup(c4);
@@ -556,6 +566,19 @@ static int unicode_test_utf_to_upper(struct unit_test_state *uts)
 	return 0;
 }
 UNICODE_TEST(unicode_test_utf_to_upper);
+
+static int unicode_test_u16_strncmp(struct unit_test_state *uts)
+{
+	ut_assert(u16_strncmp(L"abc", L"abc", 3) == 0);
+	ut_assert(u16_strncmp(L"abcdef", L"abcghi", 3) == 0);
+	ut_assert(u16_strncmp(L"abcdef", L"abcghi", 6) < 0);
+	ut_assert(u16_strncmp(L"abcghi", L"abcdef", 6) > 0);
+	ut_assert(u16_strcmp(L"abc", L"abc") == 0);
+	ut_assert(u16_strcmp(L"abcdef", L"deghi") < 0);
+	ut_assert(u16_strcmp(L"deghi", L"abcdef") > 0);
+	return 0;
+}
+UNICODE_TEST(unicode_test_u16_strncmp);
 
 int do_ut_unicode(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {

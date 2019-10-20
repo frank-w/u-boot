@@ -20,7 +20,7 @@
  * clock provider. This API provides a standard means for drivers to enable and
  * disable clocks, and to set the rate at which they oscillate.
  *
- * A driver that implements UCLASS_CLOCK is a clock provider. A provider will
+ * A driver that implements UCLASS_CLK is a clock provider. A provider will
  * often implement multiple separate clocks, since the hardware it manages
  * often has this capability. clk-uclass.h describes the interface which
  * clock providers must implement.
@@ -40,6 +40,10 @@ struct udevice;
  * other clock APIs to identify which clock signal to operate upon.
  *
  * @dev: The device which implements the clock signal.
+ * @rate: The clock rate (in HZ).
+ * @flags: Flags used across common clock structure (e.g. CLK_)
+ *         Clock IP blocks specific flags (i.e. mux, div, gate, etc) are defined
+ *         in struct's for those devices (e.g. struct clk_mux).
  * @id: The clock signal ID within the provider.
  * @data: An optional data field for scenarios where a single integer ID is not
  *	  sufficient. If used, it can be populated through an .of_xlate op and
@@ -55,6 +59,9 @@ struct udevice;
  */
 struct clk {
 	struct udevice *dev;
+	long long rate;	/* in HZ */
+	u32 flags;
+	int enable_count;
 	/*
 	 * Written by of_xlate. In the future, we might add more fields here.
 	 */
@@ -253,6 +260,24 @@ int clk_free(struct clk *clk);
 ulong clk_get_rate(struct clk *clk);
 
 /**
+ * clk_get_parent() - Get current clock's parent.
+ *
+ * @clk:	A clock struct that was previously successfully requested by
+ *		clk_request/get_by_*().
+ * @return pointer to parent's struct clk, or error code passed as pointer
+ */
+struct clk *clk_get_parent(struct clk *clk);
+
+/**
+ * clk_get_parent_rate() - Get parent of current clock rate.
+ *
+ * @clk:	A clock struct that was previously successfully requested by
+ *		clk_request/get_by_*().
+ * @return clock rate in Hz, or -ve error code.
+ */
+long long clk_get_parent_rate(struct clk *clk);
+
+/**
  * clk_set_rate() - Set current clock rate.
  *
  * @clk:	A clock struct that was previously successfully requested by
@@ -309,6 +334,18 @@ int clk_disable(struct clk *clk);
  */
 int clk_disable_bulk(struct clk_bulk *bulk);
 
+/**
+ * clk_is_match - check if two clk's point to the same hardware clock
+ * @p: clk compared against q
+ * @q: clk compared against p
+ *
+ * Returns true if the two struct clk pointers both point to the same hardware
+ * clock node.
+ *
+ * Returns false otherwise. Note that two NULL clks are treated as matching.
+ */
+bool clk_is_match(const struct clk *p, const struct clk *q);
+
 int soc_clk_dump(void);
 
 /**
@@ -321,4 +358,24 @@ static inline bool clk_valid(struct clk *clk)
 {
 	return !!clk->dev;
 }
+
+/**
+ * clk_get_by_id() - Get the clock by its ID
+ *
+ * @id:	The clock ID to search for
+ *
+ * @clkp:	A pointer to clock struct that has been found among added clocks
+ *              to UCLASS_CLK
+ * @return zero on success, or -ENOENT on error
+ */
+int clk_get_by_id(ulong id, struct clk **clkp);
+
+/**
+ * clk_dev_binded() - Check whether the clk has a device binded
+ *
+ * @clk		A pointer to the clk
+ *
+ * @return true on binded, or false on no
+ */
+bool clk_dev_binded(struct clk *clk);
 #endif

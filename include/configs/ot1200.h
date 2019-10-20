@@ -59,7 +59,6 @@
 /* SPL */
 #ifdef CONFIG_SPL
 #include "imx6_spl.h"
-#define CONFIG_SYS_SPI_U_BOOT_OFFS     (64 * 1024)
 #endif
 
 #define CONFIG_FEC_MXC
@@ -76,8 +75,6 @@
 #define CONFIG_SYS_EEPROM_PAGE_WRITE_BITS     3
 #define CONFIG_SYS_EEPROM_PAGE_WRITE_DELAY_MS 5
 #endif
-
-#define CONFIG_PREBOOT                 ""
 
 /* Thermal support */
 #define CONFIG_IMX_THERMAL

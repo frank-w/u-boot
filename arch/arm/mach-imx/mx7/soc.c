@@ -14,6 +14,7 @@
 #include <asm/arch/imx-rdc.h>
 #include <asm/arch/crm_regs.h>
 #include <dm.h>
+#include <env.h>
 #include <imx_thermal.h>
 #include <fsl_sec.h>
 #include <asm/setup.h>
@@ -121,7 +122,7 @@ static void isolate_resource(void)
 }
 #endif
 
-#if defined(CONFIG_SECURE_BOOT)
+#if defined(CONFIG_IMX_HAB)
 struct imx_sec_config_fuse_t const imx_sec_config_fuse = {
 	.bank = 1,
 	.word = 3,

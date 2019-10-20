@@ -42,7 +42,9 @@
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 2048 * 1024)
 
 /* I2C */
+#ifndef CONFIG_DM_I2C
 #define CONFIG_SYS_I2C
+#endif
 
 /* Serial Port */
 #define CONFIG_CONS_INDEX       1
@@ -193,5 +195,9 @@
 #ifdef CONFIG_SECURE_BOOT
 #include <asm/fsl_secure_boot.h>
 #endif
+
+/* Ethernet */
+/* smallest ENETC BD ring has 8 entries */
+#define CONFIG_SYS_RX_ETH_BUFFER		8
 
 #endif /* __L1028A_COMMON_H */

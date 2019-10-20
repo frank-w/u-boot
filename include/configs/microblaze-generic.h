@@ -13,6 +13,8 @@
 /* MicroBlaze CPU */
 #define	MICROBLAZE_V5		1
 
+#define CONFIG_SYS_BOOTM_LEN	(64 * 1024 * 1024)
+
 /* linear and spi flash memory */
 #ifdef XILINX_FLASH_START
 #define	FLASH
@@ -100,6 +102,9 @@
 #endif /* !SPIFLASH */
 #endif /* !FLASH */
 
+#define XILINX_USE_ICACHE 1
+#define XILINX_USE_DCACHE 1
+
 #if defined(XILINX_USE_ICACHE)
 # define CONFIG_ICACHE
 #else
@@ -140,8 +145,6 @@
 /* architecture dependent code */
 #define	CONFIG_SYS_USR_EXCEP	/* user exception */
 
-#define	CONFIG_PREBOOT	"echo U-BOOT for ${hostname};setenv preboot;echo"
-
 #ifndef CONFIG_EXTRA_ENV_SETTINGS
 #define	CONFIG_EXTRA_ENV_SETTINGS	"unlock=yes\0" \
 					"nor0=flash-0\0"\
@@ -153,9 +156,6 @@
 					"serial=setenv stdout serial;"\
 					"setenv stdin serial\0"
 #endif
-
-/* Enable flat device tree support */
-#define CONFIG_LMB		1
 
 #if defined(CONFIG_XILINX_AXIEMAC)
 # define CONFIG_SYS_FAULT_ECHO_LINK_DOWN	1

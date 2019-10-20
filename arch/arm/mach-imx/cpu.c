@@ -87,64 +87,23 @@ static char *get_reset_cause(void)
 }
 #endif
 
-#if defined(CONFIG_MX53) || defined(CONFIG_MX6)
-#if defined(CONFIG_MX53)
-#define MEMCTL_BASE	ESDCTL_BASE_ADDR
-#else
-#define MEMCTL_BASE	MMDC_P0_BASE_ADDR
-#endif
-static const unsigned char col_lookup[] = {9, 10, 11, 8, 12, 9, 9, 9};
-static const unsigned char bank_lookup[] = {3, 2};
-
-/* these MMDC registers are common to the IMX53 and IMX6 */
-struct esd_mmdc_regs {
-	uint32_t	ctl;
-	uint32_t	pdc;
-	uint32_t	otc;
-	uint32_t	cfg0;
-	uint32_t	cfg1;
-	uint32_t	cfg2;
-	uint32_t	misc;
-};
-
-#define ESD_MMDC_CTL_GET_ROW(mdctl)	((ctl >> 24) & 7)
-#define ESD_MMDC_CTL_GET_COLUMN(mdctl)	((ctl >> 20) & 7)
-#define ESD_MMDC_CTL_GET_WIDTH(mdctl)	((ctl >> 16) & 3)
-#define ESD_MMDC_CTL_GET_CS1(mdctl)	((ctl >> 30) & 1)
-#define ESD_MMDC_MISC_GET_BANK(mdmisc)	((misc >> 5) & 1)
-
-/*
- * imx_ddr_size - return size in bytes of DRAM according MMDC config
- * The MMDC MDCTL register holds the number of bits for row, col, and data
- * width and the MMDC MDMISC register holds the number of banks. Combine
- * all these bits to determine the meme size the MMDC has been configured for
- */
-unsigned imx_ddr_size(void)
-{
-	struct esd_mmdc_regs *mem = (struct esd_mmdc_regs *)MEMCTL_BASE;
-	unsigned ctl = readl(&mem->ctl);
-	unsigned misc = readl(&mem->misc);
-	int bits = 11 + 0 + 0 + 1;      /* row + col + bank + width */
-
-	bits += ESD_MMDC_CTL_GET_ROW(ctl);
-	bits += col_lookup[ESD_MMDC_CTL_GET_COLUMN(ctl)];
-	bits += bank_lookup[ESD_MMDC_MISC_GET_BANK(misc)];
-	bits += ESD_MMDC_CTL_GET_WIDTH(ctl);
-	bits += ESD_MMDC_CTL_GET_CS1(ctl);
-
-	/* The MX6 can do only 3840 MiB of DRAM */
-	if (bits == 32)
-		return 0xf0000000;
-
-	return 1 << bits;
-}
-#endif
-
 #if defined(CONFIG_DISPLAY_CPUINFO) && !defined(CONFIG_SPL_BUILD)
 
 const char *get_imx_type(u32 imxtype)
 {
 	switch (imxtype) {
+	case MXC_CPU_IMX8MM:
+		return "8MMQ";	/* Quad-core version of the imx8mm */
+	case MXC_CPU_IMX8MML:
+		return "8MMQL";	/* Quad-core Lite version of the imx8mm */
+	case MXC_CPU_IMX8MMD:
+		return "8MMD";	/* Dual-core version of the imx8mm */
+	case MXC_CPU_IMX8MMDL:
+		return "8MMDL";	/* Dual-core Lite version of the imx8mm */
+	case MXC_CPU_IMX8MMS:
+		return "8MMS";	/* Single-core version of the imx8mm */
+	case MXC_CPU_IMX8MMSL:
+		return "8MMSL";	/* Single-core Lite version of the imx8mm */
 	case MXC_CPU_IMX8MQ:
 		return "8MQ";	/* Quad-core version of the imx8m */
 	case MXC_CPU_MX7S:
@@ -173,6 +132,8 @@ const char *get_imx_type(u32 imxtype)
 		return "6UL";   /* Ultra-Lite version of the mx6 */
 	case MXC_CPU_MX6ULL:
 		return "6ULL";	/* ULL version of the mx6 */
+	case MXC_CPU_MX6ULZ:
+		return "6ULZ";	/* ULZ version of the mx6 */
 	case MXC_CPU_MX51:
 		return "51";
 	case MXC_CPU_MX53:
@@ -289,10 +250,12 @@ void arch_preboot_os(void)
 	imx_pcie_remove();
 #endif
 #if defined(CONFIG_SATA)
-	sata_remove(0);
+	if (!is_mx6sdl()) {
+		sata_remove(0);
 #if defined(CONFIG_MX6)
-	disable_sata_clock();
+		disable_sata_clock();
 #endif
+	}
 #endif
 #if defined(CONFIG_VIDEO_IPUV3)
 	/* disable video before launching O/S */

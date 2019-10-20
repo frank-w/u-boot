@@ -97,7 +97,6 @@
 
 #if CONFIG_SPL_BOOT_DEVICE == SPL_BOOT_SPI_NOR_FLASH
 /* SPL related SPI defines */
-#define CONFIG_SYS_SPI_U_BOOT_OFFS	0x30000
 #define CONFIG_SYS_U_BOOT_OFFS		CONFIG_SYS_SPI_U_BOOT_OFFS
 #endif
 
@@ -123,8 +122,6 @@
 #define CONFIG_HOSTNAME		"ccdc"
 #define CONFIG_ROOTPATH		"/opt/nfsroot"
 #define CONFIG_BOOTFILE		"ccdc.img"
-
-#define CONFIG_PREBOOT		/* enable preboot variable */
 
 #define CONFIG_EXTRA_ENV_SETTINGS						\
 	"netdev=eth1\0"						\

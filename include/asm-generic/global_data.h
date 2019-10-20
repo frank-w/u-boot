@@ -33,7 +33,7 @@ typedef struct global_data {
 	/* We cannot bracket this with CONFIG_PCI due to mpc5xxx */
 	unsigned long pci_clk;
 	unsigned long mem_clk;
-#if defined(CONFIG_LCD) || defined(CONFIG_VIDEO)
+#if defined(CONFIG_LCD) || defined(CONFIG_VIDEO) || defined(CONFIG_DM_VIDEO)
 	unsigned long fb_base;		/* Base address of framebuffer mem */
 #endif
 #if defined(CONFIG_POST)
@@ -137,7 +137,7 @@ typedef struct global_data {
 #if defined(CONFIG_TRANSLATION_OFFSET)
 	fdt_addr_t translation_offset;	/* optional translation offset */
 #endif
-#if defined(CONFIG_WDT)
+#if CONFIG_IS_ENABLED(WDT)
 	struct udevice *watchdog_dev;
 #endif
 } gd_t;
@@ -150,7 +150,7 @@ typedef struct global_data {
 #endif
 
 /*
- * Global Data Flags - the top 16 bits are reserved for arch-specific flags
+ * Global Data Flags
  */
 #define GD_FLG_RELOC		0x00001	/* Code was relocated to RAM	   */
 #define GD_FLG_DEVINIT		0x00002	/* Devices have been initialized   */

@@ -48,6 +48,8 @@ config SYS_LONGHELP
 
 config SYS_PROMPT
 	string "Shell prompt"
+	default "Zynq> " if ARCH_ZYNQ
+	default "ZynqMP> " if ARCH_ZYNQMP
 	default "=> "
 	help
 	  This string is displayed in the command line to the left of the
@@ -101,7 +103,14 @@ config AUTOBOOT_PROMPT
 config AUTOBOOT_ENCRYPTION
 	bool "Enable encryption in autoboot stopping"
 	depends on AUTOBOOT_KEYED
-	default n
+	help
+	  This option allows a string to be entered into U-Boot to stop the
+	  autoboot. The string itself is hashed and compared against the hash
+	  in the environment variable 'bootstopkeysha256'. If it matches then
+	  boot stops and a command-line prompt is presented.
+
+	  This provides a way to ship a secure production device which can also
+	  be accessed at the U-Boot command line.
 
 config AUTOBOOT_DELAY_STR
 	string "Delay autobooting via specific input key / string"
@@ -145,6 +154,32 @@ config AUTOBOOT_STOP_STR_SHA256
 	  and therefore boot into the U-Boot prompt, when the input
 	  string / password matches a values that is encypted via
 	  a SHA256 hash and saved in the environment.
+
+config AUTOBOOT_USE_MENUKEY
+	bool "Allow a specify key to run a menu from the environment"
+	depends on !AUTOBOOT_KEYED
+	help
+	  If a specific key is pressed to stop autoboot, then the commands in
+	  the environment variable 'menucmd' are executed before boot starts.
+
+config AUTOBOOT_MENUKEY
+	int "ASCII value of boot key to show a menu"
+	default 0
+	depends on AUTOBOOT_USE_MENUKEY
+	help
+	  If this key is pressed to stop autoboot, then the commands in the
+	  environment variable 'menucmd' will be executed before boot starts.
+	  For example, 33 means "!" in ASCII, so pressing ! at boot would take
+	  this action.
+
+config AUTOBOOT_MENU_SHOW
+	bool "Show a menu on boot"
+	depends on CMD_BOOTMENU
+	help
+	  This enables the boot menu, controlled by environment variables
+	  defined by the board. The menu starts after running the 'preboot'
+	  environmnent variable (if enabled) and before handling the boot delay.
+	  See README.bootmenu for more details.
 
 endmenu
 
@@ -234,6 +269,54 @@ config CMD_BOOTEFI
 	default y
 	help
 	  Boot an EFI image from memory.
+
+config BOOTM_LINUX
+	bool "Support booting Linux OS images"
+	depends on CMD_BOOTM || CMD_BOOTZ || CMD_BOOTI
+	default y
+	help
+	  Support booting the Linux kernel directly via a command such as bootm
+	  or booti or bootz.
+
+config BOOTM_NETBSD
+	bool "Support booting NetBSD (non-EFI) loader images"
+	depends on CMD_BOOTM
+	default y
+	help
+	  Support booting NetBSD via the bootm command.
+
+config BOOTM_OPENRTOS
+	bool "Support booting OPENRTOS / FreeRTOS images"
+	depends on CMD_BOOTM
+	help
+	  Support booting OPENRTOS / FreeRTOS via the bootm command.
+
+config BOOTM_OSE
+	bool "Support booting Enea OSE images"
+	depends on CMD_BOOTM
+	help
+	  Support booting Enea OSE images via the bootm command.
+
+config BOOTM_PLAN9
+	bool "Support booting Plan9 OS images"
+	depends on CMD_BOOTM
+	default y
+	help
+	  Support booting Plan9 images via the bootm command.
+
+config BOOTM_RTEMS
+	bool "Support booting RTEMS OS images"
+	depends on CMD_BOOTM
+	default y
+	help
+	  Support booting RTEMS images via the bootm command.
+
+config BOOTM_VXWORKS
+	bool "Support booting VxWorks OS images"
+	depends on CMD_BOOTM
+	default y
+	help
+	  Support booting VxWorks images via the bootm command.
 
 config CMD_BOOTEFI_HELLO_COMPILE
 	bool "Compile a standard EFI hello world binary for testing"
@@ -325,14 +408,22 @@ config CMD_SPL
 	  command.
 
 config CMD_SPL_NAND_OFS
-	hex "Offset of OS command line args for Falcon-mode NAND boot"
-	depends on CMD_SPL
+	hex "Offset of OS args or dtb for Falcon-mode NAND boot"
+	depends on CMD_SPL && (TPL_NAND_SUPPORT || SPL_NAND_SUPPORT)
 	default 0
 	help
 	  This provides the offset of the command line arguments for Linux
 	  when booting from NAND in Falcon mode.  See doc/README.falcon
 	  for full information about how to use this option (and also see
 	  board/gateworks/gw_ventana/README for an example).
+
+config CMD_SPL_NOR_OFS
+	hex "Offset of OS args or dtb for Falcon-mode NOR boot"
+	depends on CMD_SPL && SPL_NOR_SUPPORT
+	default 0
+	help
+	  This provides the offset of the command line arguments or dtb for
+	  Linux when booting from NOR in Falcon mode.
 
 config CMD_SPL_WRITE_SIZE
 	hex "Size of argument area"
@@ -408,6 +499,14 @@ config CMD_SAVEENV
 	  Save all environment variables into the compiled-in persistent
 	  storage.
 
+config CMD_ERASEENV
+	bool "eraseenv"
+	default n
+	depends on CMD_SAVEENV
+	help
+	  Erase environment variables from the compiled-in persistent
+	  storage.
+
 config CMD_ENV_EXISTS
 	bool "env exists"
 	default y
@@ -434,7 +533,6 @@ config CMD_ENV_FLAGS
 config CMD_NVEDIT_EFI
 	bool "env [set|print] -e - set/print UEFI variables"
 	depends on EFI_LOADER
-	default y
 	imply HEXDUMP
 	help
 	  UEFI variables are encoded as some form of U-Boot variables.
@@ -562,6 +660,27 @@ config CMD_MEMORY
 	    cmp - memory compare
 	    base - print or set address offset
 	    loop - initialize loop on address range
+
+config MX_CYCLIC
+	bool "Enable cyclic md/mw commands"
+	depends on CMD_MEMORY
+	help
+          Add the "mdc" and "mwc" memory commands. These are cyclic
+          "md/mw" commands.
+          Examples:
+
+	  => mdc.b 10 4 500
+	  This command will print 4 bytes (10,11,12,13) each 500 ms.
+
+	  => mwc.l 100 12345678 10
+	  This command will write 12345678 to address 100 all 10 ms.
+
+config CMD_RANDOM
+	bool "random"
+	default y
+	depends on CMD_MEMORY && (LIB_RAND || LIB_HW_RAND)
+	help
+	  random - fill memory with random data
 
 config CMD_MEMTEST
 	bool "memtest"
@@ -720,7 +839,7 @@ config CMD_FASTBOOT
 	  Android devices. Fastboot requires either the network stack
 	  enabled or support for acting as a USB device.
 
-	  See doc/README.android-fastboot for more information.
+	  See doc/android/fastboot.txt for more information.
 
 config CMD_FDC
 	bool "fdcboot - Boot from floppy device"
@@ -987,14 +1106,6 @@ config CMD_PCI
 	  peripherals. Sub-commands allow bus enumeration, displaying and
 	  changing configuration space and a few other features.
 
-config CMD_PCMCIA
-	bool "pinit - Set up PCMCIA device"
-	help
-	  Provides a means to initialise a PCMCIA (Personal Computer Memory
-	  Card International Association) device. This is an old standard from
-	  about 1990. These devices are typically removable memory or network
-	  cards using a standard 68-pin connector.
-
 config CMD_PINMUX
 	bool "pinmux - show pins muxing"
 	default y if PINCTRL
@@ -1183,6 +1294,21 @@ config CMD_SETEXPR
 
 endmenu
 
+menu "Android support commands"
+
+config CMD_AB_SELECT
+	bool "ab_select"
+	default n
+	depends on ANDROID_AB
+	help
+	  On Android devices with more than one boot slot (multiple copies of
+	  the kernel and system images) this provides a command to select which
+	  slot should be used to boot from and register the boot attempt. This
+	  is used by the new A/B update model where one slot is updated in the
+	  background while running from the other slot.
+
+endmenu
+
 if NET
 
 menuconfig CMD_NET
@@ -1262,6 +1388,13 @@ config BOOTP_SUBNETMASK
 config BOOTP_NTPSERVER
 	bool "Request & store 'ntpserverip' from BOOTP/DHCP server"
 	depends on CMD_BOOTP
+
+config CMD_PCAP
+	bool "pcap capture"
+	help
+	  Selecting this will allow capturing all Ethernet packets and store
+	  them in physical memory in a PCAP formated file,
+	  later to be analyzed by PCAP reader application (IE. WireShark).
 
 config BOOTP_PXE
 	bool "Send PXE client arch to BOOTP/DHCP server"
@@ -1385,7 +1518,7 @@ config CMD_BMP
 	bool "Enable 'bmp' command"
 	depends on LCD || DM_VIDEO || VIDEO
 	help
-	  This provides a way to obtain information about a BMP-format iamge
+	  This provides a way to obtain information about a BMP-format image
 	  and to display it. BMP (which presumably stands for BitMaP) is a
 	  file format defined by Microsoft which supports images of various
 	  depths, formats and compression methods. Headers on the file

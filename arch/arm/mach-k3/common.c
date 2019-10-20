@@ -13,23 +13,57 @@
 #include <remoteproc.h>
 #include <linux/soc/ti/ti_sci_protocol.h>
 #include <fdt_support.h>
+#include <asm/arch/sys_proto.h>
+#include <asm/hardware.h>
+#include <asm/io.h>
 
 struct ti_sci_handle *get_ti_sci_handle(void)
 {
 	struct udevice *dev;
 	int ret;
 
-	ret = uclass_get_device_by_name(UCLASS_FIRMWARE, "dmsc", &dev);
+	ret = uclass_get_device_by_driver(UCLASS_FIRMWARE,
+					  DM_GET_DRIVER(ti_sci), &dev);
 	if (ret)
 		panic("Failed to get SYSFW (%d)\n", ret);
 
 	return (struct ti_sci_handle *)ti_sci_get_handle_from_sysfw(dev);
 }
 
+DECLARE_GLOBAL_DATA_PTR;
+
+#ifdef CONFIG_K3_EARLY_CONS
+int early_console_init(void)
+{
+	struct udevice *dev;
+	int ret;
+
+	gd->baudrate = CONFIG_BAUDRATE;
+
+	ret = uclass_get_device_by_seq(UCLASS_SERIAL, CONFIG_K3_EARLY_CONS_IDX,
+				       &dev);
+	if (ret) {
+		printf("Error getting serial dev for early console! (%d)\n",
+		       ret);
+		return ret;
+	}
+
+	gd->cur_serial_dev = dev;
+	gd->flags |= GD_FLG_SERIAL_READY;
+	gd->have_console = 1;
+
+	return 0;
+}
+#endif
+
 #ifdef CONFIG_SYS_K3_SPL_ATF
 void __noreturn jump_to_image_no_args(struct spl_image_info *spl_image)
 {
+	struct ti_sci_handle *ti_sci = get_ti_sci_handle();
 	int ret;
+
+	/* Release all the exclusive devices held by SPL before starting ATF */
+	ti_sci->ops.dev_ops.release_exclusive_devices(ti_sci);
 
 	/*
 	 * It is assumed that remoteproc device 1 is the corresponding
@@ -51,7 +85,10 @@ void __noreturn jump_to_image_no_args(struct spl_image_info *spl_image)
 	if (ret)
 		panic("%s: ATF failed to start on rproc (%d)\n", __func__, ret);
 
-	debug("ATF started. Waiting indefinitely...\n");
+	debug("Releasing resources...\n");
+	release_resources_for_core_shutdown();
+
+	debug("Finalizing core shutdown...\n");
 	while (1)
 		asm volatile("wfe");
 }
@@ -126,6 +163,72 @@ int fdt_fixup_msmc_ram(void *blob, char *parent_path, char *node_name)
 			subnode = fdt_next_subnode(blob, prev_node);
 		}
 	}
+
+	return 0;
+}
+
+int fdt_disable_node(void *blob, char *node_path)
+{
+	int offs;
+	int ret;
+
+	offs = fdt_path_offset(blob, node_path);
+	if (offs < 0) {
+		debug("Node %s not found.\n", node_path);
+		return 0;
+	}
+	ret = fdt_setprop_string(blob, offs, "status", "disabled");
+	if (ret < 0) {
+		printf("Could not add status property to node %s: %s\n",
+		       node_path, fdt_strerror(ret));
+		return ret;
+	}
+	return 0;
+}
+
+#endif
+
+#ifndef CONFIG_SYSRESET
+void reset_cpu(ulong ignored)
+{
+}
+#endif
+
+#if defined(CONFIG_DISPLAY_CPUINFO)
+int print_cpuinfo(void)
+{
+	u32 soc, rev;
+	char *name;
+
+	soc = (readl(CTRLMMR_WKUP_JTAG_DEVICE_ID) &
+		DEVICE_ID_FAMILY_MASK) >> DEVICE_ID_FAMILY_SHIFT;
+	rev = (readl(CTRLMMR_WKUP_JTAG_ID) &
+		JTAG_ID_VARIANT_MASK) >> JTAG_ID_VARIANT_SHIFT;
+
+	printf("SoC:   ");
+	switch (soc) {
+	case AM654:
+		name = "AM654";
+		break;
+	case J721E:
+		name = "J721E";
+		break;
+	default:
+		name = "Unknown Silicon";
+	};
+
+	printf("%s PG ", name);
+	switch (rev) {
+	case REV_PG1_0:
+		name = "1.0";
+		break;
+	case REV_PG2_0:
+		name = "2.0";
+		break;
+	default:
+		name = "Unknown Revision";
+	};
+	printf("%s\n", name);
 
 	return 0;
 }

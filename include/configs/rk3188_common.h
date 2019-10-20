@@ -12,10 +12,7 @@
 #include "rockchip-common.h"
 
 #define CONFIG_SKIP_LOWLEVEL_INIT_ONLY
-#define CONFIG_SYS_MALLOC_LEN		(32 << 20)
 #define CONFIG_SYS_CBSIZE		1024
-
-#define CONFIG_SYS_NS16550_MEM32
 
 #ifdef CONFIG_SPL_ROCKCHIP_BACK_TO_BROM
 /* Bootrom will load u-boot binary to 0x60000000 once return from SPL */
@@ -25,6 +22,7 @@
 
 #define CONFIG_ROCKCHIP_MAX_INIT_SIZE	(0x8000 - 0x800)
 #define CONFIG_ROCKCHIP_CHIP_TAG	"RK31"
+#define CONFIG_IRAM_BASE	0x10080000
 
 /* spl size 32kb sram - 2kb bootrom */
 #define CONFIG_SPL_MAX_SIZE		(0x8000 - 0x800)
@@ -61,7 +59,5 @@
 	BOOTENV
 
 #endif /* CONFIG_SPL_BUILD */
-
-#define CONFIG_PREBOOT
 
 #endif

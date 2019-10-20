@@ -216,7 +216,7 @@ As an example, consider this FIT:
 			kernel = "kernel-1";
 			fdt = "fdt-1";
 		};
-		conf-1 {
+		conf-2 {
 			kernel = "kernel-2";
 			fdt = "fdt-2";
 		};
@@ -232,7 +232,7 @@ configuration 3 with kernel 1 and fdt 2:
 			kernel = "kernel-1";
 			fdt = "fdt-1";
 		};
-		conf-1 {
+		conf-2 {
 			kernel = "kernel-2";
 			fdt = "fdt-2";
 		};
@@ -337,6 +337,7 @@ WARNING: When relying on signed FIT images with required signature check
 the legacy image format is default disabled by not defining
 CONFIG_LEGACY_IMAGE_FORMAT
 
+
 Testing
 -------
 An easy way to test signing and verification is to use the test script
@@ -349,6 +350,8 @@ A sample run is show below:
 $ make O=sandbox sandbox_config
 $ make O=sandbox
 $ O=sandbox ./test/vboot/vboot_test.sh
+
+
 Simple Verified Boot Test
 =========================
 
@@ -388,8 +391,8 @@ Test Verified Boot Run: signed config with bad hash: OK
 Test passed
 
 
-Hardware Signing with PKCS#11
------------------------------
+Hardware Signing with PKCS#11 or with HSM
+-----------------------------------------
 
 Securely managing private signing keys can challenging, especially when the
 keys are stored on the file system of a computer that is connected to the
@@ -402,14 +405,43 @@ them perform the signing. PKCS#11 is standard for interfacing with these crypto
 device.
 
 Requirements:
-Smartcard/USB token/HSM which can work with the pkcs11 engine
+Smartcard/USB token/HSM which can work with some openssl engine
 openssl
+
+For pkcs11 engine usage:
 libp11 (provides pkcs11 engine)
 p11-kit (recommended to simplify setup)
 opensc (for smartcards and smartcard like USB devices)
 gnutls (recommended for key generation, p11tool)
 
-The following examples use the Nitrokey Pro. Instructions for other devices may vary.
+For generic HSMs respective openssl engine must be installed and locateable by
+openssl. This may require setting up LD_LIBRARY_PATH if engine is not installed
+to openssl's default search paths.
+
+PKCS11 engine support forms "key id" based on "keydir" and with
+"key-name-hint". "key-name-hint" is used as "object" name and "keydir" if
+defined is used to define (prefix for) which PKCS11 source is being used for
+lookup up for the key.
+
+PKCS11 engine key ids:
+   "pkcs11:<keydir>;object=<key-name-hint>;type=<public|private>"
+or
+   "pkcs11:object=<key-name-hint>;type=<public|private>",
+
+Generic HSM engine support forms "key id" based on "keydir" and with
+"key-name-hint". If "keydir" is specified for mkimage it is used as a prefix in
+"key id" and is appended with "key-name-hint".
+
+Generic engine key ids:
+  "<keydir><key-name-hint>"
+or
+  "<key-name-hint>"
+
+As mkimage does not at this time support prompting for passwords HSM may need
+key preloading wrapper to be used when invoking mkimage.
+
+The following examples use the Nitrokey Pro using pkcs11 engine. Instructions
+for other devices may vary.
 
 Notes on pkcs11 engine setup:
 

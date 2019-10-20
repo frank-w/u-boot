@@ -8,6 +8,15 @@ config WATCHDOG
 	  this option if you want to service enabled watchdog by U-Boot. Disable
 	  this option if you want U-Boot to start watchdog but never service it.
 
+config WATCHDOG_TIMEOUT_MSECS
+	int "Watchdog timeout in msec"
+	default 128000 if ARCH_MX25 || ARCH_MX31 || ARCH_MX5 || ARCH_MX6
+	default 128000 if ARCH_MX7 || ARCH_VF610
+	default 30000 if ARCH_SOCFPGA
+	default 60000
+	help
+	  Watchdog timeout in msec
+
 config HW_WATCHDOG
 	bool
 
@@ -17,18 +26,9 @@ config WATCHDOG_RESET_DISABLE
 	   Disable reset watchdog, which can let WATCHDOG_RESET invalid, so
 	   that the watchdog will not be fed in u-boot.
 
-config BCM2835_WDT
-	bool "Enable BCM2835/2836 watchdog driver"
-	select HW_WATCHDOG
-	help
-	  Say Y here to enable the BCM2835/2836 watchdog
-
-	  This provides basic infrastructure to support BCM2835/2836 watchdog
-	  hardware, with a max timeout of ~15secs.
-
 config IMX_WATCHDOG
 	bool "Enable Watchdog Timer support for IMX and LSCH2 of NXP"
-	select HW_WATCHDOG
+	select HW_WATCHDOG if !WDT
 	help
 	   Select this to enable the IMX and LSCH2 of Layerscape watchdog
 	   driver.
@@ -37,7 +37,6 @@ config OMAP_WATCHDOG
 	bool "TI OMAP watchdog driver"
 	depends on ARCH_OMAP2PLUS
 	select HW_WATCHDOG
-	default y if AM33XX
 	help
 	  Say Y here to enable the OMAP3+ watchdog driver.
 
@@ -122,6 +121,14 @@ config WDT_MTK
 	  The watchdog timer is stopped when initialized.
 	  It performs full SoC reset.
 
+config WDT_OMAP3
+        bool "TI OMAP watchdog timer support"
+        depends on WDT && ARCH_OMAP2PLUS
+        default y if AM33XX
+        help
+	  This enables OMAP3+ watchdog timer driver, which can be
+	  found on some TI chipsets and inline with driver model.
+
 config WDT_ORION
 	bool "Orion watchdog timer support"
 	depends on WDT
@@ -168,5 +175,12 @@ config WDT_TANGIER
 	  This enables support for watchdog controller available on
 	  Intel Tangier SoC. If you're using a board with Intel Tangier
 	  SoC, say Y here.
+
+config SPL_WDT
+	bool "Enable driver model for watchdog timer drivers in SPL"
+	depends on SPL_DM
+	help
+	  Enable driver model for watchdog timer in SPL.
+	  This is similar to CONFIG_WDT in U-Boot.
 
 endmenu

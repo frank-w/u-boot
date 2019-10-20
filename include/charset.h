@@ -168,6 +168,21 @@ s32 utf_to_lower(const s32 code);
  */
 s32 utf_to_upper(const s32 code);
 
+/*
+ * u16_strncmp() - compare two u16 string
+ *
+ * @s1:		first string to compare
+ * @s2:		second string to compare
+ * @n:		maximum number of u16 to compare
+ * Return:	0  if the first n u16 are the same in s1 and s2
+ *		< 0 if the first different u16 in s1 is less than the
+ *		corresponding u16 in s2
+ *		> 0 if the first different u16 in s1 is greater than the
+ *		corresponding u16 in s2
+ */
+int u16_strncmp(const u16 *s1, const u16 *s2, size_t n);
+#define u16_strcmp(s1, s2)	u16_strncmp((s1), (s2), SIZE_MAX)
+
 /**
  * u16_strlen - count non-zero words
  *
@@ -178,7 +193,7 @@ s32 utf_to_upper(const s32 code);
  * ReturnValue:		number of non-zero words.
  *			This is not the number of utf-16 letters!
  */
-size_t u16_strlen(const u16 *in);
+size_t u16_strlen(const void *in);
 
 /**
  * u16_strlen - count non-zero words
@@ -214,7 +229,7 @@ u16 *u16_strcpy(u16 *dest, const u16 *src);
  * @src:		source buffer (null terminated)
  * Return:		allocated new buffer on success, NULL on failure
  */
-u16 *u16_strdup(const u16 *src);
+u16 *u16_strdup(const void *src);
 
 /**
  * utf16_to_utf8() - Convert an utf16 string to utf8

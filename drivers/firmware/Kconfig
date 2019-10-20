@@ -1,9 +1,13 @@
 config FIRMWARE
 	bool "Enable Firmware driver support"
 
+config SPL_FIRMWARE
+	bool "Enable Firmware driver support in SPL"
+	depends on FIRMWARE
+
 config SPL_ARM_PSCI_FW
 	bool
-	select FIRMWARE
+	select SPL_FIRMWARE
 
 config ARM_PSCI_FW
 	bool
@@ -13,6 +17,7 @@ config TI_SCI_PROTOCOL
 	tristate "TI System Control Interface (TISCI) Message Protocol"
 	depends on K3_SEC_PROXY
 	select FIRMWARE
+	select SPL_FIRMWARE if SPL
 	help
 	  TI System Control Interface (TISCI) Message Protocol is used to manage
 	  compute systems such as ARM, DSP etc with the system controller in
@@ -21,3 +26,13 @@ config TI_SCI_PROTOCOL
 
 	  This protocol library is used by client drivers to use the features
 	  provided by the system controller.
+
+config ZYNQMP_FIRMWARE
+	bool "ZynqMP Firmware interface"
+	select FIRMWARE
+	help
+	  Firmware interface driver is used by different
+	  drivers to communicate with the firmware for
+	  various platform management services.
+	  Say yes to enable ZynqMP firmware interface driver.
+	  If in doubt, say N.

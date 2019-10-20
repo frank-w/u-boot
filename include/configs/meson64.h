@@ -31,14 +31,15 @@
 
 #ifdef CONFIG_USB_KEYBOARD
 #define STDIN_CFG "usbkbd,serial"
-#define CONFIG_PREBOOT "usb start"
 #else
 #define STDIN_CFG "serial"
 #endif
 
 #define CONFIG_CPU_ARMV8
 #define CONFIG_REMAKE_ELF
+#ifndef CONFIG_ENV_SIZE
 #define CONFIG_ENV_SIZE			0x2000
+#endif
 #define CONFIG_SYS_MAXARGS		32
 #define CONFIG_SYS_MALLOC_LEN		(32 << 20)
 #define CONFIG_SYS_CBSIZE		1024

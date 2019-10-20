@@ -9,8 +9,10 @@
  */
 #include <common.h>
 #include <command.h>
+#include <env.h>
 #include <fpga.h>
 #include <fs.h>
+#include <gzip.h>
 #include <malloc.h>
 
 static long do_fpga_get_device(char *arg)
@@ -458,7 +460,7 @@ U_BOOT_CMD(fpga, 6, 1, do_fpga_wrapper,
 	   "0-device key, 1-user key, 2-no encryption.\n"
 	   "The optional Userkey address specifies from which address key\n"
 	   "has to be used for decryption if user key is selected.\n"
-	   "NOTE: the sceure bitstream has to be created using xilinx\n"
+	   "NOTE: the secure bitstream has to be created using Xilinx\n"
 	   "bootgen tool only.\n"
 #endif
 );

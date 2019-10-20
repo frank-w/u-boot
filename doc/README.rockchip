@@ -28,10 +28,9 @@ You will need:
 Building
 ========
 
-At present 12 RK3288 boards are supported:
+At present 11 RK3288 boards are supported:
 
    - EVB RK3288 - use evb-rk3288 configuration
-   - Fennec RK3288 - use fennec-rk3288 configuration
    - Firefly RK3288 - use firefly-rk3288 configuration
    - Hisense Chromebook - use chromebook_jerry configuration
    - Asus C100P Chromebook - use chromebook_minnie configuration
@@ -122,10 +121,6 @@ For example:
      (Get trust.img and uboot.img)
 
    Option 2: Package the image with SPL:
-
-   - We need the Python elftools.elf.elffile library for make_fit_atf.py to work
-
-     => sudo apt-get install python-pyelftools
 
    - Export cross compiler path for aarch64
 
@@ -280,9 +275,7 @@ As of now TPL is added on Vyasa-RK3288 board.
 
 To write an image that boots from an SD card (assumed to be /dev/mmcblk0):
 
-   ./tools/mkimage -n rk3288 -T rksd -d ./tpl/u-boot-tpl.bin out &&
-    cat ./spl/u-boot-spl-dtb.bin >> out &&
-    sudo dd if=out of=/dev/mmcblk0 seek=64 &&
+    sudo dd if=idbloader.img of=/dev/mmcblk0 seek=64 &&
     sudo dd if=u-boot-dtb.img of=/dev/mmcblk0 seek=16384
 
 Booting from an SD card on RK3188
@@ -313,18 +306,7 @@ Booting from an SD card on Pine64 Rock64 (RK3328)
 =================================================
 
 For Rock64 rk3328 board the following three parts are required:
-TPL, SPL, and the u-boot image tree blob. While u-boot-spl.bin and
-u-boot.itb are to be compiled as usual, TPL is currently not
-implemented in u-boot, so you need to pick one from rkbin:
-
-  - Get the rkbin
-
-    => git clone https://github.com/rockchip-linux/rkbin.git
-
-  - Create TPL/SPL image
-
-    => tools/mkimage -n rk3328 -T rksd -d rkbin/bin/rk33/rk3328_ddr_333MHz_v1.16.bin idbloader.img
-    => cat spl/u-boot-spl.bin >> idbloader.img
+TPL, SPL, and the u-boot image tree blob.
 
   - Write TPL/SPL image at 64 sector
 
@@ -484,19 +466,9 @@ Hit any key to stop autoboot:  0
 
 Option 3: Package the image with TPL:
 
-  - Prefix rk3399 header to TPL image
-
-    => cd /path/to/u-boot
-    => ./tools/mkimage -n rk3399 -T rksd -d tpl/u-boot-tpl-dtb.bin out
-
-  - Concatinate tpl with spl
-
-    => cd /path/to/u-boot
-    => cat ./spl/u-boot-spl-dtb.bin >> out
-
   - Write tpl+spl at 64th sector
 
-    => sudo dd if=out of=/dev/sdc seek=64
+    => sudo dd if=idbloader.img of=/dev/sdc seek=64
 
   - Write U-Boot proper at 16384 sector
 
@@ -570,7 +542,7 @@ header and skipping every second 2KB block. Then the U-Boot image is written at
 offset 128KB and the whole image is padded to 4MB which is the SPI flash size.
 The position of U-Boot is controlled with this setting in U-Boot:
 
-   #define CONFIG_SYS_SPI_U_BOOT_OFFS	(128 << 10)
+   #define CONFIG_SYS_SPI_U_BOOT_OFFS	0x20000
 
 If you have a Dediprog em100pro connected then you can write the image with:
 

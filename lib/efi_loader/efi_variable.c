@@ -5,11 +5,12 @@
  *  Copyright (c) 2017 Rob Clark
  */
 
+#include <env.h>
 #include <malloc.h>
 #include <charset.h>
 #include <efi_loader.h>
 #include <hexdump.h>
-#include <environment.h>
+#include <env_internal.h>
 #include <search.h>
 #include <uuid.h>
 
@@ -263,8 +264,8 @@ static char *efi_cur_variable;
  * is the size of variable name including NULL.
  *
  * Return:		EFI_SUCCESS if parsing is OK, EFI_NOT_FOUND when
-			the entire variable list has been returned,
-			otherwise non-zero status code
+ *			the entire variable list has been returned,
+ *			otherwise non-zero status code
  */
 static efi_status_t parse_uboot_variable(char *variable,
 					 efi_uintn_t *variable_name_size,
@@ -315,6 +316,7 @@ static efi_status_t parse_uboot_variable(char *variable,
 
 /**
  * efi_get_next_variable_name() - enumerate the current variable names
+ *
  * @variable_name_size:	size of variable_name buffer in byte
  * @variable_name:	name of uefi variable's name in u16
  * @vendor:		vendor's guid
@@ -322,8 +324,7 @@ static efi_status_t parse_uboot_variable(char *variable,
  * This function implements the GetNextVariableName service.
  *
  * See the Unified Extensible Firmware Interface (UEFI) specification for
- * details: http://wiki.phoenix.com/wiki/index.php/
- *		EFI_RUNTIME_SERVICES#GetNextVariableName.28.29
+ * details.
  *
  * Return: status code
  */
@@ -423,17 +424,17 @@ efi_status_t EFIAPI efi_set_variable(u16 *variable_name,
 				     efi_uintn_t data_size, const void *data)
 {
 	char *native_name = NULL, *val = NULL, *s;
+	const char *old_val;
+	size_t old_size;
 	efi_status_t ret = EFI_SUCCESS;
 	u32 attr;
 
 	EFI_ENTRY("\"%ls\" %pUl %x %zu %p", variable_name, vendor, attributes,
 		  data_size, data);
 
-	/* TODO: implement APPEND_WRITE */
 	if (!variable_name || !*variable_name || !vendor ||
 	    ((attributes & EFI_VARIABLE_RUNTIME_ACCESS) &&
-	     !(attributes & EFI_VARIABLE_BOOTSERVICE_ACCESS)) ||
-	    (attributes & EFI_VARIABLE_APPEND_WRITE)) {
+	     !(attributes & EFI_VARIABLE_BOOTSERVICE_ACCESS))) {
 		ret = EFI_INVALID_PARAMETER;
 		goto out;
 	}
@@ -442,37 +443,56 @@ efi_status_t EFIAPI efi_set_variable(u16 *variable_name,
 	if (ret)
 		goto out;
 
-#define ACCESS_ATTR (EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_BOOTSERVICE_ACCESS)
+	old_val = env_get(native_name);
+	if (old_val) {
+		old_val = parse_attr(old_val, &attr);
 
-	if ((data_size == 0) || !(attributes & ACCESS_ATTR)) {
-		/* delete the variable: */
-		env_set(native_name, NULL);
-		ret = EFI_SUCCESS;
-		goto out;
-	}
-
-	val = env_get(native_name);
-	if (val) {
-		parse_attr(val, &attr);
-
-		/* We should not free val */
-		val = NULL;
+		/* check read-only first */
 		if (attr & READ_ONLY) {
 			ret = EFI_WRITE_PROTECTED;
 			goto out;
 		}
 
-		/*
-		 * attributes won't be changed
-		 * TODO: take care of APPEND_WRITE once supported
-		 */
-		if (attr != attributes) {
+		if ((data_size == 0 &&
+		     !(attributes & EFI_VARIABLE_APPEND_WRITE)) ||
+		    !attributes) {
+			/* delete the variable: */
+			env_set(native_name, NULL);
+			ret = EFI_SUCCESS;
+			goto out;
+		}
+
+		/* attributes won't be changed */
+		if (attr != (attributes & ~EFI_VARIABLE_APPEND_WRITE)) {
 			ret = EFI_INVALID_PARAMETER;
 			goto out;
 		}
+
+		if (attributes & EFI_VARIABLE_APPEND_WRITE) {
+			if (!prefix(old_val, "(blob)")) {
+				ret = EFI_DEVICE_ERROR;
+				goto out;
+			}
+			old_size = strlen(old_val);
+		} else {
+			old_size = 0;
+		}
+	} else {
+		if (data_size == 0 || !attributes ||
+		    (attributes & EFI_VARIABLE_APPEND_WRITE)) {
+			/*
+			 * Trying to delete or to update a non-existent
+			 * variable.
+			 */
+			ret = EFI_NOT_FOUND;
+			goto out;
+		}
+
+		old_size = 0;
 	}
 
-	val = malloc(2 * data_size + strlen("{ro,run,boot,nv}(blob)") + 1);
+	val = malloc(old_size + 2 * data_size
+		     + strlen("{ro,run,boot,nv}(blob)") + 1);
 	if (!val) {
 		ret = EFI_OUT_OF_RESOURCES;
 		goto out;
@@ -480,10 +500,7 @@ efi_status_t EFIAPI efi_set_variable(u16 *variable_name,
 
 	s = val;
 
-	/*
-	 * store attributes
-	 * TODO: several attributes are not supported
-	 */
+	/* store attributes */
 	attributes &= (EFI_VARIABLE_NON_VOLATILE |
 		       EFI_VARIABLE_BOOTSERVICE_ACCESS |
 		       EFI_VARIABLE_RUNTIME_ACCESS);
@@ -504,8 +521,13 @@ efi_status_t EFIAPI efi_set_variable(u16 *variable_name,
 	}
 	s += sprintf(s, "}");
 
+	if (old_size)
+		/* APPEND_WRITE */
+		s += sprintf(s, old_val);
+	else
+		s += sprintf(s, "(blob)");
+
 	/* store payload: */
-	s += sprintf(s, "(blob)");
 	s = bin2hex(s, data, data_size);
 	*s = '\0';
 
@@ -550,6 +572,13 @@ efi_status_t __efi_runtime EFIAPI efi_query_variable_info(
 
 /**
  * efi_get_variable_runtime() - runtime implementation of GetVariable()
+ *
+ * @variable_name:	name of the variable
+ * @vendor:		vendor GUID
+ * @attributes:		attributes of the variable
+ * @data_size:		size of the buffer to which the variable value is copied
+ * @data:		buffer to which the variable value is copied
+ * Return:		status code
  */
 static efi_status_t __efi_runtime EFIAPI
 efi_get_variable_runtime(u16 *variable_name, const efi_guid_t *vendor,
@@ -561,6 +590,11 @@ efi_get_variable_runtime(u16 *variable_name, const efi_guid_t *vendor,
 /**
  * efi_get_next_variable_name_runtime() - runtime implementation of
  *					  GetNextVariable()
+ *
+ * @variable_name_size:	size of variable_name buffer in byte
+ * @variable_name:	name of uefi variable's name in u16
+ * @vendor:		vendor's guid
+ * Return: status code
  */
 static efi_status_t __efi_runtime EFIAPI
 efi_get_next_variable_name_runtime(efi_uintn_t *variable_name_size,
@@ -571,6 +605,13 @@ efi_get_next_variable_name_runtime(efi_uintn_t *variable_name_size,
 
 /**
  * efi_set_variable_runtime() - runtime implementation of SetVariable()
+ *
+ * @variable_name:	name of the variable
+ * @vendor:		vendor GUID
+ * @attributes:		attributes of the variable
+ * @data_size:		size of the buffer with the variable value
+ * @data:		buffer with the variable value
+ * Return:		status code
  */
 static efi_status_t __efi_runtime EFIAPI
 efi_set_variable_runtime(u16 *variable_name, const efi_guid_t *vendor,

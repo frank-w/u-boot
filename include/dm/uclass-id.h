@@ -23,6 +23,7 @@ enum uclass_id {
 	UCLASS_I2C_EMUL,	/* sandbox I2C device emulator */
 	UCLASS_I2C_EMUL_PARENT,	/* parent for I2C device emulators */
 	UCLASS_PCI_EMUL,	/* sandbox PCI device emulator */
+	UCLASS_PCI_EMUL_PARENT,	/* parent for PCI device emulators */
 	UCLASS_USB_EMUL,	/* sandbox USB bus device emulator */
 	UCLASS_AXI_EMUL,	/* sandbox AXI bus device emulator */
 
@@ -39,6 +40,7 @@ enum uclass_id {
 	UCLASS_CPU,		/* CPU, typically part of an SoC */
 	UCLASS_CROS_EC,		/* Chrome OS EC */
 	UCLASS_DISPLAY,		/* Display (e.g. DisplayPort, HDMI) */
+	UCLASS_DSI_HOST,	/* Display Serial Interface host */
 	UCLASS_DMA,		/* Direct Memory Access */
 	UCLASS_EFI,		/* EFI managed devices */
 	UCLASS_ETH,		/* Ethernet device */
@@ -59,6 +61,7 @@ enum uclass_id {
 	UCLASS_MAILBOX,		/* Mailbox controller */
 	UCLASS_MASS_STORAGE,	/* Mass storage device */
 	UCLASS_MDIO,		/* MDIO bus */
+	UCLASS_MDIO_MUX,	/* MDIO MUX/switch */
 	UCLASS_MISC,		/* Miscellaneous device */
 	UCLASS_MMC,		/* SD / MMC card or chip */
 	UCLASS_MOD_EXP,		/* RSA Mod Exp device */

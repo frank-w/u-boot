@@ -58,10 +58,13 @@
 #define READ_TIMEOUT			3000000 /* 1 sec */
 #define WRITE_TIMEOUT			3000000 /* 1 sec */
 
-struct mmc_spi_priv {
-	struct spi_slave *spi;
+struct mmc_spi_plat {
 	struct mmc_config cfg;
 	struct mmc mmc;
+};
+
+struct mmc_spi_priv {
+	struct spi_slave *spi;
 };
 
 static int mmc_spi_sendcmd(struct udevice *dev,
@@ -84,7 +87,7 @@ static int mmc_spi_sendcmd(struct udevice *dev,
 	cmdo[4] = cmdarg >> 8;
 	cmdo[5] = cmdarg;
 	cmdo[6] = (crc7(0, &cmdo[1], 5) << 1) | 0x01;
-	ret = dm_spi_xfer(dev, sizeof(cmdo) * 8, cmdo, NULL, 0);
+	ret = dm_spi_xfer(dev, sizeof(cmdo) * 8, cmdo, NULL, SPI_XFER_BEGIN);
 	if (ret)
 		return ret;
 
@@ -360,6 +363,8 @@ static int dm_mmc_spi_request(struct udevice *dev, struct mmc_cmd *cmd,
 	}
 
 done:
+	dm_spi_xfer(dev, 0, NULL, NULL, SPI_XFER_END);
+
 	dm_spi_release_bus(dev);
 
 	return ret;
@@ -368,6 +373,7 @@ done:
 static int mmc_spi_probe(struct udevice *dev)
 {
 	struct mmc_spi_priv *priv = dev_get_priv(dev);
+	struct mmc_spi_plat *plat = dev_get_platdata(dev);
 	struct mmc_uclass_priv *upriv = dev_get_uclass_priv(dev);
 	char *name;
 
@@ -383,28 +389,28 @@ static int mmc_spi_probe(struct udevice *dev)
 		return -ENOMEM;
 	sprintf(name, "%s:%s", dev->parent->name, dev->name);
 
-	priv->cfg.name = name;
-	priv->cfg.host_caps = MMC_MODE_SPI;
-	priv->cfg.voltages = MMC_SPI_VOLTAGE;
-	priv->cfg.f_min = MMC_SPI_MIN_CLOCK;
-	priv->cfg.f_max = priv->spi->max_hz;
-	priv->cfg.part_type = PART_TYPE_DOS;
-	priv->cfg.b_max = CONFIG_SYS_MMC_MAX_BLK_COUNT;
+	plat->cfg.name = name;
+	plat->cfg.host_caps = MMC_MODE_SPI;
+	plat->cfg.voltages = MMC_SPI_VOLTAGE;
+	plat->cfg.f_min = MMC_SPI_MIN_CLOCK;
+	plat->cfg.f_max = priv->spi->max_hz;
+	plat->cfg.part_type = PART_TYPE_DOS;
+	plat->cfg.b_max = CONFIG_SYS_MMC_MAX_BLK_COUNT;
 
-	priv->mmc.cfg = &priv->cfg;
-	priv->mmc.priv = priv;
-	priv->mmc.dev = dev;
+	plat->mmc.cfg = &plat->cfg;
+	plat->mmc.priv = priv;
+	plat->mmc.dev = dev;
 
-	upriv->mmc = &priv->mmc;
+	upriv->mmc = &plat->mmc;
 
 	return 0;
 }
 
 static int mmc_spi_bind(struct udevice *dev)
 {
-	struct mmc_spi_priv *priv = dev_get_priv(dev);
+	struct mmc_spi_plat *plat = dev_get_platdata(dev);
 
-	return mmc_bind(dev, &priv->mmc, &priv->cfg);
+	return mmc_bind(dev, &plat->mmc, &plat->cfg);
 }
 
 static const struct dm_mmc_ops mmc_spi_ops = {
@@ -424,5 +430,6 @@ U_BOOT_DRIVER(mmc_spi) = {
 	.ops = &mmc_spi_ops,
 	.probe = mmc_spi_probe,
 	.bind = mmc_spi_bind,
+	.platdata_auto_alloc_size = sizeof(struct mmc_spi_plat),
 	.priv_auto_alloc_size = sizeof(struct mmc_spi_priv),
 };

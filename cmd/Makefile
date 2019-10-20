@@ -12,6 +12,7 @@ obj-y += version.o
 
 # command
 obj-$(CONFIG_CMD_AES) += aes.o
+obj-$(CONFIG_CMD_AB_SELECT) += ab_select.o
 obj-$(CONFIG_CMD_ADC) += adc.o
 obj-$(CONFIG_CMD_ARMFLASH) += armflash.o
 obj-y += blk_common.o
@@ -102,10 +103,10 @@ obj-$(CONFIG_CMD_NVEDIT_EFI) += nvedit_efi.o
 obj-$(CONFIG_CMD_ONENAND) += onenand.o
 obj-$(CONFIG_CMD_OSD) += osd.o
 obj-$(CONFIG_CMD_PART) += part.o
+obj-$(CONFIG_CMD_PCAP) += pcap.o
 ifdef CONFIG_PCI
 obj-$(CONFIG_CMD_PCI) += pci.o
 endif
-obj-$(CONFIG_CMD_PCMCIA) += pcmcia.o
 obj-$(CONFIG_CMD_PINMUX) += pinmux.o
 obj-$(CONFIG_CMD_PXE) += pxe.o
 obj-$(CONFIG_CMD_WOL) += wol.o

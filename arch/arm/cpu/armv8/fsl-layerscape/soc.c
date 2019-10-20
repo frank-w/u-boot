@@ -5,6 +5,7 @@
  */
 
 #include <common.h>
+#include <env.h>
 #include <fsl_immap.h>
 #include <fsl_ifc.h>
 #include <asm/arch/fsl_serdes.h>
@@ -26,7 +27,7 @@
 #endif
 #include <fsl_immap.h>
 #ifdef CONFIG_TFABOOT
-#include <environment.h>
+#include <env_internal.h>
 DECLARE_GLOBAL_DATA_PTR;
 #endif
 
@@ -338,6 +339,10 @@ void fsl_lsch3_early_init_f(void)
 	*/
 	if (fsl_check_boot_mode_secure() == 1)
 		bypass_smmu();
+#endif
+
+#if defined(CONFIG_ARCH_LS1088A) || defined(CONFIG_ARCH_LS1028A)
+	set_icids();
 #endif
 }
 

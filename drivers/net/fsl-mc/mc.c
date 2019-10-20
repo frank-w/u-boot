@@ -5,6 +5,7 @@
  * Copyright 2017-2018 NXP
  */
 #include <common.h>
+#include <env.h>
 #include <errno.h>
 #include <linux/bug.h>
 #include <asm/io.h>
@@ -279,6 +280,16 @@ static int mc_fixup_dpl_mac_addr(void *blob, int dpmac_id,
 
 	return mc_fixup_mac_addr(blob, dpnioff, "mac_addr", eth_dev,
 				 MC_FIXUP_DPL);
+}
+
+void fdt_fixup_mc_ddr(u64 *base, u64 *size)
+{
+	u64 mc_size = mc_get_dram_block_size();
+
+	if (mc_size < MC_DRAM_BLOCK_DEFAULT_SIZE) {
+		*base = mc_get_dram_addr() + mc_size;
+		*size = MC_DRAM_BLOCK_DEFAULT_SIZE - mc_size;
+	}
 }
 
 void fdt_fsl_mc_fixup_iommu_map_entry(void *blob)

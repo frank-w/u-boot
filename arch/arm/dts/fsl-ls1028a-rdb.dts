@@ -33,10 +33,31 @@
 
 &esdhc1 {
 	status = "okay";
+	mmc-hs200-1_8v;
 };
 
 &i2c0 {
 	status = "okay";
+	u-boot,dm-pre-reloc;
+
+	 i2c-mux@77 {
+
+		compatible = "nxp,pca9547";
+		reg = <0x77>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		i2c@3 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x3>;
+
+			rtc@51 {
+				compatible = "pcf2127-rtc";
+				reg = <0x51>;
+			};
+		};
+	};
 };
 
 &i2c1 {
@@ -85,4 +106,17 @@
 
 &usb2 {
 	status = "okay";
+};
+
+&enetc0 {
+	status = "okay";
+	phy-mode = "sgmii";
+	phy-handle = <&rdb_phy0>;
+};
+
+&mdio0 {
+	status = "okay";
+	rdb_phy0: phy@2 {
+		reg = <2>;
+	};
 };

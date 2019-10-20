@@ -8,9 +8,11 @@
 #include <boot_fit.h>
 #include <dm.h>
 #include <dm/of_extra.h>
+#include <env.h>
 #include <errno.h>
 #include <fdtdec.h>
 #include <fdt_support.h>
+#include <gzip.h>
 #include <mapmem.h>
 #include <linux/libfdt.h>
 #include <serial.h>
@@ -184,60 +186,6 @@ fdt_addr_t fdtdec_get_addr(const void *blob, int node, const char *prop_name)
 }
 
 #if CONFIG_IS_ENABLED(PCI) && defined(CONFIG_DM_PCI)
-int fdtdec_get_pci_addr(const void *blob, int node, enum fdt_pci_space type,
-			const char *prop_name, struct fdt_pci_addr *addr)
-{
-	const u32 *cell;
-	int len;
-	int ret = -ENOENT;
-
-	debug("%s: %s: ", __func__, prop_name);
-
-	/*
-	 * If we follow the pci bus bindings strictly, we should check
-	 * the value of the node's parent node's #address-cells and
-	 * #size-cells. They need to be 3 and 2 accordingly. However,
-	 * for simplicity we skip the check here.
-	 */
-	cell = fdt_getprop(blob, node, prop_name, &len);
-	if (!cell)
-		goto fail;
-
-	if ((len % FDT_PCI_REG_SIZE) == 0) {
-		int num = len / FDT_PCI_REG_SIZE;
-		int i;
-
-		for (i = 0; i < num; i++) {
-			debug("pci address #%d: %08lx %08lx %08lx\n", i,
-			      (ulong)fdt32_to_cpu(cell[0]),
-			      (ulong)fdt32_to_cpu(cell[1]),
-			      (ulong)fdt32_to_cpu(cell[2]));
-			if ((fdt32_to_cpu(*cell) & type) == type) {
-				addr->phys_hi = fdt32_to_cpu(cell[0]);
-				addr->phys_mid = fdt32_to_cpu(cell[1]);
-				addr->phys_lo = fdt32_to_cpu(cell[1]);
-				break;
-			}
-
-			cell += (FDT_PCI_ADDR_CELLS +
-				 FDT_PCI_SIZE_CELLS);
-		}
-
-		if (i == num) {
-			ret = -ENXIO;
-			goto fail;
-		}
-
-		return 0;
-	}
-
-	ret = -EINVAL;
-
-fail:
-	debug("(not found)\n");
-	return ret;
-}
-
 int fdtdec_get_pci_vendev(const void *blob, int node, u16 *vendor, u16 *device)
 {
 	const char *list, *end;
@@ -1533,16 +1481,14 @@ int fdtdec_setup(void)
 		puts("Failed to read control FDT\n");
 		return -1;
 	}
+# elif defined(CONFIG_OF_PRIOR_STAGE)
+	gd->fdt_blob = (void *)prior_stage_fdt_address;
 # endif
 # ifndef CONFIG_SPL_BUILD
 	/* Allow the early environment to override the fdt address */
-#  if CONFIG_IS_ENABLED(OF_PRIOR_STAGE)
-	gd->fdt_blob = (void *)prior_stage_fdt_address;
-#  else
 	gd->fdt_blob = map_sysmem
 		(env_get_ulong("fdtcontroladdr", 16,
 			       (unsigned long)map_to_sysmem(gd->fdt_blob)), 0);
-#  endif
 # endif
 
 # if CONFIG_IS_ENABLED(MULTI_DTB_FIT)

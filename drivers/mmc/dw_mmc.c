@@ -13,6 +13,7 @@
 #include <mmc.h>
 #include <dwmmc.h>
 #include <wait_bit.h>
+#include <power/regulator.h>
 
 #define PAGE_SIZE 4096
 
@@ -118,11 +119,12 @@ static unsigned int dwmci_get_timeout(struct mmc *mmc, const unsigned int size)
 {
 	unsigned int timeout;
 
-	timeout = size * 8 * 1000;	/* counting in bits and msec */
-	timeout *= 2;			/* wait twice as long */
+	timeout = size * 8;	/* counting in bits */
+	timeout *= 10;		/* wait 10 times as long */
 	timeout /= mmc->clock;
 	timeout /= mmc->bus_width;
 	timeout /= mmc->ddr_mode ? 2 : 1;
+	timeout *= 1000;	/* counting in msec */
 	timeout = (timeout < 1000) ? 1000 : timeout;
 
 	return timeout;
@@ -492,6 +494,21 @@ static int dwmci_set_ios(struct mmc *mmc)
 
 	if (host->clksel)
 		host->clksel(host);
+
+#if CONFIG_IS_ENABLED(DM_REGULATOR)
+	if (mmc->vqmmc_supply) {
+		int ret;
+
+		if (mmc->signal_voltage == MMC_SIGNAL_VOLTAGE_180)
+			regulator_set_value(mmc->vqmmc_supply, 1800000);
+		else
+			regulator_set_value(mmc->vqmmc_supply, 3300000);
+
+		ret = regulator_set_enable_if_allowed(mmc->vqmmc_supply, true);
+		if (ret)
+			return ret;
+	}
+#endif
 
 	return 0;
 }

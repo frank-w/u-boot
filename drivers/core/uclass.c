@@ -225,7 +225,7 @@ int uclass_find_first_device(enum uclass_id id, struct udevice **devp)
 	if (ret)
 		return ret;
 	if (list_empty(&uc->dev_head))
-		return -ENODEV;
+		return 0;
 
 	*devp = list_first_entry(&uc->dev_head, struct udevice, uclass_node);
 
@@ -269,7 +269,9 @@ int uclass_find_device_by_name(enum uclass_id id, const char *name,
 	return -ENODEV;
 }
 
-#if !CONFIG_IS_ENABLED(OF_CONTROL) || CONFIG_IS_ENABLED(OF_PLATDATA)
+#if !CONFIG_IS_ENABLED(OF_CONTROL) || \
+    CONFIG_IS_ENABLED(OF_PLATDATA) || \
+    CONFIG_IS_ENABLED(OF_PRIOR_STAGE)
 int uclass_find_next_free_req_seq(enum uclass_id id)
 {
 	struct uclass *uc;
@@ -714,8 +716,11 @@ int uclass_pre_probe_device(struct udevice *dev)
 	if (!dev->parent)
 		return 0;
 	uc_drv = dev->parent->uclass->uc_drv;
-	if (uc_drv->child_pre_probe)
-		return uc_drv->child_pre_probe(dev);
+	if (uc_drv->child_pre_probe) {
+		ret = uc_drv->child_pre_probe(dev);
+		if (ret)
+			return ret;
+	}
 
 	return 0;
 }
@@ -735,8 +740,11 @@ int uclass_post_probe_device(struct udevice *dev)
 	}
 
 	uc_drv = dev->uclass->uc_drv;
-	if (uc_drv->post_probe)
-		return uc_drv->post_probe(dev);
+	if (uc_drv->post_probe) {
+		ret = uc_drv->post_probe(dev);
+		if (ret)
+			return ret;
+	}
 
 	return 0;
 }

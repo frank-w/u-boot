@@ -40,14 +40,6 @@ config ARCH_LS1028A
 	select ARCH_EARLY_INIT_R
 	select BOARD_EARLY_INIT_F
 	select SYS_I2C_MXC
-	select SYS_I2C_MXC_I2C1
-	select SYS_I2C_MXC_I2C2
-	select SYS_I2C_MXC_I2C3
-	select SYS_I2C_MXC_I2C4
-	select SYS_I2C_MXC_I2C5
-	select SYS_I2C_MXC_I2C6
-	select SYS_I2C_MXC_I2C7
-	select SYS_I2C_MXC_I2C8
 	select SYS_FSL_ERRATUM_A008997
 	select SYS_FSL_ERRATUM_A009007
 	select SYS_FSL_ERRATUM_A008514 if !TFABOOT
@@ -155,10 +147,10 @@ config ARCH_LS1088A
 	select ARCH_EARLY_INIT_R
 	select BOARD_EARLY_INIT_F
 	select SYS_I2C_MXC
-	select SYS_I2C_MXC_I2C1
-	select SYS_I2C_MXC_I2C2
-	select SYS_I2C_MXC_I2C3
-	select SYS_I2C_MXC_I2C4
+	select SYS_I2C_MXC_I2C1 if !TFABOOT
+	select SYS_I2C_MXC_I2C2 if !TFABOOT
+	select SYS_I2C_MXC_I2C3 if !TFABOOT
+	select SYS_I2C_MXC_I2C4 if !TFABOOT
 	imply SCSI
 	imply PANIC_HANG
 
@@ -205,10 +197,10 @@ config ARCH_LS2080A
 	select ARCH_EARLY_INIT_R
 	select BOARD_EARLY_INIT_F
 	select SYS_I2C_MXC
-	select SYS_I2C_MXC_I2C1
-	select SYS_I2C_MXC_I2C2
-	select SYS_I2C_MXC_I2C3
-	select SYS_I2C_MXC_I2C4
+	select SYS_I2C_MXC_I2C1 if !TFABOOT
+	select SYS_I2C_MXC_I2C2 if !TFABOOT
+	select SYS_I2C_MXC_I2C3 if !TFABOOT
+	select SYS_I2C_MXC_I2C4 if !TFABOOT
 	imply DISTRO_DEFAULTS
 	imply PANIC_HANG
 
@@ -235,14 +227,6 @@ config ARCH_LX2160A
 	select ARCH_EARLY_INIT_R
 	select BOARD_EARLY_INIT_F
 	select SYS_I2C_MXC
-	select SYS_I2C_MXC_I2C1
-	select SYS_I2C_MXC_I2C2
-	select SYS_I2C_MXC_I2C3
-	select SYS_I2C_MXC_I2C4
-	select SYS_I2C_MXC_I2C5
-	select SYS_I2C_MXC_I2C6
-	select SYS_I2C_MXC_I2C7
-	select SYS_I2C_MXC_I2C8
 	imply DISTRO_DEFAULTS
 	imply PANIC_HANG
 	imply SCSI
@@ -260,14 +244,6 @@ config FSL_LSCH3
 
 config NXP_LSCH3_2
 	bool
-
-config FSL_MC_ENET
-	bool "Management Complex network"
-	depends on ARCH_LS2080A || ARCH_LS1088A || ARCH_LX2160A
-	default y
-	select RESV_RAM
-	help
-	  Enable Management Complex (MC) network
 
 menu "Layerscape architecture"
 	depends on FSL_LSCH2 || FSL_LSCH3
@@ -513,6 +489,10 @@ config SYS_FSL_DUART_CLK_DIV
 config SYS_FSL_I2C_CLK_DIV
 	int "I2C clock divider"
 	default 1 if ARCH_LS1043A
+	default 4 if ARCH_LS1012A
+	default 4 if ARCH_LS1028A
+	default 8 if ARCH_LX2160A
+	default 8 if ARCH_LS1088A
 	default 2
 	help
 	  This is the divider that is used to derive I2C clock from Platform
@@ -521,6 +501,10 @@ config SYS_FSL_I2C_CLK_DIV
 config SYS_FSL_IFC_CLK_DIV
 	int "IFC clock divider"
 	default 1 if ARCH_LS1043A
+	default 4 if ARCH_LS1012A
+	default 4 if ARCH_LS1028A
+	default 8 if ARCH_LX2160A
+	default 8 if ARCH_LS1088A
 	default 2
 	help
 	  This is the divider that is used to derive IFC clock from Platform
@@ -605,15 +589,6 @@ config SYS_FSL_HAS_RGMII
 	bool
 	depends on SYS_FSL_EC1 || SYS_FSL_EC2
 
-
-config SYS_MC_RSV_MEM_ALIGN
-	hex "Management Complex reserved memory alignment"
-	depends on RESV_RAM
-	default 0x20000000 if ARCH_LS2080A || ARCH_LS1088A || ARCH_LX2160A
-	help
-	  Reserved memory needs to be aligned for MC to use. Default value
-	  is 512MB.
-
 config SPL_LDSCRIPT
 	default "arch/arm/cpu/armv8/u-boot-spl.lds" if ARCH_LS1043A || ARCH_LS1046A || ARCH_LS2080A
 
@@ -623,10 +598,3 @@ config HAS_FSL_XHCI_USB
 	help
 	  For some SoC(such as LS1043A and LS1046A), USB and QE-HDLC multiplex use
 	  pins, select it when the pins are assigned to USB.
-
-config TFABOOT
-       bool "Support for booting from TFA"
-       default n
-       help
-         Enabling this will make a U-Boot binary that is capable of being
-         booted via TFA.

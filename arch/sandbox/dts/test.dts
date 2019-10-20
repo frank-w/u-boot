@@ -76,6 +76,10 @@
 		};
 	};
 
+	dsi_host: dsi_host {
+		compatible = "sandbox,dsi-host";
+	};
+
 	a-test {
 		reg = <0 1>;
 		compatible = "denx,u-boot-fdt-test";
@@ -211,6 +215,12 @@
 			clock-mult = <2>;
 			clocks = <&clk_fixed>;
 		};
+
+		osc {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-frequency = <20000000>;
+		};
 	};
 
 	clk_sandbox: clk-sbox {
@@ -224,6 +234,10 @@
 			 <&clk_sandbox 1>,
 			 <&clk_sandbox 0>;
 		clock-names = "fixed", "i2c", "spi";
+	};
+
+	ccf: clk-ccf {
+		compatible = "sandbox,clk-ccf";
 	};
 
 	eth@10002000 {
@@ -379,19 +393,21 @@
 		mbox-names = "other", "test";
 	};
 
-	cpu-test1 {
-		compatible = "sandbox,cpu_sandbox";
-		u-boot,dm-pre-reloc;
-	};
+	cpus {
+		cpu-test1 {
+			compatible = "sandbox,cpu_sandbox";
+			u-boot,dm-pre-reloc;
+		};
 
-	cpu-test2 {
-		compatible = "sandbox,cpu_sandbox";
-		u-boot,dm-pre-reloc;
-	};
+		cpu-test2 {
+			compatible = "sandbox,cpu_sandbox";
+			u-boot,dm-pre-reloc;
+		};
 
-	cpu-test3 {
-		compatible = "sandbox,cpu_sandbox";
-		u-boot,dm-pre-reloc;
+		cpu-test3 {
+			compatible = "sandbox,cpu_sandbox";
+			u-boot,dm-pre-reloc;
+		};
 	};
 
 	i2s: i2s {
@@ -437,29 +453,39 @@
 		device_type = "pci";
 		#address-cells = <3>;
 		#size-cells = <2>;
-		ranges = <0x02000000 0 0x10000000 0x10000000 0 0x2000
+		ranges = <0x02000000 0 0x10000000 0x10000000 0 0x2000000
 				0x01000000 0 0x20000000 0x20000000 0 0x2000>;
 		pci@0,0 {
 			compatible = "pci-generic";
 			reg = <0x0000 0 0 0 0>;
-			emul@0,0 {
-				compatible = "sandbox,swap-case";
-			};
+			sandbox,emul = <&swap_case_emul0_0>;
 		};
 		pci@1,0 {
 			compatible = "pci-generic";
-			reg = <0x0800 0 0 0 0>;
-			emul@0,0 {
-				compatible = "sandbox,swap-case";
-				use-ea;
-			};
+			/* reg 0 is at 0x14, using FDT_PCI_SPACE_MEM32 */
+			reg = <0x02000814 0 0 0 0
+			       0x01000810 0 0 0 0>;
+			sandbox,emul = <&swap_case_emul0_1>;
 		};
 		pci@1f,0 {
 			compatible = "pci-generic";
-			reg = <0xf800 0 0 0 0>;
-			emul@1f,0 {
-				compatible = "sandbox,swap-case";
-			};
+			/* reg 0 is at 0x10, using FDT_PCI_SPACE_IO */
+			reg = <0x0100f810 0 0 0 0>;
+			sandbox,emul = <&swap_case_emul0_1f>;
+		};
+	};
+
+	pci-emul0 {
+		compatible = "sandbox,pci-emul-parent";
+		swap_case_emul0_0: emul0@0,0 {
+			compatible = "sandbox,swap-case";
+		};
+		swap_case_emul0_1: emul0@1,0 {
+			compatible = "sandbox,swap-case";
+			use-ea;
+		};
+		swap_case_emul0_1f: emul0@1f,0 {
+			compatible = "sandbox,swap-case";
 		};
 	};
 
@@ -489,9 +515,14 @@
 		pci@1f,0 {
 			compatible = "pci-generic";
 			reg = <0xf800 0 0 0 0>;
-			emul@1f,0 {
-				compatible = "sandbox,swap-case";
-			};
+			sandbox,emul = <&swap_case_emul2_1f>;
+		};
+	};
+
+	pci-emul2 {
+		compatible = "sandbox,pci-emul-parent";
+		swap_case_emul2_1f: emul2@1f,0 {
+			compatible = "sandbox,swap-case";
 		};
 	};
 
@@ -703,11 +734,13 @@
 		compatible = "sandbox,spmi";
 		#address-cells = <0x1>;
 		#size-cells = <0x1>;
+		ranges;
 		pm8916@0 {
 			compatible = "qcom,spmi-pmic";
 			reg = <0x0 0x1>;
 			#address-cells = <0x1>;
 			#size-cells = <0x1>;
+			ranges;
 
 			spmi_gpios: gpios@c000 {
 				compatible = "qcom,pm8916-gpio";
@@ -755,6 +788,10 @@
 			  2 0x200 0xA000 0x1000
 			  3 0x300 0xB000 0x1000
 			 >;
+
+		dma-ranges = <0 0x000 0x10000000 0x1000
+			      1 0x100 0x20000000 0x1000
+			     >;
 
 		dev@0,0 {
 			compatible = "denx,u-boot-fdt-dummy";
@@ -824,7 +861,28 @@
 		dma-names = "m2m", "tx0", "rx0";
 	};
 
-	mdio-test {
+	/*
+	 * keep mdio-mux ahead of mdio so that the mux is removed first at the
+	 * end of the test.  If parent mdio is removed first, clean-up of the
+	 * mux will trigger a 2nd probe of parent-mdio, leaving parent-mdio
+	 * active at the end of the test.  That it turn doesn't allow the mdio
+	 * class to be destroyed, triggering an error.
+	 */
+	mdio-mux-test {
+		compatible = "sandbox,mdio-mux";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		mdio-parent-bus = <&mdio>;
+
+		mdio-ch-test@0 {
+			reg = <0>;
+		};
+		mdio-ch-test@1 {
+			reg = <1>;
+		};
+	};
+
+	mdio: mdio-test {
 		compatible = "sandbox,mdio";
 	};
 };

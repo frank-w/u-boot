@@ -46,7 +46,7 @@ static int mtk_timer_probe(struct udevice *dev)
 	priv->base = dev_read_addr_ptr(dev);
 	if (!priv->base)
 		return -ENOENT;
-
+#if 0
 	ret = clk_get_by_index(dev, 0, &clk);
 	if (ret)
 		return ret;
@@ -59,6 +59,9 @@ static int mtk_timer_probe(struct udevice *dev)
 	}
 
 	uc_priv->clock_rate = clk_get_rate(&clk);
+#else
+	uc_priv->clock_rate = 13000000;
+#endif
 	if (!uc_priv->clock_rate)
 		return -EINVAL;
 

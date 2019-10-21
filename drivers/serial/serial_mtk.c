@@ -190,7 +190,7 @@ static int mtk_serial_ofdata_to_platdata(struct udevice *dev)
 		return -EINVAL;
 
 	priv->regs = map_physmem(addr, 0, MAP_NOCACHE);
-
+#if 0
 	err = clk_get_by_index(dev, 0, &clk);
 	if (!err) {
 		err = clk_get_rate(&clk);
@@ -200,7 +200,9 @@ static int mtk_serial_ofdata_to_platdata(struct udevice *dev)
 		debug("mtk_serial: failed to get clock\n");
 		return err;
 	}
-
+#else
+	priv->clock = 25000000;
+#endif
 	if (!priv->clock)
 		priv->clock = dev_read_u32_default(dev, "clock-frequency", 0);
 

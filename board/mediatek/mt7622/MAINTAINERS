@@ -1,0 +1,8 @@
+MT7622
+M:	Oleksandr Rybalko <ray@ddteam.net>
+M:	Ryder Lee <ryder.lee@mediatek.com>
+M:	Weijie Gao <weijie.gao@mediatek.com>
+S:	Maintained
+F:	board/mediatek/mt7622
+F:	include/configs/mt7622.h
+F:	configs/mt7622n_bpir64_defconfig

@@ -9,6 +9,16 @@ config SYS_VENDOR
 choice
 	prompt "MediaTek board select"
 
+config TARGET_MT7622
+	bool "MediaTek MT7622 SoC"
+	select CPU_V7A
+	help
+	  The MediaTek MT7622 is a ARM-based SoC with a dual-core Cortex-A53,
+	  several DDR3 options, crypto engine, built-in 4x4n 802.11n/Bluetooth
+	  5.0 combo chip.  Peripherals include Gigabit Ethernet, USB3.0 and
+	  OTG, PCIe, ADC, Audio Amplifier, GPIO, I2C, I2S, IR, PMIC I/F, PWM,
+	  RTC, SPI, UART.
+
 config TARGET_MT7623
 	bool "MediaTek MT7623 SoC"
 	select CPU_V7A
@@ -40,6 +50,7 @@ config TARGET_MT8516
 
 endchoice
 
+source "board/mediatek/mt7622/Kconfig"
 source "board/mediatek/mt7623/Kconfig"
 source "board/mediatek/mt7629/Kconfig"
 source "board/mediatek/pumpkin/Kconfig"

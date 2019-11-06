@@ -15,6 +15,12 @@
 #include <asm/arch/cpu.h>
 #include <linux/stringify.h>
 
+#ifdef BPI
+#else
+#undef CONFIG_SYS_PROMPT
+#define	CONFIG_SYS_PROMPT "BPI-IoT> "
+#endif
+
 #ifdef CONFIG_OLD_SUNXI_KERNEL_COMPAT
 /*
  * The U-Boot workarounds bugs in the outdated buggy sunxi-3.4 kernels at the
@@ -268,6 +274,10 @@ extern int soft_i2c_gpio_scl;
 #define CONFIG_SUNXI_MAX_FB_SIZE (16 << 20)
 
 #define CONFIG_VIDEO_LOGO
+#ifdef BPI
+#else
+#define CONFIG_VIDEO_BMP_LOGO
+#endif
 #define CONFIG_VIDEO_STD_TIMINGS
 #define CONFIG_I2C_EDID
 #define VIDEO_LINE_LEN (pGD->plnSizeX)
@@ -421,8 +431,27 @@ extern int soft_i2c_gpio_scl;
 	BOOT_TARGET_DEVICES_DHCP(func)
 
 #ifdef CONFIG_OLD_SUNXI_KERNEL_COMPAT
+/*
 #define BOOTCMD_SUNXI_COMPAT \
 	"bootcmd_sunxi_compat=" \
+		"setenv root /dev/mmcblk0p3 rootwait; " \
+		"if ext2load mmc 0 0x44000000 uEnv.txt; then " \
+			"echo Loaded environment from uEnv.txt; " \
+			"env import -t 0x44000000 ${filesize}; " \
+		"fi; " \
+		"setenv bootargs console=${console} root=${root} ${extraargs}; " \
+		"ext2load mmc 0 0x43000000 script.bin && " \
+		"ext2load mmc 0 0x48000000 uImage && " \
+		"bootm 0x48000000\0"
+*/
+/* BPI */
+#define BOOTCMD_SUNXI_COMPAT \
+	"bootcmd_sunxi_compat=" \
+		"setenv root /dev/mmcblk0p2 rootwait; " \
+		"if fatload mmc 0 0x44000000 ${bpi}/${board}/${service}/uEnv.txt; then " \
+			"echo Loaded environment from uEnv.txt; " \
+			"env import -t 0x44000000 ${filesize}; " \
+		"fi; " \
 		"setenv root /dev/mmcblk0p3 rootwait; " \
 		"if ext2load mmc 0 0x44000000 uEnv.txt; then " \
 			"echo Loaded environment from uEnv.txt; " \

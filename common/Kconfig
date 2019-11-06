@@ -251,6 +251,37 @@ config PREBOOT
 	help
 	  This is the default of "preboot" environment variable.
 
+config BPI_CHIP
+	string "BPI_CHIP(a20/a31s/a83t/h3)"
+	default "a20"
+	---help---
+	BPI_CHIP (a20/a31s/a83t/h3)
+
+config BPI_BOARD
+	string "BPI_BOARD(bpi-m1/bpi-m1p/bpi-r1/bpi-m2/bpi-m2p/bpi-m3)"
+	default "bpi-m1"
+	---help---
+	BPI_BOARD(bpi-m1/bpi-m1p/bpi-r1/bpi-m2/bpi-m2p/bpi-m3)
+
+config BPI_SERVICE
+	string "BPI_SERVICE(linux/openelec)"
+	default "linux"
+	---help---
+	BPI_SERVICE(linux/openelec)
+
+config BPI_PATH
+	string "BPI_PATH(/bananapi/board/service/)"
+	default "/bananapi/bpi-all/linux4/"
+	---help---
+	BPI_PATH(/bananapi/board/service/)
+
+config BPI_UENVFILE
+	string "BPI_UENVFILE(bananapi/board/service/uEnv.txt)"
+	default "uEnv.txt"
+	---help---
+	BPI_UENVFILE(bananapi/board/service/uEnv.txt)
+
+
 menu "Console"
 
 config MENU

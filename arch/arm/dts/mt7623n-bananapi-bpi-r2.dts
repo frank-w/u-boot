@@ -9,7 +9,7 @@
 #include "mt7623.dtsi"
 
 / {
-	model = "Bananapi BPI-R2";
+	model = "Bananapi BPI-R2 (EFI)";
 	compatible = "bananapi,bpi-r2", "mediatek,mt7623";
 
 	chosen {

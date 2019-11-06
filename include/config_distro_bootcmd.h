@@ -402,7 +402,7 @@
 	BOOTENV_SHARED_UBIFS \
 	BOOTENV_SHARED_EFI \
 	BOOTENV_SHARED_VIRTIO \
-	"boot_prefixes=/ /boot/\0" \
+	"boot_prefixes=" CONFIG_BPI_PATH " / /boot/\0" \
 	"boot_scripts=boot.scr.uimg boot.scr\0" \
 	"boot_script_dhcp=boot.scr.uimg\0" \
 	BOOTENV_BOOT_TARGETS \
@@ -450,7 +450,8 @@
 	\
 	"scan_dev_for_boot_part="                                         \
 		"part list ${devtype} ${devnum} -bootable devplist; "     \
-		"env exists devplist || setenv devplist 1; "              \
+		"env exists devplist || setenv devplist 2 1; "            \
+		"echo BPI:devplist=[$devplist]; "                         \
 		"for distro_bootpart in ${devplist}; do "                 \
 			"if fstype ${devtype} "                           \
 					"${devnum}:${distro_bootpart} "   \

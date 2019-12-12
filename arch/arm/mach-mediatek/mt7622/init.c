@@ -7,8 +7,10 @@
 #include <common.h>
 #include <fdtdec.h>
 #include <init.h>
-#include <asm/armv8/mmu.h>
 #include <asm/cache.h>
+#ifdef CONFIG_ARM64
+#include <asm/armv8/mmu.h>
+#endif
 
 int print_cpuinfo(void)
 {
@@ -27,6 +29,7 @@ int dram_init(void)
 
 }
 
+#ifdef CONFIG_ARM64
 void reset_cpu(void)
 {
 	psci_system_reset();
@@ -51,3 +54,4 @@ static struct mm_region mt7622_mem_map[] = {
 	}
 };
 struct mm_region *mem_map = mt7622_mem_map;
+#endif

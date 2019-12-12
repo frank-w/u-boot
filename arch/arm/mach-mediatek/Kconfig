@@ -13,6 +13,10 @@ config ARCH_MEDIATEK_32
 	bool "Build 32 bits version"
 	default n
 
+config ARCH_MEDIATEK_32
+	bool "Build 32 bits version"
+	default n
+
 choice
 	prompt "MediaTek board select"
 

@@ -6,12 +6,17 @@ config SYS_SOC
 config SYS_VENDOR
 	default "mediatek"
 
+config ARCH_MEDIATEK_32
+	bool "Build 32 bits version"
+	default n
+
 choice
 	prompt "MediaTek board select"
 
 config TARGET_MT7622
 	bool "MediaTek MT7622 SoC"
-	select ARM64
+	select CPU_V7A if ARCH_MEDIATEK_32
+	select ARM64 if !ARCH_MEDIATEK_32
 	help
 	  The MediaTek MT7622 is a ARM64-based SoC with a dual-core Cortex-A53.
 	  including UART, SPI, USB3.0, SD and MMC cards, NAND, SNFI, PWM, PCIe,

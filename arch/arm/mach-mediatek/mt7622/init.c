@@ -36,6 +36,7 @@ void reset_cpu(void)
 	psci_system_reset();
 }
 #endif
+#endif
 
 static struct mm_region mt7622_mem_map[] = {
 	{

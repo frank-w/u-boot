@@ -53,6 +53,32 @@ U_BOOT_CMD(
 	"      passing 'arg' as arguments"
 );
 
+#if defined(CONFIG_ARCH_MEDIATEK_32) && defined(CONFIG_TARGET_MT7622)
+static int do_go64(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+	ulong	addr;
+
+	if (argc < 2)
+		return CMD_RET_USAGE;
+
+	addr = simple_strtoul(argv[1], NULL, 16);
+
+	printf ("## Starting application at 0x%08lX ...\n", addr);
+
+	extern void jumparch64_smc(ulong addr, ulong arg1, ulong arg2);
+	jumparch64_smc(addr, 0, 0);
+
+	return 0;
+}
+
+U_BOOT_CMD(
+	go64, CONFIG_SYS_MAXARGS, 1,	do_go64,
+	"start 64bit application at address 'addr'",
+	"addr [arg ...]\n    - start 64bit application at address 'addr'\n"
+	"      passing 'arg' as arguments"
+);
+#endif
+
 #endif
 
 U_BOOT_CMD(

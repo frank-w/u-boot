@@ -365,6 +365,16 @@ static void boot_jump_linux(bootm_headers_t *images, int flag)
 					    ES_TO_AARCH64);
 #endif
 	}
+#elif defined(CONFIG_ARCH_MEDIATEK_32) && defined(CONFIG_TARGET_MT7622)
+    extern void jumparch64_smc(ulong addr, ulong arg1, ulong arg2);
+
+    /*
+     * Iverson 20150528 - show message for boot.
+     */
+	debug("images->ep = %lx, images->ft_addr = %lx\n", images->ep, (unsigned long)images->ft_addr);
+
+	announce_and_cleanup(0);
+    jumparch64_smc(images->ep, (unsigned long)images->ft_addr, 0);
 #else
 	unsigned long machid = gd->bd->bi_arch_number;
 	char *s;

@@ -1,0 +1,88 @@
+#
+## uEnv.txt
+#
+bpi=bananapi
+board=bpi-r64
+chip=mt7622
+service=linux
+#
+device=mmc
+partition=1:1
+#
+kernel=uImage
+fdt=bpi-r64.dtb
+#
+kaddr=0x44000000
+loadaddr=0x44000000
+rdaddr=0x46000000
+dtaddr=0x47000000
+#
+root=/dev/mmcblk1p2 rootfstype=ext4 rootwait
+console=ttyS0,115200n1 earlyprintk
+bootopts=debug=7 initcall_debug=0 androidboot.hardware=mt7622 swiotlb=512
+#
+
+#local
+lsdtb=ls ${device} ${partition} ${bpi}/${board}/${service}/dtb
+lskernel=ls ${device} ${partition} ${bpi}/${board}/${service};
+
+loaddt=fatload $device $partition $dtaddr ${bpi}/${board}/${service}/dtb/${fdt}
+loadkernel=fatload $device $partition $kaddr ${bpi}/${board}/${service}/${kernel}
+
+checksd=fatinfo mmc 1:1
+selectmmc=if run checksd; then echo Boot from SD ; setenv partition 1:1;else echo Boot from eMMC; setenv partition 0:1 ; fi;
+
+bootenv=uEnv.txt
+checkenv=test -e ${device} ${partition} ${bpi}/${board}/${service}/${bootenv}
+loadenvfile=if fatload ${device} ${partition} ${loadaddr} ${bpi}/${board}/${service}/${bootenv};then env import -t ${loadaddr} ${filesize};else echo "fatload (${bootenv}) failed";fi
+
+loadenv=if run checkenv;then run loadenvfile;fi
+resetenv=env default -a;printenv;
+
+buildargs=setenv bootargs "board=${board} console=${console} root=${root} service=${service} ${bootopts}"
+newboot=run buildargs;if run loadkernel; then if run loaddt; then bootm ${kaddr} - ${dtaddr};fi;fi
+
+#netboot (currently not supported on upstream)
+#ipaddr=192.168.0.19
+#netmask=255.255.255.0
+#serverip=192.168.0.10
+#bootfile=uImage_5.4.0-r64-main_mt7531-sata
+#bootdtbfile=5.4.0-r64-main_mt7531-sata.dtb
+
+#lstftp=if tftp ${loadaddr} ${serverip}:files.lst;then setexpr listend ${loadaddr} + ${filesize};mw.b ${listend} 00 2;strings ${loadaddr};else echo "tftp download failed";fi
+#lstftpdt=if tftp ${loadaddr} ${serverip}:dtfiles.lst;then setexpr listend ${loadaddr} + ${filesize};mw.b ${listend} 00 2;strings ${loadaddr};else echo "tftp download failed";fi
+#lstftpu=if tftp ${loadaddr} ${serverip}:bootfiles.lst;then setexpr listend ${loadaddr} + ${filesize};mw.b ${listend} 00 2;strings ${loadaddr};else echo "tftp download failed";fi
+
+#bootnet=run abootargs;if tftp $kaddr ${bootfile}; then if tftp $dtaddr ${bootdtbfile}; then bootm $kaddr - $dtaddr;fi;fi
+
+#load uboot-mtk.bin
+#ufile=u-boot-r64-2019-10.bin
+#ufile=u-boot_2020.01-rc4-bpi-r64-v1.bin
+#uaddr=0x41E00000
+#umtkaddr=0x41dffe00
+#ubootnet=if tftp ${umtkaddr} ${ufile}; then go $uaddr;fi
+#uboot64net=if tftp ${umtkaddr} ${ufile};then go64 $uaddr;fi
+
+#asking user which file to load
+askkernel=askenv kernelinput "enter uImage-name:";
+askdtb=askenv dtbinput "enter dtb-name:";
+askuboot=askenv ubootinput "enter uboot-name:";
+
+askboot=run lskernel askkernel;if printenv kernelinput; then setenv kernel "${kernelinput}"; run lsdtb askdtb; if printenv dtbinput; then setenv fdt "${dtbinput}";run newboot; fi;fi
+askbootnet=echo not yet supported
+#askbootnet=run lstftp askkernel;if printenv kernelinput; then setenv bootfile "${kernelinput}"; run lstftpdt askdtb; if printenv dtbinput; then setenv bootdtbfile "${dtbinput}";run bootnet; fi;fi
+#askubootnet=run lstftpu askuboot;if printenv ubootinput; then setenv ufile "${ubootinput}"; run ubootnet;fi
+#askuboot64net=run lstftpu askuboot;if printenv ubootinput ;then setenv ufile "${ubootinput}"; run uboot64net;fi
+
+#bootmenu
+bootmenu_0=1. Enter kernel-name to boot from SD/EMMC.=run askboot
+bootmenu_1=2. Boot kernel from TFTP.=run askbootnet
+bootmenu_2=3. Boot from SD/EMMC.=run newboot
+
+bootmenu_default=2
+
+reloadmenu=run selectmmc;run loadenv; bootmenu;
+
+#automatic reload from sd/emmc
+bootdelay=0
+bootcmd=setenv bootdelay 3; run reloadmenu;

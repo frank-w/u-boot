@@ -53,6 +53,7 @@ case $1 in
 	"build")
 		LANG=C
 		CFLAGS=-j$(grep ^processor /proc/cpuinfo  | wc -l)
+		echo "LV: -$ubranch, crosscompile: $CROSS_COMPILE, CFLAGS: $CFLAGS"
 		make LOCALVERSION="-$ubranch" ${CFLAGS} 2> >(tee "build.log")
 		if [[ $? -eq 0 ]];then
 			FILESIZE=$(stat -c%s "u-boot.bin");
@@ -71,12 +72,16 @@ case $1 in
 	"importconfig")
 		if [[ "$board" == "bpi-r64" ]];then
 			if [[ "$arch" == "arm64" ]];then
-				make mt7622_rfb_defconfig
+				DEFCONFIG=mt7622_rfb_defconfig
 			else
-				make mt7622_rfb_32_defconfig
+				DEFCONFIG=mt7622_rfb_32_defconfig
 			fi
 		else
-			make mt7623n_bpir2_defconfig;
+			DEFCONFIG=mt7623n_bpir2_defconfig;
+		fi
+		if [[ -n "$DEFCONFIG" ]];then
+			echo "importing $DEFCONFIG"
+			make $DEFCONFIG
 		fi
 	;;
 	"defconfig")

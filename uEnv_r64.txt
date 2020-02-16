@@ -42,26 +42,26 @@ resetenv=env default -a;printenv;
 buildargs=setenv bootargs "board=${board} console=${console} root=${root} service=${service} ${bootopts}"
 newboot=run buildargs;if run loadkernel; then if run loaddt; then bootm ${kaddr} - ${dtaddr};fi;fi
 
-#netboot (currently not supported on upstream)
-#ipaddr=192.168.0.19
-#netmask=255.255.255.0
-#serverip=192.168.0.10
+#netboot
+ipaddr=192.168.0.19
+netmask=255.255.255.0
+serverip=192.168.0.10
 #bootfile=uImage_5.4.0-r64-main_mt7531-sata
 #bootdtbfile=5.4.0-r64-main_mt7531-sata.dtb
 
-#lstftp=if tftp ${loadaddr} ${serverip}:files.lst;then setexpr listend ${loadaddr} + ${filesize};mw.b ${listend} 00 2;strings ${loadaddr};else echo "tftp download failed";fi
-#lstftpdt=if tftp ${loadaddr} ${serverip}:dtfiles.lst;then setexpr listend ${loadaddr} + ${filesize};mw.b ${listend} 00 2;strings ${loadaddr};else echo "tftp download failed";fi
-#lstftpu=if tftp ${loadaddr} ${serverip}:bootfiles.lst;then setexpr listend ${loadaddr} + ${filesize};mw.b ${listend} 00 2;strings ${loadaddr};else echo "tftp download failed";fi
+lstftp=if tftp ${loadaddr} ${serverip}:files.lst;then setexpr listend ${loadaddr} + ${filesize};mw.b ${listend} 00 2;strings ${loadaddr};else echo "tftp download failed";fi
+lstftpdt=if tftp ${loadaddr} ${serverip}:dtfiles.lst;then setexpr listend ${loadaddr} + ${filesize};mw.b ${listend} 00 2;strings ${loadaddr};else echo "tftp download failed";fi
+lstftpu=if tftp ${loadaddr} ${serverip}:bootfiles.lst;then setexpr listend ${loadaddr} + ${filesize};mw.b ${listend} 00 2;strings ${loadaddr};else echo "tftp download failed";fi
 
-#bootnet=run abootargs;if tftp $kaddr ${bootfile}; then if tftp $dtaddr ${bootdtbfile}; then bootm $kaddr - $dtaddr;fi;fi
+bootnet=run buildargs;if tftp $kaddr ${bootfile}; then if tftp $dtaddr ${bootdtbfile}; then bootm $kaddr - $dtaddr;fi;fi
 
 #load uboot-mtk.bin
 #ufile=u-boot-r64-2019-10.bin
 #ufile=u-boot_2020.01-rc4-bpi-r64-v1.bin
-#uaddr=0x41E00000
-#umtkaddr=0x41dffe00
-#ubootnet=if tftp ${umtkaddr} ${ufile}; then go $uaddr;fi
-#uboot64net=if tftp ${umtkaddr} ${ufile};then go64 $uaddr;fi
+uaddr=0x41E00000
+umtkaddr=0x41dffe00
+ubootnet=if tftp ${umtkaddr} ${ufile}; then go $uaddr;fi
+uboot64net=if tftp ${umtkaddr} ${ufile};then go64 $uaddr;fi
 
 #asking user which file to load
 askkernel=askenv kernelinput "enter uImage-name:";
@@ -69,10 +69,9 @@ askdtb=askenv dtbinput "enter dtb-name:";
 askuboot=askenv ubootinput "enter uboot-name:";
 
 askboot=run lskernel askkernel;if printenv kernelinput; then setenv kernel "${kernelinput}"; run lsdtb askdtb; if printenv dtbinput; then setenv fdt "${dtbinput}";run newboot; fi;fi
-askbootnet=echo not yet supported
-#askbootnet=run lstftp askkernel;if printenv kernelinput; then setenv bootfile "${kernelinput}"; run lstftpdt askdtb; if printenv dtbinput; then setenv bootdtbfile "${dtbinput}";run bootnet; fi;fi
-#askubootnet=run lstftpu askuboot;if printenv ubootinput; then setenv ufile "${ubootinput}"; run ubootnet;fi
-#askuboot64net=run lstftpu askuboot;if printenv ubootinput ;then setenv ufile "${ubootinput}"; run uboot64net;fi
+askbootnet=run lstftp askkernel;if printenv kernelinput; then setenv bootfile "${kernelinput}"; run lstftpdt askdtb; if printenv dtbinput; then setenv bootdtbfile "${dtbinput}";run bootnet; fi;fi
+askubootnet=run lstftpu askuboot;if printenv ubootinput; then setenv ufile "${ubootinput}"; run ubootnet;fi
+askuboot64net=run lstftpu askuboot;if printenv ubootinput ;then setenv ufile "${ubootinput}"; run uboot64net;fi
 
 #bootmenu
 bootmenu_0=1. Enter kernel-name to boot from SD/EMMC.=run askboot

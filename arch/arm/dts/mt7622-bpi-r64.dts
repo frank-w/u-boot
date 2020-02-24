@@ -69,6 +69,13 @@
 		};
 	};
 
+	pwm_pins: pwm1 {
+		mux {
+			function = "pwm";
+			groups = "pwm_ch1_0" ;
+		};
+	};
+
 	watchdog_pins: watchdog-default {
 		mux {
 			function = "watchdog";
@@ -146,6 +153,12 @@
 &uart0 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&uart0_pins>;
+	status = "okay";
+};
+
+&pwm {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pwm_pins>;
 	status = "okay";
 };
 

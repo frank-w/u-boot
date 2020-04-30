@@ -270,7 +270,6 @@ struct eqos_config {
 	int config_mac;
 	int config_mac_mdio;
 	unsigned int axi_bus_width;
-	phy_interface_t (*interface)(struct udevice *dev);
 	struct eqos_ops *ops;
 };
 
@@ -289,6 +288,7 @@ struct eqos_ops {
 	int (*eqos_disable_calibration)(struct udevice *dev);
 	int (*eqos_set_tx_clk_speed)(struct udevice *dev);
 	ulong (*eqos_get_tick_clk_rate)(struct udevice *dev);
+	phy_interface_t (*eqos_get_interface)(struct udevice *dev);
 };
 
 struct eqos_priv {
@@ -1086,7 +1086,7 @@ static int eqos_start(struct udevice *dev)
 		addr = DWC_NET_PHYADDR;
 #endif
 		eqos->phy = phy_connect(eqos->mii, addr, dev,
-					eqos->config->interface(dev));
+		 eqos->config->ops->eqos_get_interface(dev));
 		if (!eqos->phy) {
 			pr_err("phy_connect() failed");
 			goto err_stop_resets;
@@ -1680,7 +1680,7 @@ static int eqos_probe_resources_stm32(struct udevice *dev)
 
 	debug("%s(dev=%p):\n", __func__, dev);
 
-	interface = eqos->config->interface(dev);
+	interface = eqos->config->ops->eqos_get_interface(dev);
 
 	if (interface == PHY_INTERFACE_MODE_NONE) {
 		pr_err("Invalid PHY interface\n");
@@ -1755,7 +1755,7 @@ static int eqos_probe_resources_imx(struct udevice *dev)
 
 	debug("%s(dev=%p):\n", __func__, dev);
 
-	interface = eqos->config->interface(dev);
+	interface = eqos->config->ops->eqos_get_interface(dev);
 
 	if (interface == PHY_INTERFACE_MODE_NONE) {
 		pr_err("Invalid PHY interface\n");
@@ -1947,7 +1947,8 @@ static struct eqos_ops eqos_tegra186_ops = {
 	.eqos_calibrate_pads = eqos_calibrate_pads_tegra186,
 	.eqos_disable_calibration = eqos_disable_calibration_tegra186,
 	.eqos_set_tx_clk_speed = eqos_set_tx_clk_speed_tegra186,
-	.eqos_get_tick_clk_rate = eqos_get_tick_clk_rate_tegra186
+	.eqos_get_tick_clk_rate = eqos_get_tick_clk_rate_tegra186,
+	.eqos_get_interface = eqos_get_interface_tegra186
 };
 
 static const struct eqos_config __maybe_unused eqos_tegra186_config = {
@@ -1957,7 +1958,6 @@ static const struct eqos_config __maybe_unused eqos_tegra186_config = {
 	.config_mac = EQOS_MAC_RXQ_CTRL0_RXQ0EN_ENABLED_DCB,
 	.config_mac_mdio = EQOS_MAC_MDIO_ADDRESS_CR_20_35,
 	.axi_bus_width = EQOS_AXI_WIDTH_128,
-	.interface = eqos_get_interface_tegra186,
 	.ops = &eqos_tegra186_ops
 };
 
@@ -1975,7 +1975,8 @@ static struct eqos_ops eqos_stm32_ops = {
 	.eqos_calibrate_pads = eqos_null_ops,
 	.eqos_disable_calibration = eqos_null_ops,
 	.eqos_set_tx_clk_speed = eqos_null_ops,
-	.eqos_get_tick_clk_rate = eqos_get_tick_clk_rate_stm32
+	.eqos_get_tick_clk_rate = eqos_get_tick_clk_rate_stm32,
+	.eqos_get_interface = eqos_get_interface_stm32
 };
 
 static const struct eqos_config __maybe_unused eqos_stm32_config = {
@@ -1985,7 +1986,6 @@ static const struct eqos_config __maybe_unused eqos_stm32_config = {
 	.config_mac = EQOS_MAC_RXQ_CTRL0_RXQ0EN_ENABLED_AV,
 	.config_mac_mdio = EQOS_MAC_MDIO_ADDRESS_CR_250_300,
 	.axi_bus_width = EQOS_AXI_WIDTH_64,
-	.interface = eqos_get_interface_stm32,
 	.ops = &eqos_stm32_ops
 };
 
@@ -2003,7 +2003,8 @@ static struct eqos_ops eqos_imx_ops = {
 	.eqos_calibrate_pads = eqos_null_ops,
 	.eqos_disable_calibration = eqos_null_ops,
 	.eqos_set_tx_clk_speed = eqos_set_tx_clk_speed_imx,
-	.eqos_get_tick_clk_rate = eqos_get_tick_clk_rate_imx
+	.eqos_get_tick_clk_rate = eqos_get_tick_clk_rate_imx,
+	.eqos_get_interface = eqos_get_interface_imx
 };
 
 struct eqos_config __maybe_unused eqos_imx_config = {
@@ -2013,7 +2014,6 @@ struct eqos_config __maybe_unused eqos_imx_config = {
 	.config_mac = EQOS_MAC_RXQ_CTRL0_RXQ0EN_ENABLED_DCB,
 	.config_mac_mdio = EQOS_MAC_MDIO_ADDRESS_CR_250_300,
 	.axi_bus_width = EQOS_AXI_WIDTH_64,
-	.interface = eqos_get_interface_imx,
 	.ops = &eqos_imx_ops
 };
 

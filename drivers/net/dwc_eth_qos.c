@@ -577,18 +577,20 @@ static int eqos_start_clks_stm32(struct udevice *dev)
 		goto err;
 	}
 
-	ret = clk_enable(&eqos->clk_rx);
-	if (ret < 0) {
-		pr_err("clk_enable(clk_rx) failed: %d", ret);
-		goto err_disable_clk_master_bus;
+	if (clk_valid(&eqos->clk_rx)) {
+		ret = clk_enable(&eqos->clk_rx);
+		if (ret < 0) {
+			pr_err("clk_enable(clk_rx) failed: %d", ret);
+			goto err_disable_clk_master_bus;
+		}
 	}
-
-	ret = clk_enable(&eqos->clk_tx);
-	if (ret < 0) {
-		pr_err("clk_enable(clk_tx) failed: %d", ret);
-		goto err_disable_clk_rx;
+	if (clk_valid(&eqos->clk_tx)) {
+		ret = clk_enable(&eqos->clk_tx);
+		if (ret < 0) {
+			pr_err("clk_enable(clk_tx) failed: %d", ret);
+			goto err_disable_clk_rx;
+		}
 	}
-
 	if (clk_valid(&eqos->clk_ck) && !eqos->clk_ck_enabled) {
 		ret = clk_enable(&eqos->clk_ck);
 		if (ret < 0) {
@@ -604,9 +606,11 @@ static int eqos_start_clks_stm32(struct udevice *dev)
 
 #ifdef CONFIG_CLK
 err_disable_clk_tx:
-	clk_disable(&eqos->clk_tx);
+	if (clk_valid(&eqos->clk_tx))
+		clk_disable(&eqos->clk_tx);
 err_disable_clk_rx:
-	clk_disable(&eqos->clk_rx);
+	if (clk_valid(&eqos->clk_rx))
+		clk_disable(&eqos->clk_rx);
 err_disable_clk_master_bus:
 	clk_disable(&eqos->clk_master_bus);
 err:
@@ -640,8 +644,10 @@ static int eqos_stop_clks_stm32(struct udevice *dev)
 
 	debug("%s(dev=%p):\n", __func__, dev);
 
-	clk_disable(&eqos->clk_tx);
-	clk_disable(&eqos->clk_rx);
+	if (clk_valid(&eqos->clk_tx))
+		clk_disable(&eqos->clk_tx);
+	if (clk_valid(&eqos->clk_rx))
+		clk_disable(&eqos->clk_rx);
 	clk_disable(&eqos->clk_master_bus);
 #endif
 
@@ -1696,20 +1702,16 @@ static int eqos_probe_resources_stm32(struct udevice *dev)
 	ret = clk_get_by_name(dev, "stmmaceth", &eqos->clk_master_bus);
 	if (ret) {
 		pr_err("clk_get_by_name(master_bus) failed: %d", ret);
-		goto err_probe;
+		return ret;
 	}
 
 	ret = clk_get_by_name(dev, "mac-clk-rx", &eqos->clk_rx);
-	if (ret) {
-		pr_err("clk_get_by_name(rx) failed: %d", ret);
-		goto err_free_clk_master_bus;
-	}
+	if (ret)
+		pr_warn("clk_get_by_name(rx) failed: %d", ret);
 
 	ret = clk_get_by_name(dev, "mac-clk-tx", &eqos->clk_tx);
-	if (ret) {
-		pr_err("clk_get_by_name(tx) failed: %d", ret);
-		goto err_free_clk_rx;
-	}
+	if (ret)
+		pr_warn("clk_get_by_name(tx) failed: %d", ret);
 
 	/*  Get ETH_CLK clocks (optional) */
 	ret = clk_get_by_name(dev, "eth-ck", &eqos->clk_ck);
@@ -1718,15 +1720,6 @@ static int eqos_probe_resources_stm32(struct udevice *dev)
 
 	debug("%s: OK\n", __func__);
 	return 0;
-
-err_free_clk_rx:
-	clk_free(&eqos->clk_rx);
-err_free_clk_master_bus:
-	clk_free(&eqos->clk_master_bus);
-err_probe:
-
-	debug("%s: returns %d\n", __func__, ret);
-	return ret;
 }
 
 static phy_interface_t eqos_get_interface_stm32(struct udevice *dev)
@@ -1807,8 +1800,10 @@ static int eqos_remove_resources_stm32(struct udevice *dev)
 
 	debug("%s(dev=%p):\n", __func__, dev);
 
-	clk_free(&eqos->clk_tx);
-	clk_free(&eqos->clk_rx);
+	if (clk_valid(&eqos->clk_tx))
+		clk_free(&eqos->clk_tx);
+	if (clk_valid(&eqos->clk_rx))
+		clk_free(&eqos->clk_rx);
 	clk_free(&eqos->clk_master_bus);
 	if (clk_valid(&eqos->clk_ck))
 		clk_free(&eqos->clk_ck);

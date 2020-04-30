@@ -17,6 +17,9 @@
 #include <asm/arch-rockchip/periph.h>
 #include <asm/arch-rockchip/clock.h>
 #include <asm/arch-rockchip/hardware.h>
+#ifdef CONFIG_DWC_ETH_QOS
+#include "dwc_eth_qos.h"
+#else
 #include <asm/arch-rockchip/grf_px30.h>
 #include <asm/arch-rockchip/grf_rk322x.h>
 #include <asm/arch-rockchip/grf_rk3288.h>
@@ -25,12 +28,21 @@
 #include <asm/arch-rockchip/grf_rk3368.h>
 #include <asm/arch-rockchip/grf_rk3399.h>
 #include <asm/arch-rockchip/grf_rv1108.h>
-#include <dm/pinctrl.h>
 #include <dt-bindings/clock/rk3288-cru.h>
-#include <linux/bitops.h>
 #include "designware.h"
+#endif
+#include <dm/pinctrl.h>
 
 DECLARE_GLOBAL_DATA_PTR;
+
+struct rockchip_eth_dev {
+#ifdef CONFIG_DWC_ETH_QOS
+	struct eqos_priv eqos;
+#else
+	struct dw_eth_dev dw;
+#endif
+};
+
 #define DELAY_ENABLE(soc, tx, rx) \
 	(((tx) ? soc##_TXCLK_DLY_ENA_GMAC_ENABLE : soc##_TXCLK_DLY_ENA_GMAC_DISABLE) | \
 	((rx) ? soc##_RXCLK_DLY_ENA_GMAC_ENABLE : soc##_RXCLK_DLY_ENA_GMAC_DISABLE))
@@ -41,14 +53,21 @@ DECLARE_GLOBAL_DATA_PTR;
  * dw_eth_pdata: Required platform data for designware driver (must be first)
  */
 struct gmac_rockchip_plat {
-	struct dw_eth_pdata dw_eth_pdata;
+#ifndef CONFIG_DWC_ETH_QOS
+ 	struct dw_eth_pdata dw_eth_pdata;
+#else
+	struct eth_pdata eth_pdata;
+#endif
 	bool clock_input;
 	int tx_delay;
 	int rx_delay;
 };
 
 struct rk_gmac_ops {
-	int (*fix_mac_speed)(struct dw_eth_dev *priv);
+#ifdef CONFIG_DWC_ETH_QOS
+	const struct eqos_config config;
+#endif
+	int (*fix_mac_speed)(struct rockchip_eth_dev *dev);
 	void (*set_to_rmii)(struct gmac_rockchip_plat *pdata);
 	void (*set_to_rgmii)(struct gmac_rockchip_plat *pdata);
 };
@@ -75,11 +94,18 @@ static int gmac_rockchip_of_to_plat(struct udevice *dev)
 	if (pdata->rx_delay == -ENOENT)
 		pdata->rx_delay = dev_read_u32_default(dev, "rx-delay", 0x10);
 
+#ifdef CONFIG_DWC_ETH_QOS
+	return 0;
+#else
+
 	return designware_eth_of_to_plat(dev);
+#endif
 }
 
-static int px30_gmac_fix_mac_speed(struct dw_eth_dev *priv)
+#ifndef CONFIG_DWC_ETH_QOS
+static int px30_gmac_fix_mac_speed(struct rockchip_eth_dev *dev)
 {
+	struct dw_eth_dev *priv = &dev->dw;
 	struct px30_grf *grf;
 	struct clk clk_speed;
 	int speed, ret;
@@ -119,8 +145,9 @@ static int px30_gmac_fix_mac_speed(struct dw_eth_dev *priv)
 	return 0;
 }
 
-static int rk3228_gmac_fix_mac_speed(struct dw_eth_dev *priv)
+static int rk3228_gmac_fix_mac_speed(struct rockchip_eth_dev *dev)
 {
+	struct dw_eth_dev *priv = &dev->dw;
 	struct rk322x_grf *grf;
 	int clk;
 	enum {
@@ -152,8 +179,9 @@ static int rk3228_gmac_fix_mac_speed(struct dw_eth_dev *priv)
 	return 0;
 }
 
-static int rk3288_gmac_fix_mac_speed(struct dw_eth_dev *priv)
+static int rk3288_gmac_fix_mac_speed(struct rockchip_eth_dev *dev)
 {
+	struct dw_eth_dev *priv = &dev->dw;
 	struct rk3288_grf *grf;
 	int clk;
 
@@ -178,8 +206,9 @@ static int rk3288_gmac_fix_mac_speed(struct dw_eth_dev *priv)
 	return 0;
 }
 
-static int rk3308_gmac_fix_mac_speed(struct dw_eth_dev *priv)
+static int rk3308_gmac_fix_mac_speed(struct rockchip_eth_dev *dev)
 {
+	struct dw_eth_dev *priv = &dev->dw;
 	struct rk3308_grf *grf;
 	struct clk clk_speed;
 	int speed, ret;
@@ -219,8 +248,9 @@ static int rk3308_gmac_fix_mac_speed(struct dw_eth_dev *priv)
 	return 0;
 }
 
-static int rk3328_gmac_fix_mac_speed(struct dw_eth_dev *priv)
+static int rk3328_gmac_fix_mac_speed(struct rockchip_eth_dev *dev)
 {
+	struct dw_eth_dev *priv = &dev->dw;
 	struct rk3328_grf_regs *grf;
 	int clk;
 	enum {
@@ -252,8 +282,9 @@ static int rk3328_gmac_fix_mac_speed(struct dw_eth_dev *priv)
 	return 0;
 }
 
-static int rk3368_gmac_fix_mac_speed(struct dw_eth_dev *priv)
+static int rk3368_gmac_fix_mac_speed(struct rockchip_eth_dev *dev)
 {
+	struct dw_eth_dev *priv = &dev->dw;
 	struct rk3368_grf *grf;
 	int clk;
 	enum {
@@ -284,8 +315,9 @@ static int rk3368_gmac_fix_mac_speed(struct dw_eth_dev *priv)
 	return 0;
 }
 
-static int rk3399_gmac_fix_mac_speed(struct dw_eth_dev *priv)
+static int rk3399_gmac_fix_mac_speed(struct rockchip_eth_dev *dev)
 {
+	struct dw_eth_dev *priv = &dev->dw;
 	struct rk3399_grf_regs *grf;
 	int clk;
 
@@ -310,8 +342,9 @@ static int rk3399_gmac_fix_mac_speed(struct dw_eth_dev *priv)
 	return 0;
 }
 
-static int rv1108_set_rmii_speed(struct dw_eth_dev *priv)
+static int rv1108_set_rmii_speed(struct rockchip_eth_dev *dev)
 {
+	struct dw_eth_dev *priv = &dev->dw;
 	struct rv1108_grf *grf;
 	int clk, speed;
 	enum {
@@ -344,7 +377,9 @@ static int rv1108_set_rmii_speed(struct dw_eth_dev *priv)
 
 	return 0;
 }
+#endif
 
+#ifndef CONFIG_DWC_ETH_QOS
 static void px30_gmac_set_to_rmii(struct gmac_rockchip_plat *pdata)
 {
 	struct px30_grf *grf;
@@ -553,17 +588,31 @@ static void rv1108_gmac_set_to_rmii(struct gmac_rockchip_plat *pdata)
 		     RV1108_GMAC_PHY_INTF_SEL_MASK,
 		     RV1108_GMAC_PHY_INTF_SEL_RMII);
 }
+#endif
 
 static int gmac_rockchip_probe(struct udevice *dev)
 {
 	struct gmac_rockchip_plat *pdata = dev_get_plat(dev);
 	struct rk_gmac_ops *ops =
 		(struct rk_gmac_ops *)dev_get_driver_data(dev);
-	struct dw_eth_pdata *dw_pdata = dev_get_plat(dev);
-	struct eth_pdata *eth_pdata = &dw_pdata->eth_pdata;
+#ifdef CONFIG_DWC_ETH_QOS
+	struct eqos_config *config;
+#else
+	struct dw_eth_pdata *dw_pdata;
+#endif
+	struct eth_pdata *eth_pdata;
 	struct clk clk;
 	ulong rate;
 	int ret;
+
+#ifdef CONFIG_DWC_ETH_QOS
+	eth_pdata = &pdata->eth_pdata;
+	config = (struct eqos_config *)&ops->config;
+	eth_pdata->phy_interface = config->ops->eqos_get_interface(dev);
+#else
+	dw_pdata = &pdata->dw_eth_pdata;
+	eth_pdata = &dw_pdata->eth_pdata;
+#endif
 
 	ret = clk_set_defaults(dev, CLK_DEFAULTS_PRE);
 	if (ret)
@@ -660,39 +709,109 @@ static int gmac_rockchip_probe(struct udevice *dev)
 		return -ENXIO;
 	}
 
+#ifdef CONFIG_DWC_ETH_QOS
+	return eqos_probe(dev);
+#else
 	return designware_eth_probe(dev);
+#endif
+}
+
+static int gmac_rockchip_eth_write_hwaddr(struct udevice *dev)
+{
+#if defined(CONFIG_DWC_ETH_QOS)
+	return eqos_write_hwaddr(dev);
+#else
+	return designware_eth_write_hwaddr(dev);
+#endif
+}
+
+static int gmac_rockchip_eth_free_pkt(struct udevice *dev, uchar *packet,
+				      int length)
+{
+#ifdef CONFIG_DWC_ETH_QOS
+	return eqos_free_pkt(dev, packet, length);
+#else
+	return designware_eth_free_pkt(dev, packet, length);
+#endif
+}
+
+static int gmac_rockchip_eth_send(struct udevice *dev, void *packet,
+				  int length)
+{
+#ifdef CONFIG_DWC_ETH_QOS
+	return eqos_send(dev, packet, length);
+#else
+	return designware_eth_send(dev, packet, length);
+#endif
+}
+
+static int gmac_rockchip_eth_recv(struct udevice *dev, int flags,
+				  uchar **packetp)
+{
+#ifdef CONFIG_DWC_ETH_QOS
+	return eqos_recv(dev, flags, packetp);
+#else
+	return designware_eth_recv(dev, flags, packetp);
+#endif
 }
 
 static int gmac_rockchip_eth_start(struct udevice *dev)
 {
-	struct eth_pdata *pdata = dev_get_plat(dev);
-	struct dw_eth_dev *priv = dev_get_priv(dev);
+	struct rockchip_eth_dev *priv = dev_get_priv(dev);
 	struct rk_gmac_ops *ops =
 		(struct rk_gmac_ops *)dev_get_driver_data(dev);
+#ifndef CONFIG_DWC_ETH_QOS
+	struct gmac_rockchip_platdata *pdata = dev_get_platdata(dev);
+	struct dw_eth_pdata *dw_pdata;
+	struct eth_pdata *eth_pdata;
+#endif
 	int ret;
 
-	ret = designware_eth_init(priv, pdata->enetaddr);
+#ifdef CONFIG_DWC_ETH_QOS
+	ret = eqos_init(dev);
+#else
+	dw_pdata = &pdata->dw_eth_pdata;
+	eth_pdata = &dw_pdata->eth_pdata;
+	ret = designware_eth_init((struct dw_eth_dev *)priv,
+				  eth_pdata->enetaddr);
+#endif
 	if (ret)
 		return ret;
 	ret = ops->fix_mac_speed(priv);
 	if (ret)
 		return ret;
-	ret = designware_eth_enable(priv);
+
+
+#ifdef CONFIG_DWC_ETH_QOS
+	eqos_enable(dev);
+#else
+	ret = designware_eth_enable((struct dw_eth_dev *)priv);
 	if (ret)
 		return ret;
+#endif
 
 	return 0;
 }
 
+static void gmac_rockchip_eth_stop(struct udevice *dev)
+{
+#ifdef CONFIG_DWC_ETH_QOS
+	eqos_stop(dev);
+#else
+	designware_eth_stop(dev);
+#endif
+}
+
 const struct eth_ops gmac_rockchip_eth_ops = {
 	.start			= gmac_rockchip_eth_start,
-	.send			= designware_eth_send,
-	.recv			= designware_eth_recv,
-	.free_pkt		= designware_eth_free_pkt,
-	.stop			= designware_eth_stop,
-	.write_hwaddr		= designware_eth_write_hwaddr,
+	.send			= gmac_rockchip_eth_send,
+	.recv			= gmac_rockchip_eth_recv,
+	.free_pkt		= gmac_rockchip_eth_free_pkt,
+	.stop			= gmac_rockchip_eth_stop,
+	.write_hwaddr		= gmac_rockchip_eth_write_hwaddr,
 };
 
+#ifndef CONFIG_DWC_ETH_QOS
 const struct rk_gmac_ops px30_gmac_ops = {
 	.fix_mac_speed = px30_gmac_fix_mac_speed,
 	.set_to_rmii = px30_gmac_set_to_rmii,
@@ -732,8 +851,10 @@ const struct rk_gmac_ops rv1108_gmac_ops = {
 	.fix_mac_speed = rv1108_set_rmii_speed,
 	.set_to_rmii = rv1108_gmac_set_to_rmii,
 };
+#endif
 
 static const struct udevice_id rockchip_gmac_ids[] = {
+#ifndef CONFIG_DWC_ETH_QOS
 	{ .compatible = "rockchip,px30-gmac",
 	  .data = (ulong)&px30_gmac_ops },
 	{ .compatible = "rockchip,rk3228-gmac",
@@ -750,6 +871,7 @@ static const struct udevice_id rockchip_gmac_ids[] = {
 	  .data = (ulong)&rk3399_gmac_ops },
 	{ .compatible = "rockchip,rv1108-gmac",
 	  .data = (ulong)&rv1108_gmac_ops },
+#endif
 	{ }
 };
 
@@ -760,7 +882,7 @@ U_BOOT_DRIVER(eth_gmac_rockchip) = {
 	.of_to_plat = gmac_rockchip_of_to_plat,
 	.probe	= gmac_rockchip_probe,
 	.ops	= &gmac_rockchip_eth_ops,
-	.priv_auto	= sizeof(struct dw_eth_dev),
+	.priv_auto	= sizeof(struct rockchip_eth_dev),
 	.plat_auto	= sizeof(struct gmac_rockchip_plat),
 	.flags = DM_FLAG_ALLOC_PRIV_DMA,
 };

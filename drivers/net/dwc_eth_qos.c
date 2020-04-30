@@ -1037,19 +1037,14 @@ static int eqos_read_rom_hwaddr(struct udevice *dev)
 	return !is_valid_ethaddr(pdata->enetaddr);
 }
 
-static int eqos_start(struct udevice *dev)
+static int eqos_init(struct udevice *dev)
 {
 	struct eqos_priv *eqos = dev_get_priv(dev);
-	int ret, i;
+	int ret;
 	ulong rate;
-	u32 val, tx_fifo_sz, rx_fifo_sz, tqs, rqs, pbl;
-	ulong last_rx_desc;
-	ulong desc_pad;
+	u32 val;
 
 	debug("%s(dev=%p):\n", __func__, dev);
-
-	eqos->tx_desc_idx = 0;
-	eqos->rx_desc_idx = 0;
 
 	ret = eqos->config->ops->eqos_start_resets(dev);
 	if (ret < 0) {
@@ -1130,6 +1125,31 @@ static int eqos_start(struct udevice *dev)
 		goto err_shutdown_phy;
 	}
 
+	debug("%s: OK\n", __func__);
+	return 0;
+
+err_shutdown_phy:
+	phy_shutdown(eqos->phy);
+err_stop_resets:
+	eqos->config->ops->eqos_stop_resets(dev);
+//err_stop_clks:
+	eqos->config->ops->eqos_stop_clks(dev);
+err:
+	pr_err("FAILED: %d", ret);
+	return ret;
+}
+
+static void eqos_enable(struct udevice *dev)
+{
+	struct eqos_priv *eqos = dev_get_priv(dev);
+	u32 val, tx_fifo_sz, rx_fifo_sz, tqs, rqs, pbl;
+	ulong last_rx_desc;
+	ulong desc_pad;
+	int i;
+
+	eqos->tx_desc_idx = 0;
+	eqos->rx_desc_idx = 0;
+
 	/* Configure MTL */
 
 	/* Enable Store and Forward mode for TX */
@@ -1141,6 +1161,8 @@ static int eqos_start(struct udevice *dev)
 
 	/* Transmit Queue weight */
 	writel(0x10, &eqos->mtl_regs->txq0_quantum_weight);
+	//downstream:
+	//writel(0x60, &eqos->mtl_regs->txq0_quantum_weight - 0x100);
 
 	/* Enable Store and Forward mode for RX, since no jumbo frame */
 	setbits_le32(&eqos->mtl_regs->rxq0_operation_mode,
@@ -1352,17 +1374,20 @@ static int eqos_start(struct udevice *dev)
 	writel(last_rx_desc, &eqos->dma_regs->ch0_rxdesc_tail_pointer);
 
 	eqos->started = true;
+}
 
-	debug("%s: OK\n", __func__);
+static int eqos_start(struct udevice *dev)
+{
+	int ret;
+
+	ret = eqos_init(dev);
+	if (ret)
+		return ret;
+
+	eqos_enable(dev);
+
 	return 0;
 
-err_shutdown_phy:
-	phy_shutdown(eqos->phy);
-err_stop_resets:
-	eqos->config->ops->eqos_stop_resets(dev);
-err:
-	pr_err("FAILED: %d", ret);
-	return ret;
 }
 
 static void eqos_stop(struct udevice *dev)

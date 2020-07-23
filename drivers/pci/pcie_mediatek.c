@@ -246,7 +246,7 @@ static int mtk_pcie_hw_wr_cfg(struct mtk_pcie_port *port, u32 bus, pci_dev_t dev
 	return mtk_pcie_check_cfg_cpld(port);
 }
 
-static struct mtk_pcie_port *mtk_pcie_find_port(struct udevice *bus,
+static struct mtk_pcie_port *mtk_pcie_find_port(const struct udevice *bus,
 						pci_dev_t bdf)
 {
 	struct mtk_pcie *pcie = dev_get_priv(bus);
@@ -280,7 +280,7 @@ static struct mtk_pcie_port *mtk_pcie_find_port(struct udevice *bus,
 	return NULL;
 }
 
-static int mtk_pcie_config_read(struct udevice *bus, pci_dev_t bdf,
+static int mtk_pcie_config_read(const struct udevice *bus, pci_dev_t bdf,
 		uint offset, ulong *valuep, enum pci_size_t size)
 {
 	struct mtk_pcie_port *port;

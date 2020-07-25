@@ -90,3 +90,10 @@ CONFIG_CMD_PCI=y
 
 CONFIG_CMD_GPIO=y
 CONFIG_GPIO_HOG=y
+
+CONFIG_DM_SCSI=y
+CONFIG_AHCI=y
+CONFIG_AHCI_PCI=y                                                   │  
+CONFIG_SCSI_AHCI=y
+CONFIG_SCSI=y
+CONFIG_CMD_SCSI=y

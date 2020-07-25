@@ -276,6 +276,32 @@
 		};
 	};
 
+	sata: sata@1a200000 {
+		compatible = "ahci-pci";
+		reg = <0 0x1a200000 0 0x1100>;
+/*
+		interrupts = <GIC_SPI 233 IRQ_TYPE_LEVEL_HIGH>;
+		interrupt-names = "hostc";
+		clocks = <&pciesys CLK_SATA_AHB_EN>,
+			<&pciesys CLK_SATA_AXI_EN>,
+			<&pciesys CLK_SATA_ASIC_EN>,
+			<&pciesys CLK_SATA_RBC_EN>,
+			<&pciesys CLK_SATA_PM_EN>;
+			clock-names = "ahb", "axi", "asic", "rbc", "pm";
+		phys = <&sata_port PHY_TYPE_SATA>;
+		phy-names = "sata-phy";
+		ports-implemented = <0x1>;
+		power-domains = <&scpsys MT7622_POWER_DOMAIN_HIF0>;
+		resets = <&pciesys MT7622_SATA_AXI_BUS_RST>,
+			<&pciesys MT7622_SATA_PHY_SW_RST>,
+		<&pciesys MT7622_SATA_PHY_REG_RST>;
+		reset-names = "axi", "sw", "reg";
+		mediatek,phy-mode = <&pciesys>;
+		status = "disabled";*/
+		status = "okay";
+
+	};
+
 	ethsys: syscon@1b000000 {
 		compatible = "mediatek,mt7622-ethsys", "syscon";
 		reg = <0x1b000000 0x1000>;

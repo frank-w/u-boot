@@ -32,21 +32,23 @@ else
 fi
 MAXSIZE=$(( ($ENV_START - $UBOOT_START)*1024 -1 ))
 
+function generate_filename
+{
+	#grep '^CONFIG_MT7531=y' .config >/dev/null;if [[ $? -eq 0 ]];then ETH="MT7531";fi
+	filename=u-boot-${board//bpi-/}_${uver}-${ubranch}.bin
+	echo $filename
+}
+
 function upload {
-	imagename="u-boot_${uver}-${ubranch}.bin"
+	#imagename="u-boot_${uver}-${ubranch}.bin"
+	imagename=$(generate_filename)
 	read -e -i $imagename -p "u-boot-filename: " input
 	imagename="${input:-$imagename}"
 
 	echo "Name: $imagename"
-	echo "uploading to ${uploadserver}:${uploaddir}..."
+	echo "uploading ${UBOOT_FILE} to ${uploadserver}:${uploaddir}..."
 
-	srcfile=u-boot.bin
-
-	if [[ "$board" == "bpi-r64" ]];then
-		srcfile=u-boot-mtk.bin
-	fi
-	echo $srcfile
-	scp ${srcfile} ${uploaduser}@${uploadserver}:${uploaddir}/${imagename}
+	scp ${UBOOT_FILE} ${uploaduser}@${uploadserver}:${uploaddir}/${imagename}
 }
 
 case $1 in
@@ -153,6 +155,11 @@ case $1 in
 	;;
 	"upload")
 		upload
+	;;
+	"rename")
+		filename=$(generate_filename)
+		echo "rename $UBOOT_FILE to $filename"
+		mv $UBOOT_FILE $filename
 	;;
 	*)
 		$0 build;

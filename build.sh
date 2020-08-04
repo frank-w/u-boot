@@ -3,8 +3,12 @@ export ARCH=arm;
 export CROSS_COMPILE=arm-linux-gnueabihf-
 
 uver=$(make ubootversion)
-ubranch=$(git branch --contains $(git log -n 1 --pretty='%h') | grep -v '(HEAD' | head -1 | sed 's/^..//'| sed 's/^[0-9.-]*//')
+commit=$(git log -n 1 --pretty='%h')
+ubranch=$(git branch --contains $commit | grep -v '(HEAD' | head -1 | sed 's/^..//'| sed 's/^[0-9.-]*//')
 
+if [[ "${ubranch}" =~ ^\(.* ]]; then
+  ubranch="$commit";
+fi
 #uboot 2020-01 needs python.h...just note for a checkdep-function
 #sudo apt-get install python3-dev
 

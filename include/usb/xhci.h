@@ -636,7 +636,6 @@ struct xhci_ep_ctx {
 #define ERROR_COUNT_MASK	(0x3)
 #define CTX_TO_EP_TYPE(p)	(((p) >> 3) & 0x7)
 #define EP_TYPE(p)		((p) << 3)
-#define EP_TYPE_SHIFT		(3)
 #define ISOC_OUT_EP		1
 #define BULK_OUT_EP		2
 #define INT_OUT_EP		3

@@ -235,3 +235,11 @@
 		full-duplex;
 	};
 };
+
+&ssusb {
+	status = "okay";
+};
+
+&u3phy {
+       status = "okay";
+};

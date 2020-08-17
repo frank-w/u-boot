@@ -831,8 +831,7 @@ int xhci_check_maxpacket(struct usb_device *udev)
 				ctrl->devs[slot_id]->out_ctx, ep_index);
 		in_ctx = ctrl->devs[slot_id]->in_ctx;
 		ep_ctx = xhci_get_ep_ctx(ctrl, in_ctx, ep_index);
-		ep_ctx->ep_info2 &= cpu_to_le32(~((0xffff & MAX_PACKET_MASK)
-						<< MAX_PACKET_SHIFT));
+		ep_ctx->ep_info2 &= cpu_to_le32(~MAX_PACKET(MAX_PACKET_MASK));
 		ep_ctx->ep_info2 |= cpu_to_le32(MAX_PACKET(max_packet_size));
 
 		/*

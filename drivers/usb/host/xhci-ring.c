@@ -688,7 +688,7 @@ int xhci_bulk_tx(struct usb_device *udev, unsigned long pipe,
 					      length, maxpacketsize,
 					      more_trbs_coming);
 
-		length_field = ((trb_buff_len & TRB_LEN_MASK) |
+		length_field = (TRB_LEN(trb_buff_len) |
 				TRB_TD_SIZE(remainder) |
 				TRB_INTR_TARGET(0));
 
@@ -848,7 +848,7 @@ int xhci_ctrl_tx(struct usb_device *udev, unsigned long pipe,
 	trb_fields[1] = le16_to_cpu(req->index) |
 			le16_to_cpu(req->length) << 16;
 	/* TRB_LEN | (TRB_INTR_TARGET) */
-	trb_fields[2] = (8 | TRB_INTR_TARGET(0));
+	trb_fields[2] = (TRB_LEN(8) | TRB_INTR_TARGET(0));
 	/* Immediate data in pointer */
 	trb_fields[3] = field;
 	queue_trb(ctrl, ep_ring, true, trb_fields);
@@ -864,11 +864,11 @@ int xhci_ctrl_tx(struct usb_device *udev, unsigned long pipe,
 
 	remainder = xhci_td_remainder(ctrl, 0, length, length,
 				      usb_maxpacket(udev, pipe), 1);
-	length_field = (length & TRB_LEN_MASK) | TRB_TD_SIZE(remainder) |
+	length_field = TRB_LEN(length) | TRB_TD_SIZE(remainder) |
 			TRB_INTR_TARGET(0);
 	debug("length_field = %d, length = %d,"
 		"xhci_td_remainder(length) = %d , TRB_INTR_TARGET(0) = %d\n",
-		length_field, (length & TRB_LEN_MASK),
+		length_field, TRB_LEN(length),
 		TRB_TD_SIZE(remainder), 0);
 
 	if (length > 0) {

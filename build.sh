@@ -137,7 +137,7 @@ case $1 in
 			if [[ "$arch" == "arm64" ]];then
 				nano arch/arm/dts/mt7622-rfb.dts
 			else
-				nano arch/arm/dts/mt7622-bpi-r64.dts
+				nano arch/arm/dts/mt7622-bananapi-bpi-r64.dts
 			fi
 		else
 			nano arch/arm/dts/mt7623n-bananapi-bpi-r2.dts

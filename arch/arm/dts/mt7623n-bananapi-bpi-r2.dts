@@ -215,7 +215,7 @@
 	status = "okay";
 
 	pcie@0,0 {
-		status = "okay";
+		status = "disabled";
 	};
 
 	pcie@1,0 {

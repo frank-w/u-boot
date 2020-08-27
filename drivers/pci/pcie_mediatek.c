@@ -158,14 +158,26 @@ static int mtk_pcie_read_config(const struct udevice *bus, pci_dev_t bdf,
 				uint offset, ulong *valuep,
 				enum pci_size_t size)
 {
-	return pci_generic_mmap_read_config(bus, mtk_pcie_config_address,
+	int ret;
+
+	printf("mtk_pcie_read_config: bdf is %x, offset is %x, size is %x\n",
+		bdf, offset, size);
+	ret = pci_generic_mmap_read_config(bus, mtk_pcie_config_address,
 					    bdf, offset, valuep, size);
+	printf("mtk_pcie_read_config: value is %lx.\n", *valuep);
+
+//	if (bdf == 0)
+//		*valuep = pci_get_ff(size);
+
+	return ret;
 }
 
 static int mtk_pcie_write_config(struct udevice *bus, pci_dev_t bdf,
 				 uint offset, ulong value,
 				 enum pci_size_t size)
 {
+	printf("mtk_pcie_write_config: bdf is %x, offset is %x, size is %x, value is %lx\n",
+		bdf, offset, size, value);
 	return pci_generic_mmap_write_config(bus, mtk_pcie_config_address,
 					     bdf, offset, value, size);
 }
@@ -440,6 +452,9 @@ static int mtk_pcie_startup_port_v2(struct mtk_pcie_port *port)
 static void mtk_pcie_enable_port(struct mtk_pcie_port *port)
 {
 	int err;
+
+//	if (port->slot == 0)
+//		goto exit;
 
 	err = clk_enable(&port->sys_ck);
 	if (err)

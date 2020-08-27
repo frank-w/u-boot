@@ -166,8 +166,8 @@ static int mtk_pcie_read_config(const struct udevice *bus, pci_dev_t bdf,
 					    bdf, offset, valuep, size);
 	printf("mtk_pcie_read_config: value is %lx.\n", *valuep);
 
-//	if (bdf == 0)
-//		*valuep = pci_get_ff(size);
+	if (bdf == 0)
+		*valuep = pci_get_ff(size);
 
 	return ret;
 }

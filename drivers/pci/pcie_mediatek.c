@@ -158,22 +158,14 @@ static int mtk_pcie_read_config(const struct udevice *bus, pci_dev_t bdf,
 				uint offset, ulong *valuep,
 				enum pci_size_t size)
 {
-	int ret;
-
-	printf("mtk_pcie_read_config: bdf is %x, offset is %x, size is %x\n",
-		bdf, offset, size);
-	ret = pci_generic_mmap_read_config(bus, mtk_pcie_config_address,
+	return pci_generic_mmap_read_config(bus, mtk_pcie_config_address,
 					    bdf, offset, valuep, size);
-	printf("mtk_pcie_read_config: value is %lx.\n", *valuep);
-	return ret;
 }
 
 static int mtk_pcie_write_config(struct udevice *bus, pci_dev_t bdf,
 				 uint offset, ulong value,
 				 enum pci_size_t size)
 {
-	printf("mtk_pcie_write_config: bdf is %x, offset is %x, size is %x, value is %lx\n",
-		bdf, offset, size, value);
 	return pci_generic_mmap_write_config(bus, mtk_pcie_config_address,
 					     bdf, offset, value, size);
 }

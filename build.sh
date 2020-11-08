@@ -78,9 +78,9 @@ case $1 in
 	"importconfig")
 		if [[ "$board" == "bpi-r64" ]];then
 			if [[ "$arch" == "arm64" ]];then
-				DEFCONFIG=mt7622_rfb_defconfig
+				DEFCONFIG=mt7622_bpi-r64_defconfig
 			else
-				DEFCONFIG=mt7622_rfb_32_defconfig
+				DEFCONFIG=mt7622_bpi-r64_32_defconfig
 			fi
 		else
 			DEFCONFIG=mt7623n_bpir2_defconfig;
@@ -93,9 +93,9 @@ case $1 in
 	"defconfig")
 		if [[ "$board" == "bpi-r64" ]];then
 			if [[ "$arch" == "arm64" ]];then
-				nano configs/mt7622_rfb_defconfig;
+				nano configs/mt7622_bpi-r64_defconfig;
 			else
-				nano configs/mt7622_rfb_32_defconfig;
+				nano configs/mt7622_bpi-r64_32_defconfig;
 			fi
 		else
 			nano configs/mt7623n_bpir2_defconfig;

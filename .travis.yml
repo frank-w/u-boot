@@ -28,6 +28,10 @@ script:
     - bash build.sh importconfig
     - bash build.sh build
     - bash build.sh rename
+    - sed -i 's/#\(arch=arm64\)/\1/' build.conf #change to r64-arm64
+    - bash build.sh importconfig
+    - bash build.sh build
+    - bash build.sh rename
 before_deploy:
     # Set up git user name and tag this commit
     - git config --local user.name "Frank Wunderlich"

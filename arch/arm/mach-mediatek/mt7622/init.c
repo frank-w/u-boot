@@ -30,10 +30,13 @@ int dram_init(void)
 }
 
 #ifdef CONFIG_ARM64
+
+#ifndef CONFIG_SYSRESET
 void reset_cpu(ulong addr)
 {
 	psci_system_reset();
 }
+#endif
 
 static struct mm_region mt7622_mem_map[] = {
 	{

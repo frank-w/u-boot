@@ -28,6 +28,7 @@ if [[ "$board" == "bpi-r64" ]];then
 	if [[ "$arch" == "arm64" ]];then
 		export ARCH=arm64
 		export CROSS_COMPILE=aarch64-linux-gnu-
+		UBOOT_FILE=u-boot.bin
 	fi
 else
 	UBOOT_START=320

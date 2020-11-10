@@ -39,7 +39,7 @@ MAXSIZE=$(( ($ENV_START - $UBOOT_START)*1024 -1 ))
 function generate_filename
 {
 	#grep '^CONFIG_MT7531=y' .config >/dev/null;if [[ $? -eq 0 ]];then ETH="MT7531";fi
-	filename=u-boot-${board//bpi-/}_${uver}-${ubranch}.bin
+	filename=u-boot-${board//bpi-/}_${uver}-${ubranch}-${ARCH}.bin
 	echo $filename
 }
 
@@ -78,9 +78,9 @@ case $1 in
 	"importconfig")
 		if [[ "$board" == "bpi-r64" ]];then
 			if [[ "$arch" == "arm64" ]];then
-				DEFCONFIG=mt7622_rfb_defconfig
+				DEFCONFIG=mt7622_bpi-r64_defconfig
 			else
-				DEFCONFIG=mt7622_rfb_32_defconfig
+				DEFCONFIG=mt7622_bpi-r64_32_defconfig
 			fi
 		else
 			DEFCONFIG=mt7623n_bpir2_defconfig;
@@ -93,9 +93,9 @@ case $1 in
 	"defconfig")
 		if [[ "$board" == "bpi-r64" ]];then
 			if [[ "$arch" == "arm64" ]];then
-				nano configs/mt7622_rfb_defconfig;
+				nano configs/mt7622_bpi-r64_defconfig;
 			else
-				nano configs/mt7622_rfb_32_defconfig;
+				nano configs/mt7622_bpi-r64_32_defconfig;
 			fi
 		else
 			nano configs/mt7623n_bpir2_defconfig;

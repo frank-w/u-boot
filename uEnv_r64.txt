@@ -42,7 +42,7 @@ loadenv=if run checkenv;then run loadenvfile;fi
 resetenv=env default -a;printenv;
 
 buildargs=setenv bootargs "board=${board} console=${console} root=${root} service=${service} ${bootopts}"
-newboot=run buildargs;if run loadkernel; then if run loaddt; then bootm ${kaddr} - ${dtaddr};fi;fi
+newboot=run buildargs;if printenv fit;then setenv kernel ${fit};if run loadkernel; then bootm ${kaddr}; fi; else if run loadkernel; then if run loaddt; then bootm ${kaddr} - ${dtaddr};fi;fi;fi
 
 #netboot
 ipaddr=192.168.0.19

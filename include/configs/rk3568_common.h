@@ -30,6 +30,8 @@
 #define SDRAM_UPPER_ADDR_MIN		0x100000000
 #endif
 
+#define CONFIG_SYS_NONCACHED_MEMORY	(1 << 20)	/* 1 MiB */
+
 #ifndef CONFIG_SPL_BUILD
 #define ENV_MEM_LAYOUT_SETTINGS		\
 	"scriptaddr=0x00c00000\0"	\

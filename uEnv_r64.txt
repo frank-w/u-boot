@@ -29,8 +29,10 @@ lskernel=ls ${device} ${partition} ${bpi}/${board}/${service};
 loaddt=fatload $device $partition $dtaddr ${bpi}/${board}/${service}/dtb/${fdt}
 loadkernel=fatload $device $partition $kaddr ${bpi}/${board}/${service}/${kernel}
 
-checksd=fatinfo mmc 1:1
-selectmmc=if run checksd; then echo Boot from SD ; setenv partition 1:1;else echo Boot from eMMC; setenv partition 0:1 ; fi;
+checksd=mmc dev 1
+checkgpt=if gpt guid $device $devnum;then setenv partnum 4;else setenv partnum 1;fi
+checkfat=fatinfo $device $devnum:$partnum
+selectmmc=if run checksd; then echo Boot from SD ; setenv devnum 1;else echo Boot from eMMC; setenv devnum 0; fi;run checkgpt;setenv partition $devnum:$partnum;
 
 bootenv=uEnv.txt
 checkenv=test -e ${device} ${partition} ${bpi}/${board}/${service}/${bootenv}
@@ -40,7 +42,7 @@ loadenv=if run checkenv;then run loadenvfile;fi
 resetenv=env default -a;printenv;
 
 buildargs=setenv bootargs "board=${board} console=${console} root=${root} service=${service} ${bootopts}"
-newboot=run buildargs;if run loadkernel; then if run loaddt; then bootm ${kaddr} - ${dtaddr};fi;fi
+newboot=run buildargs;if printenv fit;then setenv kernel ${fit};if run loadkernel; then bootm ${kaddr}; fi; else if run loadkernel; then if run loaddt; then bootm ${kaddr} - ${dtaddr};fi;fi;fi
 
 #netboot
 ipaddr=192.168.0.19

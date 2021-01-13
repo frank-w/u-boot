@@ -29,8 +29,10 @@ lskernel=ls ${device} ${partition} ${bpi}/${board}/${service};
 loaddt=fatload $device $partition $dtaddr ${bpi}/${board}/${service}/dtb/${fdt}
 loadkernel=fatload $device $partition $kaddr ${bpi}/${board}/${service}/${kernel}
 
-checksd=fatinfo mmc 1:1
-selectmmc=if run checksd; then echo Boot from SD ; setenv partition 1:1;else echo Boot from eMMC; setenv partition 0:1 ; fi;
+checksd=mmc dev 1
+checkgpt=if gpt guid $device $devnum;then setenv partnum 4;else setenv partnum 1;fi
+checkfat=fatinfo $device $devnum:$partnum
+selectmmc=if run checksd; then echo Boot from SD ; setenv devnum 1;else echo Boot from eMMC; setenv devnum 0; fi;run checkgpt;setenv partition $devnum:$partnum;
 
 bootenv=uEnv.txt
 checkenv=test -e ${device} ${partition} ${bpi}/${board}/${service}/${bootenv}
@@ -40,7 +42,7 @@ loadenv=if run checkenv;then run loadenvfile;fi
 resetenv=env default -a;printenv;
 
 buildargs=setenv bootargs "board=${board} console=${console} root=${root} service=${service} ${bootopts}"
-newboot=run buildargs;if run loadkernel; then if run loaddt; then bootm ${kaddr} - ${dtaddr};fi;fi
+newboot=run buildargs;if printenv fit;then setenv kernel ${fit};if run loadkernel; then bootm ${kaddr}; fi; else if run loadkernel; then if run loaddt; then bootm ${kaddr} - ${dtaddr};fi;fi;fi
 
 #netboot
 ipaddr=192.168.0.19
@@ -54,13 +56,14 @@ lstftpdt=if tftp ${loadaddr} ${serverip}:dtfiles.lst;then setexpr listend ${load
 lstftpu=if tftp ${loadaddr} ${serverip}:bootfiles.lst;then setexpr listend ${loadaddr} + ${filesize};mw.b ${listend} 00 2;strings ${loadaddr};else echo "tftp download failed";fi
 
 bootnet=run buildargs;if tftp $kaddr ${bootfile}; then if tftp $dtaddr ${bootdtbfile}; then bootm $kaddr - $dtaddr;fi;fi
+bootnetfit=run buildargs;if tftp $kaddr ${bootfile}; then bootm $kaddr;fi
 
 #load uboot-mtk.bin
 #ufile=u-boot-r64-2019-10.bin
 #ufile=u-boot_2020.01-rc4-bpi-r64-v1.bin
 uaddr=0x41E00000
 umtkaddr=0x41dffe00
-ubootnet=if tftp ${umtkaddr} ${ufile}; then go $uaddr;fi
+ubootnet=if tftp ${uaddr} ${ufile}; then dcache off;icache off; go $uaddr;fi
 uboot64net=if tftp ${umtkaddr} ${ufile};then go64 $uaddr;fi
 
 #asking user which file to load
@@ -70,12 +73,13 @@ askuboot=askenv ubootinput "enter uboot-name:";
 
 askboot=run lskernel askkernel;if printenv kernelinput; then setenv kernel "${kernelinput}"; run lsdtb askdtb; if printenv dtbinput; then setenv fdt "${dtbinput}";run newboot; fi;fi
 askbootnet=run lstftp askkernel;if printenv kernelinput; then setenv bootfile "${kernelinput}"; run lstftpdt askdtb; if printenv dtbinput; then setenv bootdtbfile "${dtbinput}";run bootnet; fi;fi
+askbootnetfit=run lstftp askkernel;if printenv kernelinput; then setenv bootfile "${kernelinput}"; run bootnetfit;fi
 askubootnet=run lstftpu askuboot;if printenv ubootinput; then setenv ufile "${ubootinput}"; run ubootnet;fi
 askuboot64net=run lstftpu askuboot;if printenv ubootinput ;then setenv ufile "${ubootinput}"; run uboot64net;fi
 
 #bootmenu
 bootmenu_0=1. Enter kernel-name to boot from SD/EMMC.=run askboot
-bootmenu_1=2. Boot kernel from TFTP.=run askbootnet
+bootmenu_1=2. Boot kernel from TFTP.=run askbootnetfit
 bootmenu_2=3. Boot from SD/EMMC.=run newboot
 
 bootmenu_default=2

@@ -62,7 +62,7 @@ bootnet=run buildargs;if tftp $kaddr ${bootfile}; then if tftp $dtaddr ${bootdtb
 #ufile=u-boot_2020.01-rc4-bpi-r64-v1.bin
 uaddr=0x41E00000
 umtkaddr=0x41dffe00
-ubootnet=if tftp ${umtkaddr} ${ufile}; then go $uaddr;fi
+ubootnet=if tftp ${uaddr} ${ufile}; then dcache off;icache off; go $uaddr;fi
 uboot64net=if tftp ${umtkaddr} ${ufile};then go64 $uaddr;fi
 
 #asking user which file to load

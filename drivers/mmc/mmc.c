@@ -234,14 +234,12 @@ static int mmc_set_ios(unsigned int clk, unsigned int bus_width)
 		if (ret != 0) {
 			return ret;
 		}
-	} else if (mmc_csd.spec_vers == 4U) {
+	} else {
 		ret = mmc_set_ext_csd(CMD_EXTCSD_BUS_WIDTH,
 				      (unsigned int)width);
 		if (ret != 0) {
 			return ret;
 		}
-	} else {
-		VERBOSE("Wrong MMC type or spec version\n");
 	}
 
 	return ops->set_ios(clk, width);

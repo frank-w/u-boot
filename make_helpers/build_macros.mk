@@ -469,6 +469,14 @@ ${LIB_DIR}/lib$(1).a: $(OBJS) | $$$$(@D)/
 	$$(q)$($(ARCH)-ar) cr $$@ $$?
 endef
 
+# ADD_PREBUILT_LIBS macro adding pre-built library
+# Arguments:
+#   $(1) = <lib_path>/<lib_name>.o
+define ADD_PREBUILT_LIB
+	$(eval OBJS += ${1})
+	$(eval -include $(patsubst %.o,%.d,${1}))
+endef
+
 # Generate the path to one or more preprocessed linker scripts given the paths
 # of their sources.
 #
@@ -525,6 +533,9 @@ $(eval OBJS += $(MODULE_OBJS))
 
 $(ELF): $(OBJS) $(DEFAULT_LINKER_SCRIPT) $(LINKER_SCRIPTS) | $$$$(@D)/ libraries $(BL_LIBS)
 	$$(s)echo "  LD      $$@"
+$(if $(findstring 2,${1}) $(findstring 31,${1}),
+	$(foreach prebuilt_lib, ${PREBUILT_LIBS},
+		$(call ADD_PREBUILT_LIB, ${prebuilt_lib})))
 ifeq ($($(ARCH)-ld-id),arm-link)
 	$$(q)$($(ARCH)-ld) -o $$@ $$(TF_LDFLAGS) $$(LDFLAGS) $(BL_LDFLAGS) --entry=${1}_entrypoint \
 		--predefine=$(call escape-shell,-D__LINKER__=$(__LINKER__)) \

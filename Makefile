@@ -314,6 +314,14 @@ ifneq (${DEBUG}, 0)
         LOG_LEVEL	:=	40
 else
         BUILD_TYPE	:=	release
+        TF_CFLAGS	+= 	-g
+
+        ifneq ($(findstring clang,$(notdir $(CC))),)
+             ASFLAGS		+= 	-g
+        else
+             ASFLAGS		+= 	-g -Wa,--gdwarf-2
+        endif
+
         # Use LOG_LEVEL_NOTICE by default for release builds
         LOG_LEVEL	:=	20
 endif

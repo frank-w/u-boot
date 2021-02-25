@@ -27,6 +27,11 @@
 
 #pragma weak plat_set_nv_ctr2
 
+__attribute__((weak)) int mtk_ar_check_consis(uint32_t nv_ctr)
+{
+	return 0;
+}
+
 static int cmp_auth_param_type_desc(const auth_param_type_desc_t *a,
 		const auth_param_type_desc_t *b)
 {
@@ -382,8 +387,18 @@ static int auth_nvctr(const auth_method_param_nv_ctr_t *param,
 		return rc;
 	}
 
+	/* Check boot loader anti-rollback version if consistent */
+	rc = mtk_ar_check_consis(*cert_nv_ctr);
+	if (rc != 0) {
+		VERBOSE("[TBB] %s():%d failed with error code %d.\n",
+			__func__, __LINE__, rc);
+		return rc;
+	}
+
 	if (*cert_nv_ctr < plat_nv_ctr) {
 		/* Invalid NV-counter */
+		NOTICE("Verifying BL Anti-Rollback Version ... bl_ar_ver:%u<%u- FAIL\n",
+		       *cert_nv_ctr, plat_nv_ctr);
 		return 1;
 	} else if (*cert_nv_ctr > plat_nv_ctr) {
 #if PSA_FWU_SUPPORT && IMAGE_BL2
@@ -397,6 +412,8 @@ static int auth_nvctr(const auth_method_param_nv_ctr_t *param,
 #endif /* PSA_FWU_SUPPORT && IMAGE_BL2 */
 	}
 
+	NOTICE("Verifying BL Anti-Rollback Version ... bl_ar_ver:%u>=%u+ OK\n",
+	       *cert_nv_ctr, plat_nv_ctr);
 	return 0;
 }
 

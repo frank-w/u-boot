@@ -35,7 +35,8 @@ BL31_SOURCES		+=	drivers/arm/cci/cci.c				\
 				$(MTK_PLAT_SOC)/bl31/plat_pm.c			\
 				$(MTK_PLAT_SOC)/bl31/plat_sip_calls.c		\
 				$(MTK_PLAT_SOC)/bl31/power_tracer.c		\
-				$(MTK_PLAT_SOC)/bl31/scu.c
+				$(MTK_PLAT_SOC)/bl31/scu.c			\
+				$(MTK_PLAT_SOC)/mtk_ar_table.c
 
 BL31_SOURCES		+=	$(XLAT_TABLES_LIB_SRCS)				\
 				plat/arm/common/arm_gicv2.c			\

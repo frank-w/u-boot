@@ -19,6 +19,9 @@ struct mtk_sip_call_record;
 #define MTK_SIP_PWR_OFF_MTCMOS		0x82000403
 #define MTK_SIP_PWR_MTCMOS_SUPPORT	0x82000404
 
+#define MTK_SIP_CHECK_FIT_AR_VER	0xC2000520
+#define MTK_SIP_UPDATE_EFUSE_AR_VER	0xC2000521
+
 /*******************************************************************************
  * Plat SiP function call records
  ******************************************************************************/

@@ -21,6 +21,7 @@ MTK_PLAT_SOC		:=	${MTK_PLAT}/${PLAT}
 PLAT_INCLUDES		:=	-I${MTK_PLAT}/common/				\
 				-I${MTK_PLAT}/common/drivers/uart		\
 				-Iinclude/plat/arm/common			\
+				-I${MTK_PLAT_SOC}/drivers/dram/			\
 				-I${MTK_PLAT_SOC}/drivers/pinctrl/		\
 				-I${MTK_PLAT_SOC}/drivers/pll/			\
 				-I${MTK_PLAT_SOC}/drivers/spm/			\
@@ -49,6 +50,17 @@ BL2_SOURCES		:=	common/desc_image_load.c			\
 				${MTK_PLAT_SOC}/drivers/pll/pll.c		\
 				${MTK_PLAT_SOC}/drivers/spm/spmc.c		\
 				${MTK_PLAT_SOC}/drivers/timer/cpuxgpt.c
+
+HAVE_DRAM_OBJ_FILE	:= 	$(shell test -f ${MTK_PLAT_SOC}/drivers/dram/release/dram.o && echo yes)
+ifeq ($(HAVE_DRAM_OBJ_FILE),yes)
+PREBUILT_LIBS		+=	${MTK_PLAT_SOC}/drivers/dram/release/dram.o
+else
+BL2_SOURCES		+=	${MTK_PLAT_SOC}/drivers/dram/dramc_pi_basic_api.c	\
+				${MTK_PLAT_SOC}/drivers/dram/emi.c		\
+				${MTK_PLAT_SOC}/drivers/dram/dramc_pi_calibration_api.c		\
+				${MTK_PLAT_SOC}/drivers/dram/dramc_pi_main.c	\
+				${MTK_PLAT_SOC}/drivers/dram/hal_io.c
+endif
 
 ifndef BOOT_DEVICE
 $(error You must specify the boot device by provide BOOT_DEVICE= to \

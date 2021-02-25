@@ -15,6 +15,7 @@
 #include <drivers/io/io_block.h>
 #include <drivers/io/io_fip.h>
 #include <hsuart.h>
+#include <emi.h>
 #include <lib/mmio.h>
 #include <pinctrl.h>
 #include <plat/common/common_def.h>
@@ -208,6 +209,7 @@ void bl2_platform_setup(void)
 
 	mtk_pin_init();
 	mtk_pll_init();
+	mtk_mem_init();
 	mtk_io_setup();
 }
 

@@ -200,6 +200,9 @@ define CERT_ADD_CMD_OPT
     $(3)CRT_ARGS += $(2) $(1)
 endef
 
+define CERT_REMOVE_CMD_OPT
+    $(3)CRT_ARGS := $(filter-out $(2) $(1),$(CRT_ARGS))
+endef
 # TOOL_ADD_IMG allows the platform to specify an external image to be packed
 # in the FIP and/or for which certificate is generated. It also adds a
 # dependency on the image file, aborting the build if the file does not exist.

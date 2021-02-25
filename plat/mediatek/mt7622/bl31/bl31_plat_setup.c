@@ -10,6 +10,7 @@
 #include <plat_private.h>
 #include <mcucfg.h>
 #include <cpuxgpt.h>
+#include <mtk_efuse.h>
 
 static void platform_setup_cpu(void)
 {
@@ -26,6 +27,16 @@ static void platform_setup_sram(void)
 	mmio_write_32(SRAMROM_SEC_CTRL, 0x10000ff9);
 }
 
+static void plat_efuse_init(void)
+{
+#if TRUSTED_BOARD_BOOT
+	plat_efuse_sbc_init();
+#endif
+#if ANTI_ROLLBACK
+	plat_efuse_ar_init();
+#endif
+}
+
 /*******************************************************************************
  * Perform any BL3-1 platform setup code
  ******************************************************************************/
@@ -35,6 +46,8 @@ void bl31_platform_setup(void)
 	platform_setup_sram();
 
 	generic_delay_timer_init();
+
+	plat_efuse_init();
 }
 
 /*******************************************************************************

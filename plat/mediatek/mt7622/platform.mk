@@ -52,7 +52,8 @@ BL2_SOURCES		:=	common/desc_image_load.c			\
 				${MTK_PLAT_SOC}/drivers/pmic/pmic_wrap.c	\
 				${MTK_PLAT_SOC}/drivers/pmic/pmic.c		\
 				${MTK_PLAT_SOC}/drivers/spm/mtcmos.c		\
-				${MTK_PLAT_SOC}/drivers/timer/cpuxgpt.c
+				${MTK_PLAT_SOC}/drivers/timer/cpuxgpt.c		\
+				${MTK_PLAT_SOC}/mtk_ar_table.c
 
 HAVE_DRAM_OBJ_FILE	:= 	$(shell test -f ${MTK_PLAT_SOC}/drivers/dram/release/dram.o && echo yes)
 ifeq ($(HAVE_DRAM_OBJ_FILE),yes)
@@ -174,7 +175,8 @@ BL31_SOURCES		+=	drivers/arm/cci/cci.c				\
 				${MTK_PLAT_SOC}/plat_topology.c			\
 				${MTK_PLAT_SOC}/plat_mt_gic.c			\
 				${MTK_PLAT_SOC}/power_tracer.c			\
-				${MTK_PLAT_SOC}/scu.c
+				${MTK_PLAT_SOC}/scu.c				\
+				${MTK_PLAT_SOC}/mtk_ar_table.c
 
 BL2_BASE		:=	0x201000
 CPPFLAGS		+=	-DBL2_BASE=$(BL2_BASE)
@@ -182,6 +184,10 @@ CPPFLAGS		+=	-DKERNEL_IS_DEFAULT_64BIT
 
 DOIMAGEPATH		:=	tools/mediatek/bromimage
 DOIMAGETOOL		:=	${DOIMAGEPATH}/bromimage
+DOVERSIONPATH		:=	tools/mediatek/ar-table
+DOVERSIONTOOL		:=	${DOVERSIONPATH}/ar-table
+AUTO_AR_TABLE		:=	${MTK_PLAT_SOC}/auto_ar_table.c
+AUTO_AR_CONF		:=	${MTK_PLAT_SOC}/auto_ar_conf.mk
 
 HAVE_EFUSE_SRC_FILE	:= 	$(shell test -f ${MTK_PLAT}/common/drivers/efuse/src/efuse_cmd.c && echo yes)
 ifeq ($(HAVE_EFUSE_SRC_FILE),yes)
@@ -308,6 +314,7 @@ $(BUILD_PLAT)/bl2.img: $(BL2_IMG_PAYLOAD) $(DOIMAGETOOL)
 		$(if $(BROM_SIGN_KEY), -s sha256+rsa-m1pss -k $(BROM_SIGN_KEY))	\
 		$(if $(BROM_SIGN_KEY), -p $@.signkeyhash)			\
 		$(if $(DEVICE_HEADER_OFFSET), -o $(DEVICE_HEADER_OFFSET))	\
+		$(if $(BL2_AR_VER), -r $(BL2_AR_VER))				\
 		$(if $(NAND_TYPE), -n $(NAND_TYPE))				\
 		$(BL2_IMG_PAYLOAD) $@
 else
@@ -323,12 +330,60 @@ $(BUILD_PLAT)/bl2.img: $(BL2_IMG_PAYLOAD)
 		-d $(BL2_IMG_PAYLOAD) $@
 endif
 
-.PHONY: $(BUILD_PLAT)/bl2.img
+.PHONY: $(BUILD_PLAT)/bl2.img $(AUTO_AR_TABLE) $(AUTO_AR_CONF)
 
-distclean realclean clean: cleandoimage
+ifeq ($(ANTI_ROLLBACK),1)
+ifndef AR_TABLE_XML
+$(error You must specify the anti-rollback table XML file by build option \
+	AR_TABLE_XML=<path to ar_table.xml>)
+endif
+
+TFW_NVCTR_VAL		?=	0
+NTFW_NVCTR_VAL		?=	0
+BL2_AR_VER		?=	0
+
+BL2_SOURCES		+=	${AUTO_AR_TABLE}
+
+BL31_SOURCES		+=	${AUTO_AR_TABLE}
+
+CPPFLAGS		+=	-DANTI_ROLLBACK
+
+ar_table: $(DOVERSIONTOOL) $(AUTO_AR_TABLE) $(AUTO_AR_CONF)
+	$(eval $(shell sed -n 1p $(AUTO_AR_CONF)))
+	$(eval $(shell sed -n 2p $(AUTO_AR_CONF)))
+	$(eval $(shell sed -n 3p $(AUTO_AR_CONF)))
+	$(eval $(call CERT_REMOVE_CMD_OPT,0,--tfw-nvctr))
+	$(eval $(call CERT_REMOVE_CMD_OPT,0,--ntfw-nvctr))
+	$(eval $(call CERT_ADD_CMD_OPT,$(TFW_NVCTR_VAL),--tfw-nvctr))
+	$(eval $(call CERT_ADD_CMD_OPT,$(NTFW_NVCTR_VAL),--ntfw-nvctr))
+	@echo "TFW_NVCTR_VAL  = $(TFW_NVCTR_VAL)"
+	@echo "NTFW_NVCTR_VAL = $(NTFW_NVCTR_VAL)"
+	@echo "BL2_AR_VER     = $(BL2_AR_VER)"
+
+$(AUTO_AR_TABLE): $(DOVERSIONTOOL)
+	$(Q)$(DOVERSIONTOOL) create_ar_table $(AR_TABLE_XML) $(AUTO_AR_TABLE)
+
+$(AUTO_AR_CONF): $(DOVERSIONTOOL)
+	$(Q)$(DOVERSIONTOOL) create_ar_conf $(AR_TABLE_XML) $(AUTO_AR_CONF)
+else
+ar_table:
+	@echo "Warning: anti-rollback function has been turn-off"
+endif
+
+distclean realclean clean: cleandoimage cleandoversion cleanartable
 
 cleandoimage:
 	$(Q)$(MAKE) --no-print-directory -C $(DOIMAGEPATH) clean
 
+cleandoversion:
+	$(Q)$(MAKE) --no-print-directory -C $(DOVERSIONPATH) clean
+
+cleanartable:
+	$(Q)rm -f ${AUTO_AR_TABLE}
+	$(Q)rm -f ${AUTO_AR_CONF}
+
 $(DOIMAGETOOL):
 	$(Q)$(MAKE) --no-print-directory -C $(DOIMAGEPATH)
+
+$(DOVERSIONTOOL):
+	$(Q)$(MAKE) --no-print-directory -C $(DOVERSIONPATH)

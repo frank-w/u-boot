@@ -21,6 +21,8 @@
 
 #include <mtk_gic_v2.h>
 #include <spmc.h>
+#include <mtk_efuse.h>
+
 /******************************************************************************
  * Placeholder variables for copying the arguments that have been passed to
  * BL32 from BL2.
@@ -111,6 +113,13 @@ void sp_min_early_platform_setup2(u_register_t arg0, u_register_t arg1,
 	}
 }
 
+static void plat_efuse_init(void)
+{
+#if TRUSTED_BOARD_BOOT
+	plat_efuse_sbc_init();
+#endif
+}
+
 /*******************************************************************************
  * Perform any sp_min platform setup code
  ******************************************************************************/
@@ -125,6 +134,8 @@ void sp_min_platform_setup(void)
 
 	/* Power off CPU1 */
 	mtk_spm_cpu1_power_off();
+
+	plat_efuse_init();
 }
 
 /*******************************************************************************

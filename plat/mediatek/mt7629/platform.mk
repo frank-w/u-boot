@@ -45,6 +45,7 @@ CPPFLAGS		+=	-D__SOFTFP__
 
 include $(MTK_PLAT_SOC)/bl2/bl2.mk
 include $(MTK_PLAT_SOC)/sp_min/bl32.mk
+include $(MTK_PLAT_SOC)/drivers/efuse/efuse.mk
 
 include $(APSOC_COMMON)/bl2/tbbr_post.mk
 include $(APSOC_COMMON)/bl2/bl2_image_post.mk

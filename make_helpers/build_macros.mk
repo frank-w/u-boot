@@ -486,6 +486,14 @@ ${LIB_DIR}/lib$(1).a: $(OBJS)
 	$$(Q)$$(AR) cr $$@ $$?
 endef
 
+# ADD_PREBUILT_LIBS macro adding pre-built library
+# Arguments:
+#   $(1) = <lib_path>/<lib_name>.o
+define ADD_PREBUILT_LIB
+	$(eval OBJS += ${1})
+	$(eval -include $(patsubst %.o,%.d,${1}))
+endef
+
 # Generate the path to one or more preprocessed linker scripts given the paths
 # of their sources.
 #
@@ -565,6 +573,9 @@ else
 	       const char version[] = "${VERSION}";' | \
 		$$(CC) $$(TF_CFLAGS) $$(CFLAGS) -xc -c - -o $(BUILD_DIR)/build_message.o
 endif
+$(if $(findstring 2,${1}) $(findstring 31,${1}),
+	$(foreach prebuilt_lib, ${PREBUILT_LIBS},
+		$(call ADD_PREBUILT_LIB, ${prebuilt_lib})))
 ifneq ($(findstring armlink,$(notdir $(LD))),)
 	$$(Q)$$(LD) -o $$@ $$(TF_LDFLAGS) $$(LDFLAGS) $(BL_LDFLAGS) --entry=${1}_entrypoint \
 		--predefine="-D__LINKER__=$(__LINKER__)" \

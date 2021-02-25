@@ -8,12 +8,12 @@
 #include <common/runtime_svc.h>
 #include <lib/utils_def.h>
 #include <lib/mmio.h>
-
 #include <mtcmos.h>
 #include <mtk_sip_svc.h>
 #include <plat_sip_calls.h>
 #include <mtk_efuse.h>
 #include <string.h>
+#include <ar_table.h>
 
 /* Authorized secure register list */
 enum {
@@ -80,6 +80,8 @@ uintptr_t mediatek_plat_sip_handler(uint32_t smc_fid,
 	uint32_t efuse_len = 0;
 	uint32_t efuse_data[2] = { (uint32_t)x3, (uint32_t)x4 };
 	static uint32_t efuse_buffer[MTK_EFUSE_PUBK_HASH_INDEX_MAX];
+	uint32_t image_fit_ar_ver = (uint32_t)x1;
+	uint32_t plat_fit_ar_ver = 0;
 
 	switch (smc_fid) {
 	case MTK_SIP_PWR_ON_MTCMOS:
@@ -123,6 +125,18 @@ uintptr_t mediatek_plat_sip_handler(uint32_t smc_fid,
 				      (uint8_t *)efuse_buffer,
 				      sizeof(efuse_buffer));
 		SMC_RET4(handle, ret, 0x0, 0x0, 0x0);
+
+	case MTK_SIP_CHECK_FIT_AR_VER:
+		ret = mtk_antirollback_get_fit_ar_ver(&plat_fit_ar_ver);
+		if (!ret && image_fit_ar_ver >= plat_fit_ar_ver) {
+			SMC_RET2(handle, 1, plat_fit_ar_ver);
+		} else {
+			SMC_RET2(handle, ret, plat_fit_ar_ver);
+		}
+
+	case MTK_SIP_UPDATE_EFUSE_AR_VER:
+		ret = mtk_antirollback_update_efuse_ar_ver();
+		SMC_RET1(handle, ret);
 
 	default:
 		ERROR("%s: unhandled SMC (0x%x)\n", __func__, smc_fid);

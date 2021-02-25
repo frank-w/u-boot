@@ -10,7 +10,7 @@
 /*******************************************************************************
  * Plat SiP function constants
  ******************************************************************************/
-#define MTK_PLAT_SIP_NUM_CALLS		8
+#define MTK_PLAT_SIP_NUM_CALLS		10
 
 #define MTK_SIP_PWR_ON_MTCMOS		0x82000402
 #define MTK_SIP_PWR_OFF_MTCMOS		0x82000403
@@ -79,5 +79,11 @@
  *  @r0:	status
  */
 #define MTK_SIP_EFUSE_READ		0xC2000505
+
+/* [TODO] anti-rollback start */
+#define MTK_SIP_CHECK_FIT_AR_VER	0xC2000520
+
+#define MTK_SIP_UPDATE_EFUSE_AR_VER	0xC2000521
+/* [TODO] anti-rollback end */
 
 #endif /* PLAT_SIP_CALLS_H */

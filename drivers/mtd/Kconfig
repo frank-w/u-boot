@@ -238,6 +238,8 @@ config SYS_MAX_FLASH_BANKS_DETECT
 	 to reduce the effective number of flash bank, between 0 and
 	 CONFIG_SYS_MAX_FLASH_BANKS
 
+source "drivers/mtd/mtk-snand/Kconfig"
+
 source "drivers/mtd/nand/Kconfig"
 
 config SYS_NAND_MAX_OOBFREE

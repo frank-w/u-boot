@@ -116,6 +116,8 @@ config STM32_FLASH
 	 This is the driver of embedded flash for some STMicroelectronics
 	 STM32 MCU.
 
+source "drivers/mtd/mtk-snand/Kconfig"
+
 source "drivers/mtd/nand/Kconfig"
 
 config SYS_NAND_MAX_CHIPS

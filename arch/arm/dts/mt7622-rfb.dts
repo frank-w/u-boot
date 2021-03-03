@@ -188,6 +188,13 @@
 	};
 };
 
+&snand {
+	pinctrl-names = "default";
+	pinctrl-0 = <&snfi_pins>;
+	status = "okay";
+	quad-spi;
+};
+
 &uart0 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&uart0_pins>;

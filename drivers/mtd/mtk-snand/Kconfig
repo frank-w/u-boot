@@ -19,3 +19,9 @@ config MTK_SPI_NAND_MTD
 	help
 	  This option enables access to SPI-NAND flashes through the
 	  MTD interface of MediaTek SPI NAND Flash Controller
+
+config SPL_MTK_SPI_NAND
+	tristate "SPL support for MediaTek SPI NAND flash controller"
+	depends on MTK_SPI_NAND
+	help
+	  This option enables access to SPI-NAND flashes in the SPL stage

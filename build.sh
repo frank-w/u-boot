@@ -29,6 +29,9 @@ if [[ "$board" == "bpi-r64" ]];then
 		export ARCH=arm64
 		export CROSS_COMPILE=aarch64-linux-gnu-
 		UBOOT_FILE=u-boot.bin
+		#~40kb bl31+~640kb uboot =~ 682kb fip @0x160000 <0x300000
+		UBOOT_START=1064 #1024k + 40k
+		ENV_START=3072 #ENV_OFFSET (bytes) = 0x300000 (0x1800 /2 kbytes)
 	fi
 else
 	UBOOT_START=320
@@ -103,16 +106,20 @@ case $1 in
 		fi
 	;;
 	"install")
-		dev=/dev/sdb
-		choice=y
-		read -e -i "$dev" -p "Please enter target device: " dev
-		if ! [[ "$(lsblk ${dev}1 -o label -n)" == "BPI-BOOT" ]]; then
-			read -e -p "this device seems not to be a BPI-R2 SD-Card, do you really want to use this device? [yn]" choice
-		fi
-		if [[ "$choice" == "y" ]];then
-			echo "writing to $dev ($UBOOT_FILE to ${UBOOT_START}k)"
-			sudo dd of=$dev if=$UBOOT_FILE bs=1k seek=$UBOOT_START;
-			sync
+		if [[ $ARCH == "arm" ]];then
+			dev=/dev/sdb
+			choice=y
+			read -e -i "$dev" -p "Please enter target device: " dev
+			if ! [[ "$(lsblk ${dev}1 -o label -n)" == "BPI-BOOT" ]]; then
+				read -e -p "this device seems not to be a BPI-R2 SD-Card, do you really want to use this device? [yn]" choice
+			fi
+			if [[ "$choice" == "y" ]];then
+				echo "writing to $dev ($UBOOT_FILE to ${UBOOT_START}k)"
+				sudo dd of=$dev if=$UBOOT_FILE bs=1k seek=$UBOOT_START;
+				sync
+			fi
+		else
+			echo "bpi-r64 with new ATF needs uboot packed into fip!"
 		fi
 	;;
 	"umount")

@@ -1644,7 +1644,8 @@ static int msdc_drv_probe(struct udevice *dev)
 	if (cfg->f_min < MIN_BUS_CLK)
 		cfg->f_min = MIN_BUS_CLK;
 
-	cfg->f_max = host->src_clk_freq;
+	if (cfg->f_max < cfg->f_min || cfg->f_max > host->src_clk_freq)
+		cfg->f_max = host->src_clk_freq;
 
 	cfg->b_max = 1024;
 	cfg->voltages = MMC_VDD_32_33 | MMC_VDD_33_34;

@@ -13,6 +13,7 @@ PLAT_INCLUDES		:=	-I${MTK_PLAT}/common/				\
 				-I${MTK_PLAT}/common/drivers/uart		\
 				-Iinclude/plat/arm/common			\
 				-Iinclude/plat/arm/common/aarch64		\
+				-I${MTK_PLAT_SOC}/drivers/dram/			\
 				-I${MTK_PLAT_SOC}/drivers/pinctrl/		\
 				-I${MTK_PLAT_SOC}/drivers/pmic/			\
 				-I${MTK_PLAT_SOC}/drivers/pll/			\
@@ -50,6 +51,21 @@ BL2_SOURCES		:=	common/desc_image_load.c			\
 				${MTK_PLAT_SOC}/drivers/pmic/pmic.c		\
 				${MTK_PLAT_SOC}/drivers/spm/mtcmos.c		\
 				${MTK_PLAT_SOC}/drivers/timer/cpuxgpt.c
+
+HAVE_DRAM_OBJ_FILE	:= 	$(shell test -f ${MTK_PLAT_SOC}/drivers/dram/release/dram.o && echo yes)
+ifeq ($(HAVE_DRAM_OBJ_FILE),yes)
+ifeq ($(DDR3_FLYBY), 1)
+PREBUILT_LIBS		+=	${MTK_PLAT_SOC}/drivers/dram/release/dram-flyby.o
+else
+PREBUILT_LIBS		+=	${MTK_PLAT_SOC}/drivers/dram/release/dram.o
+endif
+else
+BL2_SOURCES		+=	${MTK_PLAT_SOC}/drivers/dram/dramc_calib.c	\
+				${MTK_PLAT_SOC}/drivers/dram/dramc_dqs_gw.c	\
+				${MTK_PLAT_SOC}/drivers/dram/emi.c		\
+				${MTK_PLAT_SOC}/drivers/dram/memory.c		\
+				${MTK_PLAT_SOC}/drivers/dram/reserve_mode.c
+endif
 
 ifndef BOOT_DEVICE
 $(error You must specify the boot device by provide BOOT_DEVICE= to \
@@ -122,6 +138,10 @@ endif
 ifeq ($(BROM_HEADER_TYPE),)
 $(error BOOT_DEVICE has invalid value. Please re-check.)
 endif
+endif
+
+ifeq ($(DDR3_FLYBY), 1)
+CPPFLAGS		+=	-DDDR3_FLYBY
 endif
 
 BL31_SOURCES		+=	drivers/arm/cci/cci.c				\

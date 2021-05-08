@@ -9,6 +9,7 @@
 #include <drivers/generic_delay_timer.h>
 #include <bl2_plat_setup.h>
 #include <platform_def.h>
+#include <emi.h>
 #include <mtk_wdt.h>
 #include <pinctrl.h>
 #include <pll.h>
@@ -46,6 +47,7 @@ const struct initcall bl2_initcalls[] = {
 #endif
 	INITCALL(mtk_pwrap_init),
 	INITCALL(mtk_pmic_init),
+	INITCALL(mtk_mem_init),
 	INITCALL(mtk_wdt_init),
 
 	INITCALL(NULL)

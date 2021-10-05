@@ -4,3 +4,7 @@
 *.bmp binary
 *.ttf binary
 *.gz binary
+*.bin binary
+*.img binary
+*.elf binary
+

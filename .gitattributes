@@ -7,3 +7,6 @@
 *.gz binary
 *.png binary
 *.svg binary
+*.bin binary
+*.img binary
+*.elf binary

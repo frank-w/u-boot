@@ -173,6 +173,35 @@ case $1 in
 		echo "rename $UBOOT_FILE to $filename"
 		mv $UBOOT_FILE $filename
 	;;
+	"createimg")
+		IMGDIR=.
+		IMGNAME=$board
+		REALSIZE=6000
+		dd if=/dev/zero of=$IMGDIR/$IMGNAME.img bs=1M count=$REALSIZE 1> /dev/null #2>&1
+		LDEV=`losetup -f`
+		DEV=`echo $LDEV | cut -d "/" -f 3`     #mount image to loop device
+		echo "run losetup to assign image $IMGNAME to loopdev $LDEV ($DEV)"
+		sudo losetup $LDEV $IMGDIR/$IMGNAME.img 1> /dev/null #2>&1
+		case $board in
+			"bpi-r2pro")
+				#https://gitlab.manjaro.org/manjaro-arm/applications/manjaro-arm-tools/-/blob/master/lib/functions.sh
+				sudo parted -s $LDEV mklabel gpt 1> /dev/null 2>&1
+				sudo parted -s $LDEV mkpart uboot fat32 8M 16M 1> /dev/null 2>&1
+				sudo parted -s $LDEV mkpart primary fat32 32M 256M 1> /dev/null 2>&1
+				START=`cat /sys/block/$DEV/${DEV}p2/start`
+				SIZE=`cat /sys/block/$DEV/${DEV}p2/size`
+				END_SECTOR=$(expr $START + $SIZE)
+				sudo parted -s $LDEV mkpart primary ext4 "${END_SECTOR}s" 100% 1> /dev/null 2>&1
+				sudo parted -s $LDEV set 2 esp on
+				sudo partprobe $LDEV 1> /dev/null 2>&1
+				sudo mkfs.vfat "${LDEV}p2" -n BPI-BOOT 1> /dev/null 2>&1
+				sudo mkfs.ext4 -O ^metadata_csum,^64bit "${LDEV}p3" -L BPI-ROOT 1> /dev/null 2>&1
+				sudo dd if=files/$board/idblock.bin of=${LDEV} seek=64 conv=notrunc,fsync 1> /dev/null 2>&1
+				sudo dd if=files/$board/uboot.img of=${LDEV}p1 conv=notrunc,fsync 1> /dev/null 2>&1
+			;;
+		esac
+		sudo losetup -d $LDEV
+	;;
 	*)
 		$0 build;
 	;;

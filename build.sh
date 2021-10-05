@@ -57,6 +57,21 @@ case $board in
 		fi
 		FILE_UENV=/media/$USER/BPI-BOOT/bananapi/bpi-r64/linux/uEnv.txt
 	;;
+	"bpi-r2pro")
+		export ARCH=arm64
+		export CROSS_COMPILE=aarch64-linux-gnu-
+		FILE_DTS=arch/arm/dts/rk3568-evb.dts
+		FILE_DTSI=arch/arm/dts/rk3568.dtsi
+		FILE_DEFCFG=evb-rk3568_defconfig
+		FILE_BOARD=board/rockchip/evb_rk3568/evb_rk3568.c
+		#FILE_SOC=include/configs/rk3568_common.h
+		FILE_SOC=include/configs/rk3568_bpi-r2-pro.h
+
+		#start-values in kB
+		UBOOT_START=0
+		UBOOT_FILE=u-boot.bin
+		ENV_START=0 #ENV_OFFSET unknown
+	;;
 	*)
 		echo "unsupported"
 	;;
@@ -97,6 +112,14 @@ case $1 in
 				echo "u-boot will overwrite env-storage area!"
 				echo "if you use this u-boot.bin don't use saveenv!"
 			fi;
+			if [[ "$board" == "bpi-r2pro" ]]; then
+				#https://forum.pine64.org/showthread.php?tid=14507
+				#binaries from: https://github.com/rockchip-linux/rkbin/tree/master/bin/rk35
+				ln -sf files/bpi-r2pro/rk3568_bl31_v1.24.elf bl31.elf
+				ln -sf files/bpi-r2pro/rk3568_bl32_v1.05.bin tee.bin
+				make -j4 u-boot.itb
+				tools/mkimage -n rk3568 -T rksd -d files/bpi-r2pro/rk3568_ddr_1560MHz_v1.11.bin:spl/u-boot-spl.bin idblock.bin
+			fi
 		else
 			echo "build failed!"
 		fi
@@ -115,6 +138,16 @@ case $1 in
 			nano configs/$FILE_DEFCFG;
 		fi
 	;;
+	"mount")
+		mount | grep "BPI-BOOT" > /dev/null
+		if [[ $? -ne 0 ]];then
+			udisksctl mount -b /dev/disk/by-label/BPI-BOOT
+		fi
+		mount | grep "BPI-ROOT" > /dev/null
+		if [[ $? -ne 0 ]];then
+			udisksctl mount -b /dev/disk/by-label/BPI-ROOT
+		fi
+		;;
 	"install")
 		if [[ $ARCH == "arm" ]];then
 			dev=/dev/sdb
@@ -128,6 +161,16 @@ case $1 in
 				sudo dd of=$dev if=$UBOOT_FILE bs=1k seek=$UBOOT_START;
 				sync
 			fi
+		elif [[ "$board" == "bpi-r2pro" ]]; then
+			dev=/dev/sdb
+			choice=y
+			read -e -i "$dev" -p "Please enter target device: " dev
+			set -x
+			#sudo dd if=files/bpi-r2pro/idblock.bin of=/dev/sdb seek=64 conv=notrunc,fsync
+			#sudo dd if=files/bpi-r2pro/uboot.img of=/dev/sdb1 conv=notrunc,fsync
+			sudo dd of=$dev if=idblock.bin seek=64 conv=notrunc,fsync
+			sudo dd of=${dev}1 if=u-boot.itb conv=notrunc,fsync
+			set +x
 		else
 			echo "bpi-r64 with new ATF needs uboot packed into fip!"
 		fi
@@ -160,6 +203,35 @@ case $1 in
 		filename=$(generate_filename)
 		echo "rename $UBOOT_FILE to $filename"
 		mv $UBOOT_FILE $filename
+	;;
+	"createimg")
+		IMGDIR=.
+		IMGNAME=$board
+		REALSIZE=6000
+		dd if=/dev/zero of=$IMGDIR/$IMGNAME.img bs=1M count=$REALSIZE 1> /dev/null #2>&1
+		LDEV=`losetup -f`
+		DEV=`echo $LDEV | cut -d "/" -f 3`     #mount image to loop device
+		echo "run losetup to assign image $IMGNAME.img to loopdev $LDEV ($DEV)"
+		sudo losetup $LDEV $IMGDIR/$IMGNAME.img 1> /dev/null #2>&1
+		case $board in
+			"bpi-r2pro")
+				#https://gitlab.manjaro.org/manjaro-arm/applications/manjaro-arm-tools/-/blob/master/lib/functions.sh
+				sudo parted -s $LDEV mklabel gpt 1> /dev/null 2>&1
+				sudo parted -s $LDEV mkpart uboot fat32 8M 16M 1> /dev/null 2>&1
+				sudo parted -s $LDEV mkpart boot fat32 32M 256M 1> /dev/null 2>&1
+				START=`cat /sys/block/$DEV/${DEV}p2/start`
+				SIZE=`cat /sys/block/$DEV/${DEV}p2/size`
+				END_SECTOR=$(expr $START + $SIZE)
+				sudo parted -s $LDEV mkpart root ext4 "${END_SECTOR}s" 100% 1> /dev/null 2>&1
+				sudo parted -s $LDEV set 2 esp on
+				sudo partprobe $LDEV 1> /dev/null 2>&1
+				sudo mkfs.vfat "${LDEV}p2" -n BPI-BOOT 1> /dev/null 2>&1
+				sudo mkfs.ext4 -O ^metadata_csum,^64bit "${LDEV}p3" -L BPI-ROOT 1> /dev/null 2>&1
+				sudo dd if=idblock.bin of=${LDEV} seek=64 conv=notrunc,fsync 1> /dev/null 2>&1
+				sudo dd if=u-boot.itb of=${LDEV}p1 conv=notrunc,fsync 1> /dev/null 2>&1
+			;;
+		esac
+		sudo losetup -d $LDEV
 	;;
 	*)
 		$0 build;

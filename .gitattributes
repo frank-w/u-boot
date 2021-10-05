@@ -5,3 +5,6 @@
 *.ttf binary
 *.gz binary
 *.png binary
+*.bin binary
+*.img binary
+*.elf binary

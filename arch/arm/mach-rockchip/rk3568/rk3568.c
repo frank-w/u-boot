@@ -13,6 +13,14 @@
 
 #define PMUGRF_BASE		0xfdc20000
 #define GRF_BASE		0xfdc60000
+#define GRF_GPIO1B_DS_2		0x218
+#define GRF_GPIO1B_DS_3		0x21c
+#define GRF_GPIO1C_DS_0		0x220
+#define GRF_GPIO1C_DS_1		0x224
+#define GRF_GPIO1C_DS_2		0x228
+#define GRF_GPIO1C_DS_3		0x22c
+#define SGRF_BASE		0xFDD18000
+#define SGRF_SOC_CON4		0x10
 
 /* PMU_GRF_GPIO0D_IOMUX_L */
 enum {
@@ -81,5 +89,16 @@ void board_debug_uart_init(void)
 
 int arch_cpu_init(void)
 {
+#ifdef CONFIG_SPL_BUILD
+	/* Set the emmc sdmmc0 to secure */
+	writel(((0x3 << 11 | 0x1 << 4) << 16), SGRF_BASE + SGRF_SOC_CON4);
+	/* set the emmc ds to level 2 */
+	writel(0x3f3f0707, GRF_BASE + GRF_GPIO1B_DS_2);
+	writel(0x3f3f0707, GRF_BASE + GRF_GPIO1B_DS_3);
+	writel(0x3f3f0707, GRF_BASE + GRF_GPIO1C_DS_0);
+	writel(0x3f3f0707, GRF_BASE + GRF_GPIO1C_DS_1);
+	writel(0x3f3f0707, GRF_BASE + GRF_GPIO1C_DS_2);
+	writel(0x3f3f0707, GRF_BASE + GRF_GPIO1C_DS_3);
+#endif
 	return 0;
 }

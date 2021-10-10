@@ -27,6 +27,11 @@ case $board in
 		FILE_BOARD=board/mediatek/mt7623/mt7623_rfb.c
 		FILE_SOC=include/configs/mt7623.h
 		FILE_UENV=/media/$USER/BPI-BOOT/bananapi/bpi-r2/linux/uEnv.txt
+
+		#start-values in kB
+		UBOOT_START=320
+		UBOOT_FILE=u-boot.bin
+		ENV_START=1024 #ENV_OFFSET = 0x100000
 	;;
 	"bpi-r64")
 		FILE_DTS=arch/arm/dts/mt7622-rfb.dts
@@ -34,18 +39,37 @@ case $board in
 		FILE_DEFCFG=mt7622_bpi-r64_defconfig
 		FILE_BOARD=board/mediatek/mt7622/mt7622_rfb.c
 		FILE_SOC=include/configs/mt7622.h
+
+		#start-values in kB
+		UBOOT_START=768
+		UBOOT_FILE=u-boot-mtk.bin
+		ENV_START=1280 #ENV_OFFSET = 0x140000
+
 		if [[ "$arch" != "arm64" ]];then
 			FILE_DTS=arch/arm/dts/mt7622-bananapi-bpi-r64.dts
 			FILE_DEFCFG=mt7622_bpi-r64_32_defconfig
+			export ARCH=arm64
+			export CROSS_COMPILE=aarch64-linux-gnu-
+			UBOOT_FILE=u-boot.bin
+			#~40kb bl31+~640kb uboot =~ 682kb fip @0x160000 <0x300000
+			UBOOT_START=1064 #1024k + 40k
+			ENV_START=3072 #ENV_OFFSET (bytes) = 0x300000 (0x1800 /2 kbytes)
 		fi
 		FILE_UENV=/media/$USER/BPI-BOOT/bananapi/bpi-r64/linux/uEnv.txt
 	;;
 	"bpi-r2pro")
+		export ARCH=arm64
+		export CROSS_COMPILE=aarch64-linux-gnu-
 		FILE_DTS=arch/arm/dts/rk3568-evb.dts
 		FILE_DTSI=arch/arm/dts/rk3568.dtsi
 		FILE_DEFCFG=evb-rk3568_defconfig
 		FILE_BOARD=board/rockchip/evb_rk3568/evb_rk3568.c
 		FILE_SOC=include/configs/rk3568_common.h
+
+		#start-values in kB
+		UBOOT_START=0
+		UBOOT_FILE=u-boot.bin
+		ENV_START=0 #ENV_OFFSET = 0x100000
 	;;
 	*)
 		echo "unsupported"
@@ -53,26 +77,6 @@ case $board in
 esac
 
 
-
-#values in kB
-if [[ "$board" == "bpi-r64" ]];then
-	UBOOT_START=768
-	UBOOT_FILE=u-boot-mtk.bin
-	ENV_START=1280 #ENV_OFFSET = 0x140000
-	#official r64-patches are arm64
-	if [[ "$arch" == "arm64" ]];then
-		export ARCH=arm64
-		export CROSS_COMPILE=aarch64-linux-gnu-
-		UBOOT_FILE=u-boot.bin
-		#~40kb bl31+~640kb uboot =~ 682kb fip @0x160000 <0x300000
-		UBOOT_START=1064 #1024k + 40k
-		ENV_START=3072 #ENV_OFFSET (bytes) = 0x300000 (0x1800 /2 kbytes)
-	fi
-else
-	UBOOT_START=320
-	UBOOT_FILE=u-boot.bin
-	ENV_START=1024 #ENV_OFFSET = 0x100000
-fi
 MAXSIZE=$(( ($ENV_START - $UBOOT_START)*1024 -1 ))
 
 function generate_filename
@@ -107,6 +111,14 @@ case $1 in
 				echo "u-boot will overwrite env-storage area!"
 				echo "if you use this u-boot.bin don't use saveenv!"
 			fi;
+			if [[ "$board" == "bpi-r2pro" ]]; then
+				#https://forum.pine64.org/showthread.php?tid=14507
+				#binaries from: https://github.com/rockchip-linux/rkbin/tree/master/bin/rk35
+				ln -sf files/bpi-r2pro/rk3568_bl31_v1.24.elf bl31.elf
+				ln -sf files/bpi-r2pro/rk3568_bl32_v1.05.bin tee.bin
+				make -j4 u-boot.itb
+				mkimage -n rk356x -T rksd -d files/bpi-r2pro/rk3568_ddr_1560MHz_v1.08.bin:spl/u-boot-spl.bin idblock.bin
+			fi
 		else
 			echo "build failed!"
 		fi

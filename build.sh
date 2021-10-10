@@ -69,7 +69,7 @@ case $board in
 		#start-values in kB
 		UBOOT_START=0
 		UBOOT_FILE=u-boot.bin
-		ENV_START=0 #ENV_OFFSET = 0x100000
+		ENV_START=0 #ENV_OFFSET unknown
 	;;
 	*)
 		echo "unsupported"
@@ -106,7 +106,7 @@ case $1 in
 		make LOCALVERSION="-$ubranch" ${CFLAGS} 2> >(tee "build.log")
 		if [[ $? -eq 0 ]];then
 			FILESIZE=$(stat -c%s "u-boot.bin");
-			if [[ $FILESIZE -gt $MAXSIZE ]]; then
+			if [[ $MAXSIZE -gt 0 && $FILESIZE -gt $MAXSIZE ]]; then
 				echo "=============== WARNING ==============="
 				echo "u-boot will overwrite env-storage area!"
 				echo "if you use this u-boot.bin don't use saveenv!"

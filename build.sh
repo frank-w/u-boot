@@ -19,6 +19,41 @@ then
 	. build.conf
 fi
 
+case $board in
+	"bpi-r2")
+		FILE_DTS=arch/arm/dts/mt7623n-bananapi-bpi-r2.dts
+		FILE_DTSI=arch/arm/dts/mt7623.dtsi
+		FILE_DEFCFG=mt7623n_bpir2_defconfig
+		FILE_BOARD=board/mediatek/mt7623/mt7623_rfb.c
+		FILE_SOC=include/configs/mt7623.h
+		FILE_UENV=/media/$USER/BPI-BOOT/bananapi/bpi-r2/linux/uEnv.txt
+	;;
+	"bpi-r64")
+		FILE_DTS=arch/arm/dts/mt7622-rfb.dts
+		FILE_DTSI=arch/arm/dts/mt7622.dtsi
+		FILE_DEFCFG=mt7622_bpi-r64_defconfig
+		FILE_BOARD=board/mediatek/mt7622/mt7622_rfb.c
+		FILE_SOC=include/configs/mt7622.h
+		if [[ "$arch" != "arm64" ]];then
+			FILE_DTS=arch/arm/dts/mt7622-bananapi-bpi-r64.dts
+			FILE_DEFCFG=mt7622_bpi-r64_32_defconfig
+		fi
+		FILE_UENV=/media/$USER/BPI-BOOT/bananapi/bpi-r64/linux/uEnv.txt
+	;;
+	"bpi-r2pro")
+		FILE_DTS=arch/arm/dts/rk3568-evb.dts
+		FILE_DTSI=arch/arm/dts/rk3568.dtsi
+		FILE_DEFCFG=evb-rk3568_defconfig
+		FILE_BOARD=board/rockchip/evb_rk3568/evb_rk3568.c
+		FILE_SOC=include/configs/rk3568_common.h
+	;;
+	*)
+		echo "unsupported"
+	;;
+esac
+
+
+
 #values in kB
 if [[ "$board" == "bpi-r64" ]];then
 	UBOOT_START=768
@@ -80,33 +115,14 @@ case $1 in
 		make menuconfig;
 	;;
 	"importconfig")
-		if [[ "$board" == "bpi-r2pro" ]];then
-			DEFCONFIG=evb-rk3568_defconfig
-		elif [[ "$board" == "bpi-r64" ]];then
-			if [[ "$arch" == "arm64" ]];then
-				DEFCONFIG=mt7622_bpi-r64_defconfig
-			else
-				DEFCONFIG=mt7622_bpi-r64_32_defconfig
-			fi
-		else
-			DEFCONFIG=mt7623n_bpir2_defconfig;
-		fi
-		if [[ -n "$DEFCONFIG" ]];then
-			echo "importing $DEFCONFIG"
-			make $DEFCONFIG
+		if [[ -n "$FILE_DEFCFG" ]];then
+			echo "importing $FILE_DEFCFG"
+			make $FILE_DEFCFG
 		fi
 	;;
 	"defconfig")
-		if [[ "$board" == "bpi-r2pro" ]];then
-			nano configs/evb-rk3568_defconfig
-		elif [[ "$board" == "bpi-r64" ]];then
-			if [[ "$arch" == "arm64" ]];then
-				nano configs/mt7622_bpi-r64_defconfig;
-			else
-				nano configs/mt7622_bpi-r64_32_defconfig;
-			fi
-		else
-			nano configs/mt7623n_bpir2_defconfig;
+		if [[ -n "$FILE_DEFCFG" ]];then
+			nano configs/$FILE_DEFCFG;
 		fi
 	;;
 	"install")
@@ -131,51 +147,21 @@ case $1 in
 		umount /media/$USER/BPI-ROOT
 	;;
 	"uenv")
-		if [[ "$board" == "bpi-r64" ]];then
-			nano /media/$USER/BPI-BOOT/bananapi/bpi-r64/linux/uEnv.txt
-		else
-			nano /media/$USER/BPI-BOOT/bananapi/bpi-r2/linux/uEnv.txt
+		if [[ -n "$FILE_UENV" ]]; then
+			nano $FILE_UENV
 		fi
 	;;
 	"board")
-		if [[ "$board" == "bpi-r2pro" ]];then
-			nano board/rockchip/evb_rk3568/evb_rk3568.c
-		elif [[ "$board" == "bpi-r64" ]];then
-			nano board/mediatek/mt7622/mt7622_rfb.c
-		else
-			nano board/mediatek/mt7623/mt7623_rfb.c
-		fi
+		nano $FILE_BOARD
 	;;
 	"dts")
-		if [[ "$board" == "bpi-r2pro" ]];then
-			nano arch/arm/dts/rk3568-evb.dts
-		elif [[ "$board" == "bpi-r64" ]];then
-			if [[ "$arch" == "arm64" ]];then
-				nano arch/arm/dts/mt7622-rfb.dts
-			else
-				nano arch/arm/dts/mt7622-bananapi-bpi-r64.dts
-			fi
-		else
-			nano arch/arm/dts/mt7623n-bananapi-bpi-r2.dts
-		fi
+		nano $FILE_DTS
 	;;
 	"dtsi")
-		if [[ "$board" == "bpi-r2pro" ]];then
-			nano arch/arm/dts/rk3568.dtsi
-		elif [[ "$board" == "bpi-r64" ]];then
-			nano arch/arm/dts/mt7622.dtsi
-		else
-			nano arch/arm/dts/mt7623.dtsi
-		fi
+		nano $FILE_DTSI
 	;;
 	"soc")
-		if [[ "$board" == "bpi-r2pro" ]];then
-			nano include/configs/rk3568_common.h
-		elif [[ "$board" == "bpi-r64" ]];then
-			nano include/configs/mt7622.h
-		else
-			nano include/configs/mt7623.h
-		fi
+		nano $FILE_SOC
 	;;
 	"upload")
 		upload

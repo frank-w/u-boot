@@ -80,7 +80,9 @@ case $1 in
 		make menuconfig;
 	;;
 	"importconfig")
-		if [[ "$board" == "bpi-r64" ]];then
+		if [[ "$board" == "bpi-r2pro" ]];then
+			DEFCONFIG=evb-rk3568_defconfig
+		elif [[ "$board" == "bpi-r64" ]];then
 			if [[ "$arch" == "arm64" ]];then
 				DEFCONFIG=mt7622_bpi-r64_defconfig
 			else
@@ -95,7 +97,9 @@ case $1 in
 		fi
 	;;
 	"defconfig")
-		if [[ "$board" == "bpi-r64" ]];then
+		if [[ "$board" == "bpi-r2pro" ]];then
+			nano configs/evb-rk3568_defconfig
+		elif [[ "$board" == "bpi-r64" ]];then
 			if [[ "$arch" == "arm64" ]];then
 				nano configs/mt7622_bpi-r64_defconfig;
 			else
@@ -134,14 +138,18 @@ case $1 in
 		fi
 	;;
 	"board")
-		if [[ "$board" == "bpi-r64" ]];then
+		if [[ "$board" == "bpi-r2pro" ]];then
+			nano board/rockchip/evb_rk3568/evb_rk3568.c
+		elif [[ "$board" == "bpi-r64" ]];then
 			nano board/mediatek/mt7622/mt7622_rfb.c
 		else
 			nano board/mediatek/mt7623/mt7623_rfb.c
 		fi
 	;;
 	"dts")
-		if [[ "$board" == "bpi-r64" ]];then
+		if [[ "$board" == "bpi-r2pro" ]];then
+			nano arch/arm/dts/rk3568-evb.dts
+		elif [[ "$board" == "bpi-r64" ]];then
 			if [[ "$arch" == "arm64" ]];then
 				nano arch/arm/dts/mt7622-rfb.dts
 			else
@@ -152,14 +160,18 @@ case $1 in
 		fi
 	;;
 	"dtsi")
-		if [[ "$board" == "bpi-r64" ]];then
+		if [[ "$board" == "bpi-r2pro" ]];then
+			nano arch/arm/dts/rk3568.dtsi
+		elif [[ "$board" == "bpi-r64" ]];then
 			nano arch/arm/dts/mt7622.dtsi
 		else
 			nano arch/arm/dts/mt7623.dtsi
 		fi
 	;;
 	"soc")
-		if [[ "$board" == "bpi-r64" ]];then
+		if [[ "$board" == "bpi-r2pro" ]];then
+			nano include/configs/rk3568_common.h
+		elif [[ "$board" == "bpi-r64" ]];then
 			nano include/configs/mt7622.h
 		else
 			nano include/configs/mt7623.h

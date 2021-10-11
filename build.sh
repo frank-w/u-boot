@@ -34,9 +34,9 @@ case $board in
 		ENV_START=1024 #ENV_OFFSET = 0x100000
 	;;
 	"bpi-r64")
-		FILE_DTS=arch/arm/dts/mt7622-rfb.dts
+		FILE_DTS=arch/arm/dts/mt7622-bananapi-bpi-r64.dts
 		FILE_DTSI=arch/arm/dts/mt7622.dtsi
-		FILE_DEFCFG=mt7622_bpi-r64_defconfig
+		FILE_DEFCFG=mt7622_bpi-r64_32_defconfig
 		FILE_BOARD=board/mediatek/mt7622/mt7622_rfb.c
 		FILE_SOC=include/configs/mt7622.h
 
@@ -45,9 +45,9 @@ case $board in
 		UBOOT_FILE=u-boot-mtk.bin
 		ENV_START=1280 #ENV_OFFSET = 0x140000
 
-		if [[ "$arch" != "arm64" ]];then
-			FILE_DTS=arch/arm/dts/mt7622-bananapi-bpi-r64.dts
-			FILE_DEFCFG=mt7622_bpi-r64_32_defconfig
+		if [[ "$arch" == "arm64" ]];then
+			FILE_DTS=arch/arm/dts/mt7622-rfb.dts
+			FILE_DEFCFG=mt7622_bpi-r64_defconfig
 			export ARCH=arm64
 			export CROSS_COMPILE=aarch64-linux-gnu-
 			UBOOT_FILE=u-boot.bin

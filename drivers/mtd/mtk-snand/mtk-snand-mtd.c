@@ -77,9 +77,7 @@ static int mtk_snand_mtd_erase(struct mtd_info *mtd, struct erase_info *instr)
 	else
 		instr->state = MTD_ERASE_DONE;
 
-	if (!ret)
-		mtd_erase_callback(instr);
-	else
+	if (ret)
 		ret = -EIO;
 
 	return ret;

@@ -246,6 +246,7 @@ static void process_args(int argc, char **argv)
 			params.lflag = 1;
 			break;
 		case 'n':
+			fprintf(stderr,"set imagename: %s\n",optarg);
 			params.imagename = optarg;
 			break;
 		case 'N':

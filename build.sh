@@ -19,25 +19,50 @@ then
 	. build.conf
 fi
 
-#values in kB
-if [[ "$board" == "bpi-r64" ]];then
-	UBOOT_START=768
-	UBOOT_FILE=u-boot-mtk.bin
-	ENV_START=1280 #ENV_OFFSET = 0x140000
-	#official r64-patches are arm64
-	if [[ "$arch" == "arm64" ]];then
-		export ARCH=arm64
-		export CROSS_COMPILE=aarch64-linux-gnu-
+case $board in
+	"bpi-r2")
+		FILE_DTS=arch/arm/dts/mt7623n-bananapi-bpi-r2.dts
+		FILE_DTSI=arch/arm/dts/mt7623.dtsi
+		FILE_DEFCFG=mt7623n_bpir2_defconfig
+		FILE_BOARD=board/mediatek/mt7623/mt7623_rfb.c
+		FILE_SOC=include/configs/mt7623.h
+		FILE_UENV=/media/$USER/BPI-BOOT/bananapi/bpi-r2/linux/uEnv.txt
+
+		#start-values in kB
+		UBOOT_START=320
 		UBOOT_FILE=u-boot.bin
-		#~40kb bl31+~640kb uboot =~ 682kb fip @0x160000 <0x300000
-		UBOOT_START=1064 #1024k + 40k
-		ENV_START=3072 #ENV_OFFSET (bytes) = 0x300000 (0x1800 /2 kbytes)
-	fi
-else
-	UBOOT_START=320
-	UBOOT_FILE=u-boot.bin
-	ENV_START=1024 #ENV_OFFSET = 0x100000
-fi
+		ENV_START=1024 #ENV_OFFSET = 0x100000
+	;;
+	"bpi-r64")
+		FILE_DTS=arch/arm/dts/mt7622-bananapi-bpi-r64.dts
+		FILE_DTSI=arch/arm/dts/mt7622.dtsi
+		FILE_DEFCFG=mt7622_bpi-r64_32_defconfig
+		FILE_BOARD=board/mediatek/mt7622/mt7622_rfb.c
+		FILE_SOC=include/configs/mt7622.h
+
+		#start-values in kB
+		UBOOT_START=768
+		UBOOT_FILE=u-boot-mtk.bin
+		ENV_START=1280 #ENV_OFFSET = 0x140000
+
+		if [[ "$arch" == "arm64" ]];then
+			FILE_DTS=arch/arm/dts/mt7622-rfb.dts
+			FILE_DEFCFG=mt7622_bpi-r64_defconfig
+			export ARCH=arm64
+			export CROSS_COMPILE=aarch64-linux-gnu-
+			UBOOT_FILE=u-boot.bin
+			#~40kb bl31+~640kb uboot =~ 682kb fip @0x160000 <0x300000
+			UBOOT_START=1064 #1024k + 40k
+			ENV_START=3072 #ENV_OFFSET (bytes) = 0x300000 (0x1800 /2 kbytes)
+		fi
+		FILE_UENV=/media/$USER/BPI-BOOT/bananapi/bpi-r64/linux/uEnv.txt
+	;;
+	*)
+		echo "unsupported"
+	;;
+esac
+
+
 MAXSIZE=$(( ($ENV_START - $UBOOT_START)*1024 -1 ))
 
 function generate_filename
@@ -67,7 +92,7 @@ case $1 in
 		make LOCALVERSION="-$ubranch" ${CFLAGS} 2> >(tee "build.log")
 		if [[ $? -eq 0 ]];then
 			FILESIZE=$(stat -c%s "u-boot.bin");
-			if [[ $FILESIZE -gt $MAXSIZE ]]; then
+			if [[ $MAXSIZE -gt 0 && $FILESIZE -gt $MAXSIZE ]]; then
 				echo "=============== WARNING ==============="
 				echo "u-boot will overwrite env-storage area!"
 				echo "if you use this u-boot.bin don't use saveenv!"
@@ -80,29 +105,14 @@ case $1 in
 		make menuconfig;
 	;;
 	"importconfig")
-		if [[ "$board" == "bpi-r64" ]];then
-			if [[ "$arch" == "arm64" ]];then
-				DEFCONFIG=mt7622_bpi-r64_defconfig
-			else
-				DEFCONFIG=mt7622_bpi-r64_32_defconfig
-			fi
-		else
-			DEFCONFIG=mt7623n_bpir2_defconfig;
-		fi
-		if [[ -n "$DEFCONFIG" ]];then
-			echo "importing $DEFCONFIG"
-			make $DEFCONFIG
+		if [[ -n "$FILE_DEFCFG" ]];then
+			echo "importing $FILE_DEFCFG"
+			make $FILE_DEFCFG
 		fi
 	;;
 	"defconfig")
-		if [[ "$board" == "bpi-r64" ]];then
-			if [[ "$arch" == "arm64" ]];then
-				nano configs/mt7622_bpi-r64_defconfig;
-			else
-				nano configs/mt7622_bpi-r64_32_defconfig;
-			fi
-		else
-			nano configs/mt7623n_bpir2_defconfig;
+		if [[ -n "$FILE_DEFCFG" ]];then
+			nano configs/$FILE_DEFCFG;
 		fi
 	;;
 	"install")
@@ -127,43 +137,21 @@ case $1 in
 		umount /media/$USER/BPI-ROOT
 	;;
 	"uenv")
-		if [[ "$board" == "bpi-r64" ]];then
-			nano /media/$USER/BPI-BOOT/bananapi/bpi-r64/linux/uEnv.txt
-		else
-			nano /media/$USER/BPI-BOOT/bananapi/bpi-r2/linux/uEnv.txt
+		if [[ -n "$FILE_UENV" ]]; then
+			nano $FILE_UENV
 		fi
 	;;
 	"board")
-		if [[ "$board" == "bpi-r64" ]];then
-			nano board/mediatek/mt7622/mt7622_rfb.c
-		else
-			nano board/mediatek/mt7623/mt7623_rfb.c
-		fi
+		nano $FILE_BOARD
 	;;
 	"dts")
-		if [[ "$board" == "bpi-r64" ]];then
-			if [[ "$arch" == "arm64" ]];then
-				nano arch/arm/dts/mt7622-rfb.dts
-			else
-				nano arch/arm/dts/mt7622-bananapi-bpi-r64.dts
-			fi
-		else
-			nano arch/arm/dts/mt7623n-bananapi-bpi-r2.dts
-		fi
+		nano $FILE_DTS
 	;;
 	"dtsi")
-		if [[ "$board" == "bpi-r64" ]];then
-			nano arch/arm/dts/mt7622.dtsi
-		else
-			nano arch/arm/dts/mt7623.dtsi
-		fi
+		nano $FILE_DTSI
 	;;
 	"soc")
-		if [[ "$board" == "bpi-r64" ]];then
-			nano include/configs/mt7622.h
-		else
-			nano include/configs/mt7623.h
-		fi
+		nano $FILE_SOC
 	;;
 	"upload")
 		upload

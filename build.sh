@@ -150,6 +150,14 @@ case $1 in
 				sudo dd of=$dev if=$UBOOT_FILE bs=1k seek=$UBOOT_START;
 				sync
 			fi
+		elif [[ "$board" == "bpi-r2pro" ]]; then
+			dev=/dev/sdb
+			choice=y
+			read -e -i "$dev" -p "Please enter target device: " dev
+			set -x
+			sudo dd of=$dev if=idblock.bin seek=64 conv=notrunc,fsync
+			sudo dd of=${dev}1 if=u-boot.img conv=notrunc,fsync
+			set +x
 		else
 			echo "bpi-r64 with new ATF needs uboot packed into fip!"
 		fi
@@ -207,7 +215,7 @@ case $1 in
 				sudo mkfs.vfat "${LDEV}p2" -n BPI-BOOT 1> /dev/null 2>&1
 				sudo mkfs.ext4 -O ^metadata_csum,^64bit "${LDEV}p3" -L BPI-ROOT 1> /dev/null 2>&1
 				sudo dd if=idblock.bin of=${LDEV} seek=64 conv=notrunc,fsync 1> /dev/null 2>&1
-				sudo dd if=uboot.img of=${LDEV}p1 conv=notrunc,fsync 1> /dev/null 2>&1
+				sudo dd if=u-boot.img of=${LDEV}p1 conv=notrunc,fsync 1> /dev/null 2>&1
 			;;
 		esac
 		sudo losetup -d $LDEV

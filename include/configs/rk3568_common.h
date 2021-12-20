@@ -31,6 +31,8 @@
 	"pxefile_addr_r=0x00e00000\0"	\
 	"fdt_addr_r=0x0a100000\0"	\
 	"kernel_addr_r=0x02080000\0"	\
+	"kernel_comp_addr_r=0x0c000000\0" \
+	"kernel_comp_size=0x03000000\0" \
 	"ramdisk_addr_r=0x0a200000\0"
 
 #include <config_distro_bootcmd.h>

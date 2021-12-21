@@ -5,3 +5,5 @@
 *.ttf binary
 *.bin binary
 *.img binary
+Image* binary
+*.itb binary

@@ -1,0 +1,30 @@
+board=bpi-r2pro
+device=mmc
+partition=1:2
+bootenv=uEnv.txt
+
+#console=earlyprintk console=ttyS0,115200
+#root=/dev/mmcblk0p3 rootfstype=ext4 rootwait
+#bootopts=vmalloc=496M debug=7 initcall_debug=0
+#graphic=video=1920x1080 console=tty1 fbcon=map:0 drm.debug=0x7
+
+#buildargs=setenv bootargs "board=${board} ${console} root=${root} ${bootopts} ${graphic}"
+
+checkenv=test -e ${device} ${partition} ${bootenv}
+importenv=env import -t ${scriptaddr} ${filesize}
+loadbootenv=if fatload ${device} ${partition} ${scriptaddr} ${bootenv};then run importenv;else echo "fatload (${bootenv}) failed";fi
+resetenv=env default -a;printenv;
+
+checksd=fatinfo ${device} 1:2
+selectmmc=if run checksd; then echo Boot from SD ; setenv partition 1:1;else echo Boot from eMMC; setenv partition 0:1 ; fi;
+
+reloadmenu=run selectmmc;if run checkenv; then run loadbootenv; else echo file not found; fi;bootmenu;
+
+#bootmenu
+boot0=run distro_bootcmd
+bootmenu_0=1. Run extlinux.=run boot0
+bootmenu_default=0
+
+#automatic reload from sd/emmc
+bootdelay=0
+bootcmd=setenv bootdelay 3; run reloadmenu;

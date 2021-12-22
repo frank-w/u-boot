@@ -36,12 +36,14 @@
 	"ramdisk_addr_r=0x0a200000\0"
 
 #include <config_distro_bootcmd.h>
+#include <configs/rk3568_bpi-r2-pro.h>
 #define CONFIG_EXTRA_ENV_SETTINGS		\
 	ENV_MEM_LAYOUT_SETTINGS			\
 	"fdtfile=" CONFIG_DEFAULT_FDT_FILE "\0" \
 	"partitions=" PARTS_DEFAULT		\
 	ROCKCHIP_DEVICE_SETTINGS		\
-	BOOTENV
+	BOOTENV \
+	BOOTENV_R2P
 #endif
 
 #endif

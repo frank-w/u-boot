@@ -5,6 +5,7 @@
 
 #include <common.h>
 #include <dm.h>
+#include <fdt_support.h>
 #include <asm/armv8/mmu.h>
 #include <asm/io.h>
 #include <asm/arch-rockchip/grf_rk3568.h>
@@ -104,3 +105,31 @@ int arch_cpu_init(void)
 #endif
 	return 0;
 }
+
+#ifdef CONFIG_OF_SYSTEM_SETUP
+int ft_system_setup(void *blob, struct bd_info *bd)
+{
+	int ret;
+	int areas = 1;
+	u64 start[2], size[2];
+
+	/* Reserve the io address space. */
+	if (gd->ram_top > SDRAM_UPPER_ADDR_MIN) {
+		start[0] = gd->bd->bi_dram[0].start;
+		size[0] = SDRAM_LOWER_ADDR_MAX - gd->bd->bi_dram[0].start;
+
+		/* Add the upper 4GB address space */
+		start[1] = SDRAM_UPPER_ADDR_MIN;
+		size[1] = gd->ram_top - SDRAM_UPPER_ADDR_MIN;
+		areas = 2;
+
+		ret = fdt_set_usable_memory(blob, start, size, areas);
+		if (ret) {
+			printf("Cannot set usable memory\n");
+			return ret;
+		}
+	}
+	return 0;
+};
+#endif
+

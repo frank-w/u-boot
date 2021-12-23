@@ -5,6 +5,7 @@
  * Rockchip GMAC ethernet IP driver for U-Boot
  */
 
+#define DEBUG
 #include <common.h>
 #include <dm.h>
 #include <clk.h>
@@ -797,25 +798,33 @@ static int gmac_rockchip_probe(struct udevice *dev)
 	struct clk clk;
 	ulong rate;
 	int ret;
-
+debug("%s: %d\n", __func__,__LINE__);
 #ifdef CONFIG_DWC_ETH_QOS
 	eth_pdata = &pdata->eth_pdata;
+debug("%s: %d\n", __func__,__LINE__);
 	config = (struct eqos_config *)&ops->config;
+debug("%s: %d\n", __func__,__LINE__);
 	memcpy(config, &eqos_rockchip_config, sizeof(struct eqos_config));
+debug("%s: %d\n", __func__,__LINE__);
 	eth_pdata->phy_interface = config->ops->eqos_get_interface(dev);
 #else
 	dw_pdata = &pdata->dw_eth_pdata;
+debug("%s: %d\n", __func__,__LINE__);
 	eth_pdata = &dw_pdata->eth_pdata;
 #endif
+debug("%s: %d\n", __func__,__LINE__);
 	pdata->bus_id = dev->seq_; //downstream without _
+debug("%s: %d\n", __func__,__LINE__);
 	ret = clk_set_defaults(dev, CLK_DEFAULTS_PRE);
 	if (ret)
 		debug("%s clk_set_defaults failed %d\n", __func__, ret);
 
+debug("%s: %d\n", __func__,__LINE__);
 	ret = clk_get_by_index(dev, 0, &clk);
 	if (ret)
 		return ret;
 
+debug("%s: %d\n", __func__,__LINE__);
 	switch (eth_pdata->phy_interface) {
 	case PHY_INTERFACE_MODE_RGMII:
 		/* Set to RGMII mode */
@@ -903,9 +912,12 @@ static int gmac_rockchip_probe(struct udevice *dev)
 		return -ENXIO;
 	}
 
+debug("%s: %d\n", __func__,__LINE__);
 #ifdef CONFIG_DWC_ETH_QOS
+debug("%s: %d\n", __func__,__LINE__);
 	return eqos_probe(dev);
 #else
+debug("%s: %d\n", __func__,__LINE__);
 	return designware_eth_probe(dev);
 #endif
 }

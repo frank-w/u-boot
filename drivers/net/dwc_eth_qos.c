@@ -28,7 +28,7 @@
  */
 
 #define LOG_CATEGORY UCLASS_ETH
-
+#define DEBUG
 #include <common.h>
 #include <clk.h>
 #include <cpu_func.h>
@@ -1796,37 +1796,47 @@ int eqos_probe(struct udevice *dev)
 	eqos->dev = dev;
 	eqos->config = (void *)dev_get_driver_data(dev);
 
+debug("%s: %d\n", __func__,__LINE__);
 	eqos->regs = dev_read_addr(dev);
 	if (eqos->regs == FDT_ADDR_T_NONE) {
 		pr_err("dev_read_addr() failed");
 		return -ENODEV;
 	}
+debug("%s: %d\n", __func__,__LINE__);
 	eqos->mac_regs = (void *)(eqos->regs + EQOS_MAC_REGS_BASE);
 	eqos->mtl_regs = (void *)(eqos->regs + EQOS_MTL_REGS_BASE);
 	eqos->dma_regs = (void *)(eqos->regs + EQOS_DMA_REGS_BASE);
 	eqos->tegra186_regs = (void *)(eqos->regs + EQOS_TEGRA186_REGS_BASE);
 
+debug("%s: %d\n", __func__,__LINE__);
 	ret = eqos_probe_resources_core(dev);
+debug("%s: %d\n", __func__,__LINE__);
 	if (ret < 0) {
 		pr_err("eqos_probe_resources_core() failed: %d", ret);
 		return ret;
 	}
 
+debug("%s: %d\n", __func__,__LINE__);
 	ret = eqos->config->ops->eqos_probe_resources(dev);
+debug("%s: %d\n", __func__,__LINE__);
 	if (ret < 0) {
 		pr_err("eqos_probe_resources() failed: %d", ret);
 		goto err_remove_resources_core;
 	}
 
+debug("%s: %d\n", __func__,__LINE__);
 	ret = eqos->config->ops->eqos_start_clks(dev);
+debug("%s: %d\n", __func__,__LINE__);
 	if (ret < 0) {
 		pr_err("eqos_start_clks() failed: %d", ret);
 		goto err_remove_resources_tegra;
 	}
 
 #ifdef CONFIG_DM_ETH_PHY
+debug("%s: %d\n", __func__,__LINE__);
 	eqos->mii = eth_phy_get_mdio_bus(dev);
 #endif
+debug("%s: %d\n", __func__,__LINE__);
 	if (!eqos->mii) {
 		eqos->mii = mdio_alloc();
 		if (!eqos->mii) {
@@ -1834,12 +1844,16 @@ int eqos_probe(struct udevice *dev)
 			ret = -ENOMEM;
 			goto err_stop_clks;
 		}
+debug("%s: %d\n", __func__,__LINE__);
 		eqos->mii->read = eqos_mdio_read;
 		eqos->mii->write = eqos_mdio_write;
 		eqos->mii->priv = eqos;
+debug("%s: %d\n", __func__,__LINE__);
 		strcpy(eqos->mii->name, dev->name);
+debug("%s: %d\n", __func__,__LINE__);
 
 		ret = mdio_register(eqos->mii);
+debug("%s: %d\n", __func__,__LINE__);
 		if (ret < 0) {
 			pr_err("mdio_register() failed: %d", ret);
 			goto err_free_mdio;
@@ -1847,6 +1861,7 @@ int eqos_probe(struct udevice *dev)
 	}
 
 #ifdef CONFIG_DM_ETH_PHY
+debug("%s: %d\n", __func__,__LINE__);
 	eth_phy_set_mdio_bus(dev, eqos->mii);
 #endif
 

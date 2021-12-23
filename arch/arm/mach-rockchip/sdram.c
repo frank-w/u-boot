@@ -3,6 +3,8 @@
  * Copyright (C) 2017 Rockchip Electronics Co., Ltd.
  */
 
+#define DEBUG
+
 #include <common.h>
 #include <dm.h>
 #include <init.h>
@@ -98,8 +100,7 @@ size_t rockchip_sdram_size(phys_addr_t reg)
 			  SYS_REG_COL_MASK);
 		cs1_col = cs0_col;
 		bk = 3 - ((sys_reg2 >> SYS_REG_BK_SHIFT(ch)) & SYS_REG_BK_MASK);
-		if ((sys_reg3 >> SYS_REG_VERSION_SHIFT &
-		     SYS_REG_VERSION_MASK) == 0x2) {
+		if ((sys_reg3 >> SYS_REG_VERSION_SHIFT & SYS_REG_VERSION_MASK) >= 0x2) {
 			cs1_col = 9 + (sys_reg3 >> SYS_REG_CS1_COL_SHIFT(ch) &
 				  SYS_REG_CS1_COL_MASK);
 			if (((sys_reg3 >> SYS_REG_EXTEND_CS0_ROW_SHIFT(ch) &
@@ -136,7 +137,7 @@ size_t rockchip_sdram_size(phys_addr_t reg)
 			SYS_REG_BW_MASK));
 		row_3_4 = sys_reg2 >> SYS_REG_ROW_3_4_SHIFT(ch) &
 			SYS_REG_ROW_3_4_MASK;
-		if (dram_type == DDR4) {
+		if ((dram_type == DDR4) && (sys_reg3 >> SYS_REG_VERSION_SHIFT & SYS_REG_VERSION_MASK) != 0x3){
 			dbw = (sys_reg2 >> SYS_REG_DBW_SHIFT(ch)) &
 				SYS_REG_DBW_MASK;
 			bg = (dbw == 2) ? 2 : 1;
@@ -150,15 +151,11 @@ size_t rockchip_sdram_size(phys_addr_t reg)
 			chipsize_mb = chipsize_mb * 3 / 4;
 		size_mb += chipsize_mb;
 		if (rank > 1)
-			debug("rank %d cs0_col %d cs1_col %d bk %d cs0_row %d\
-			       cs1_row %d bw %d row_3_4 %d\n",
-			       rank, cs0_col, cs1_col, bk, cs0_row,
-			       cs1_row, bw, row_3_4);
+			debug("rank=%d cs0_col=%d cs1_col=%d bk=%d cs0_row=%d cs1_row=%d bg=%d bw=%d row_3_4=%d\n",
+			       rank, cs0_col, cs1_col, bk, cs0_row, cs1_row, bg, bw, row_3_4);
 		else
-			debug("rank %d cs0_col %d bk %d cs0_row %d\
-			       bw %d row_3_4 %d\n",
-			       rank, cs0_col, bk, cs0_row,
-			       bw, row_3_4);
+			debug("rank %d cs0_col %d bk %d cs0_row %d bw %d row_3_4 %d\n",
+			       rank, cs0_col, bk, cs0_row, bw, row_3_4);
 	}
 
 	/*
@@ -176,9 +173,11 @@ size_t rockchip_sdram_size(phys_addr_t reg)
 	 *   2. update board_get_usable_ram_top() and dram_init_banksize()
 	 *   to reserve memory for peripheral space after previous update.
 	 */
+
+#ifndef __aarch64__
 	if (size_mb > (SDRAM_MAX_SIZE >> 20))
 		size_mb = (SDRAM_MAX_SIZE >> 20);
-
+#endif
 	return (size_t)size_mb << 20;
 }
 
@@ -208,6 +207,10 @@ int dram_init(void)
 ulong board_get_usable_ram_top(ulong total_size)
 {
 	unsigned long top = CONFIG_SYS_SDRAM_BASE + SDRAM_MAX_SIZE;
-
-	return (gd->ram_top > top) ? top : gd->ram_top;
+#ifdef SDRAM_UPPER_ADDR_MIN
+	if (gd->ram_top > SDRAM_UPPER_ADDR_MIN)
+		return gd->ram_top;
+	else
+#endif
+		return (gd->ram_top > top) ? top : gd->ram_top;
 }

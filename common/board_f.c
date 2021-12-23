@@ -344,7 +344,14 @@ static int setup_dest_addr(void)
 #endif
 	gd->ram_top = gd->ram_base + get_effective_memsize();
 	gd->ram_top = board_get_usable_ram_top(gd->mon_len);
+#ifdef SDRAM_LOWER_ADDR_MAX
+	if (gd->ram_top > SDRAM_LOWER_ADDR_MAX)
+		gd->relocaddr = SDRAM_LOWER_ADDR_MAX;
+	else
+		gd->relocaddr = gd->ram_top;
+#else
 	gd->relocaddr = gd->ram_top;
+#endif
 	debug("Ram top: %08lX\n", (ulong)gd->ram_top);
 #if defined(CONFIG_MP) && (defined(CONFIG_MPC86xx) || defined(CONFIG_E500))
 	/*

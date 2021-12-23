@@ -1092,7 +1092,7 @@ static int eqos_start(struct udevice *dev)
 		addr = DWC_NET_PHYADDR;
 #endif
 		eqos->phy = phy_connect(eqos->mii, addr, dev,
-		 eqos->config->ops->eqos_get_interface(dev));
+					eqos->config->ops->eqos_get_interface(dev));
 		if (!eqos->phy) {
 			pr_err("phy_connect() failed");
 			goto err_stop_resets;

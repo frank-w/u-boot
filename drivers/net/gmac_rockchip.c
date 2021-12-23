@@ -627,7 +627,7 @@ static void rv1108_gmac_set_to_rmii(struct gmac_rockchip_plat *pdata)
 		     RV1108_GMAC_PHY_INTF_SEL_RMII);
 }
 #else
-static void rv1126_set_to_rgmii(struct gmac_rockchip_platdata *pdata)
+static void rv1126_set_to_rgmii(struct gmac_rockchip_plat *pdata)
 {
 	struct rv1126_grf *grf;
 

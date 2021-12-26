@@ -118,7 +118,7 @@ case $1 in
 				ln -sf files/bpi-r2pro/rk3568_bl31_v1.24.elf bl31.elf
 				ln -sf files/bpi-r2pro/rk3568_bl32_v1.05.bin tee.bin
 				make -j4 u-boot.itb
-				tools/mkimage -n rk356x -T rksd -d files/bpi-r2pro/rk3568_ddr_1560MHz_v1.11.bin:spl/u-boot-spl.bin idblock.bin
+				tools/mkimage -n rk3568 -T rksd -d files/bpi-r2pro/rk3568_ddr_1560MHz_v1.11.bin:spl/u-boot-spl.bin idblock.bin
 			fi
 		else
 			echo "build failed!"

@@ -43,8 +43,8 @@
 	};
 
 	reserved-memory {
-		#address-cells = <2>;
-		#size-cells = <2>;
+		#address-cells = <1>;
+		#size-cells = <1>;
 		ranges;
 
 		/* 64 KiB reserved for ramoops/pstore */

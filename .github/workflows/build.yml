@@ -29,7 +29,7 @@ jobs:
       - name: Install depencies
         run: |
           sudo apt update
-          sudo apt install ccache libssl-dev u-boot-tools gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu make
+          sudo apt install ccache libssl-dev u-boot-tools gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu make python3-pyelftools
 
       - name: Setup env
         run: |
@@ -77,6 +77,13 @@ jobs:
 
           git checkout ${{ env.BRANCH }}
           git stash pop #restore build.conf
+
+      - name: Build for BananaPi-R2Pro
+        run: |
+          sed -i 's/#\(board=bpi-r2pro\)/\1/' build.conf #change board to r2pro
+          bash build.sh importconfig
+          bash build.sh build
+          bash build.sh rename
 
       - name: Build for BananaPi-R3
         run: |
@@ -150,3 +157,4 @@ jobs:
             *_fip.bin
             *_bl2.img
             *.img.gz
+            u-boot-r2pro*.bin

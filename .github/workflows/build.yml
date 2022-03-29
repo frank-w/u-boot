@@ -57,12 +57,19 @@ jobs:
           bash build.sh rename
 
       - name: Build for bananapi-r64
-        run: | 
+        run: |
           sed -i 's/#\(board=bpi-r64\)/\1/' build.conf #change board to r64
           bash build.sh importconfig
           bash build.sh build
           bash build.sh rename
           sed -i 's/#\(arch=arm64\)/\1/' build.conf #change to r64-arm64
+          bash build.sh importconfig
+          bash build.sh build
+          bash build.sh rename
+
+      - name: Build for bananapi-r2pro
+        run: |
+          sed -i 's/#\(board=bpi-r2pro\)/\1/' build.conf #change board to r2pro
           bash build.sh importconfig
           bash build.sh build
           bash build.sh rename
@@ -78,3 +85,5 @@ jobs:
           files: |
             u-boot-r2*.bin
             u-boot-r64*.bin
+            u-boot-r2pro*.bin
+            idblock.bin

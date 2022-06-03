@@ -83,26 +83,27 @@ uint64_t get_kernel_info_r2(void)
 
 void boot_to_kernel(uint64_t x1, uint64_t x2, uint64_t x3, uint64_t x4)
 {
-	static uint8_t kernel_boot_once_flag;
-	/* only support in booting flow */
+	static uint8_t kernel_boot_once_flag = 0;
+
 	if (0 == kernel_boot_once_flag) {
 		kernel_boot_once_flag = 1;
-
-		console_init(gteearg.atf_log_port,
-			UART_CLOCK, UART_BAUDRATE);
+		console_switch_state(CONSOLE_FLAG_BOOT);
 		INFO("save kernel info\n");
 		save_kernel_info(x1, x2, x3, x4);
 		bl31_prepare_kernel_entry(x4);
 		INFO("el3_exit\n");
-		console_uninit();
+		console_switch_state(CONSOLE_FLAG_RUNTIME);
 	}
 }
 #endif
 
 uint32_t plat_get_spsr_for_bl33_entry(void)
 {
+	uint32_t spsr = 0;
+
+#if (ARM_ARCH_MAJOR > 7)
+#ifndef KERNEL_IS_DEFAULT_64BIT
 	unsigned int mode;
-	uint32_t spsr;
 	unsigned int ee;
 	unsigned long daif;
 
@@ -116,6 +117,13 @@ uint32_t plat_get_spsr_for_bl33_entry(void)
 	daif = DAIF_ABT_BIT | DAIF_IRQ_BIT | DAIF_FIQ_BIT;
 
 	spsr = SPSR_MODE32(mode, 0, ee, daif);
+#else
+	INFO("Secondary bootloader is AArch64\n");
+
+	spsr = SPSR_64(MODE_EL2, MODE_SP_ELX, DISABLE_ALL_EXCEPTIONS);
+#endif
+#endif
+
 	return spsr;
 }
 

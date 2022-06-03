@@ -30,8 +30,11 @@
 static struct nor_device nor_dev;
 
 #pragma weak plat_get_nor_data
-int plat_get_nor_data(struct nor_device *device)
+int plat_get_nor_data(struct nor_device *device, struct nor_device_info *nor_info)
 {
+	device->size = nor_info->device_size;
+	device->flags = nor_info->flags;
+
 	return 0;
 }
 
@@ -53,7 +56,7 @@ static int spi_nor_reg(uint8_t reg, uint8_t *buf, size_t len,
 
 static inline int spi_nor_read_id(uint8_t *id)
 {
-	return spi_nor_reg(SPI_NOR_OP_READ_ID, id, 1U, SPI_MEM_DATA_IN);
+	return spi_nor_reg(SPI_NOR_OP_READ_ID, id, 3U, SPI_MEM_DATA_IN);
 }
 
 static inline int spi_nor_read_cr(uint8_t *cr)
@@ -322,10 +325,39 @@ int spi_nor_read(unsigned int offset, uintptr_t buffer, size_t length,
 	return 0;
 }
 
+struct nor_device_info nor_flash_info_table[] = {
+	{"MX25L51245G", {0xC2, 0x20, 0x1A}, 0x4000000, 0},
+	{"W25Q256JW",{0xEF,0x80, 0x19}, 0x2000000, 0},
+	{"MX25U25635",{0xC2, 0x25, 0x39}, 0x2000000, 0}
+};
+
+
+struct nor_device_info * get_flash_info(uint8_t *id)
+{
+	uint8_t	idx, j;
+	uint8_t	nor_info_table_size = ARRAY_SIZE(nor_flash_info_table);
+
+	for (idx = 0; idx < nor_info_table_size; ++idx) {
+		for (j = 0; j < FLASH_DEVICE_ID_LENGTH; ++j) {
+			if (nor_flash_info_table[idx].device_id[j] == id[j]) {
+				continue;
+			}
+		}
+
+		if (j == FLASH_DEVICE_ID_LENGTH) {
+			return (nor_flash_info_table + idx);
+		}
+	}
+
+	return NULL;
+}
+
+
 int spi_nor_init(unsigned long long *size, unsigned int *erase_size)
 {
-	int ret;
-	uint8_t id;
+	int ret = 0;
+	uint8_t id[FLASH_DEVICE_ID_LENGTH] = {0, 0, 0};
+	struct nor_device_info *nor_info = NULL;
 
 	/* Default read command used */
 	nor_dev.read_op.cmd.opcode = SPI_NOR_OP_READ;
@@ -335,25 +367,32 @@ int spi_nor_init(unsigned long long *size, unsigned int *erase_size)
 	nor_dev.read_op.data.buswidth = SPI_MEM_BUSWIDTH_1_LINE;
 	nor_dev.read_op.data.dir = SPI_MEM_DATA_IN;
 
-	if (plat_get_nor_data(&nor_dev) != 0) {
+	ret = spi_nor_read_id(id);
+	if (ret != 0) {
+		return ret;
+	}
+
+	nor_info = get_flash_info(id);
+	if (nor_info == NULL) {
+		ERROR("No Flash Device Matched\n");
+		return -EINVAL;
+	}
+
+	if (plat_get_nor_data(&nor_dev, nor_info) != 0) {
 		return -EINVAL;
 	}
 
 	assert(nor_dev.size != 0U);
 
+	/* flash size bigger than 16MB, use extend address register */
 	if (nor_dev.size > BANK_SIZE) {
 		nor_dev.flags |= SPI_NOR_USE_BANK;
 	}
 
 	*size = nor_dev.size;
 
-	ret = spi_nor_read_id(&id);
-	if (ret != 0) {
-		return ret;
-	}
-
 	if ((nor_dev.flags & SPI_NOR_USE_BANK) != 0U) {
-		switch (id) {
+		switch (id[0]) {
 		case SPANSION_ID:
 			nor_dev.bank_read_cmd = SPINOR_OP_BRRD;
 			nor_dev.bank_write_cmd = SPINOR_OP_BRWR;
@@ -366,9 +405,8 @@ int spi_nor_init(unsigned long long *size, unsigned int *erase_size)
 	}
 
 	if (nor_dev.read_op.data.buswidth == 4U) {
-		switch (id) {
+		switch (id[0]) {
 		case MACRONIX_ID:
-			INFO("Enable Macronix quad support\n");
 			ret = spi_nor_macronix_quad_enable();
 			break;
 		case MICRON_ID:
@@ -385,3 +423,4 @@ int spi_nor_init(unsigned long long *size, unsigned int *erase_size)
 
 	return ret;
 }
+

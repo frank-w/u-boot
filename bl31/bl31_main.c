@@ -205,6 +205,12 @@ void bl31_main(void)
 	 * from BL31
 	 */
 	bl31_plat_runtime_setup();
+
+#ifdef FPGA
+	/* In FPGA stage, keep console enable for debug */
+	console_switch_state(CONSOLE_FLAG_BOOT);
+#endif
+
 }
 
 /*******************************************************************************

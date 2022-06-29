@@ -43,8 +43,13 @@ case $1 in
 		case $board in
 			"bpi-r3")
 				sudo dd if=gpt_${device}_100m6g.img of=$LDEV conv=notrunc,fsync #1> /dev/null 2>&1
-				sudo gdisk -l /dev/sdb #try to repair MBR/GPT
-				sudo partprobe $LDEV #1> /dev/null 2>&1
+
+				#re-read part table
+				sudo losetup -d $LDEV
+				sudo losetup -P $LDEV $IMGDIR/$IMGNAME.img 1> /dev/null #2>&1
+				#sudo gdisk -l /dev/sdb #try to repair MBR/GPT
+
+				#sudo partprobe $LDEV #1> /dev/null 2>&1
 				sudo dd if=build/mt7986/release/bl2.img of=${LDEV}p1 conv=notrunc,fsync #1> /dev/null 2>&1
 				sudo dd if=build/mt7986/release/fip.bin of=${LDEV}p4 conv=notrunc,fsync #1> /dev/null 2>&1
 				#sudo mkfs.vfat "${LDEV}p5" -n BPI-BOOT #1> /dev/null 2>&1

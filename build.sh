@@ -5,6 +5,8 @@ export CROSS_COMPILE=aarch64-linux-gnu-
 board="bpi-r3"
 device="sdmmc"
 #device="emmc"
+#device="spim_nand"
+#device="spim_nor"
 
 DEFCONFIG="mt7986_rfb_${device}_defconfig"
 
@@ -20,6 +22,7 @@ case $1 in
 		make
 	;;
 	"install")
+		if [[ "$device" != "sdmmc" ]];then echo "$1 not supported for $device";exit 1;fi
 		DEV=/dev/sdb
 		read -e -i "$DEV" -p "Please enter target device: " DEV
 		case $board in
@@ -32,6 +35,7 @@ case $1 in
 		esac
 		;;
 	"createimg")
+		if [[ "$device" != "sdmmc" ]];then echo "$1 not supported for $device";exit 1;fi
 		IMGDIR=.
 		IMGNAME=${board}_${device}
 		REALSIZE=7000

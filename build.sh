@@ -8,6 +8,10 @@ device="sdmmc"
 #device="spim_nand"
 #device="spim_nor"
 
+if [[ -e build.conf ]];then
+       . build.conf
+fi
+
 DEFCONFIG="mt7986_rfb_${device}_defconfig"
 
 

@@ -18,7 +18,7 @@ rdaddr=0x46000000
 dtaddr=0x47000000
 #
 root=/dev/mmcblk1p2 rootfstype=ext4 rootwait
-console=ttyS0,115200n1 earlyprintk
+console=ttyS0,115200n1 earlyprintk earlycon=uart8250,mmio32,0x11002000
 bootopts=debug=7 initcall_debug=0 androidboot.hardware=mt7622 swiotlb=512
 #
 
@@ -71,14 +71,15 @@ askkernel=askenv kernelinput "enter uImage-name:";
 askdtb=askenv dtbinput "enter dtb-name:";
 askuboot=askenv ubootinput "enter uboot-name:";
 
-askboot=run lskernel askkernel;if printenv kernelinput; then setenv kernel "${kernelinput}"; run lsdtb askdtb; if printenv dtbinput; then setenv fdt "${dtbinput}";run newboot; fi;fi
+askboot=run lskernel askkernel;if printenv kernelinput; then setenv kernel "${kernelinput}"; run lsdtb askdtb; if printenv dtbinput; then setenv fdt "${dtbinput}";fi;run newboot; fi;
+askbootfit=run lskernel askkernel;if printenv kernelinput; then setenv fit "${kernelinput}";run newboot; fi;
 askbootnet=run lstftp askkernel;if printenv kernelinput; then setenv bootfile "${kernelinput}"; run lstftpdt askdtb; if printenv dtbinput; then setenv bootdtbfile "${dtbinput}";run bootnet; fi;fi
 askbootnetfit=run lstftp askkernel;if printenv kernelinput; then setenv bootfile "${kernelinput}"; run bootnetfit;fi
 askubootnet=run lstftpu askuboot;if printenv ubootinput; then setenv ufile "${ubootinput}"; run ubootnet;fi
 askuboot64net=run lstftpu askuboot;if printenv ubootinput ;then setenv ufile "${ubootinput}"; run uboot64net;fi
 
 #bootmenu
-bootmenu_0=1. Enter kernel-name to boot from SD/EMMC.=run askboot
+bootmenu_0=1. Enter kernel-name to boot from SD/EMMC.=run askbootfit
 bootmenu_1=2. Boot kernel from TFTP.=run askbootnetfit
 bootmenu_2=3. Boot from SD/EMMC.=run newboot
 

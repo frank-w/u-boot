@@ -104,6 +104,15 @@ case $1 in
 		LANG=C
 		CFLAGS=-j$(grep ^processor /proc/cpuinfo  | wc -l)
 		echo "LV: -$ubranch, crosscompile: $CROSS_COMPILE, CFLAGS: $CFLAGS"
+
+		if [[ "$board" == "bpi-r2pro" ]]; then
+			rm tee.bin #due to invalid format
+			#https://forum.pine64.org/showthread.php?tid=14507
+			#binaries from: https://github.com/rockchip-linux/rkbin/tree/master/bin/rk35
+			ln -sf files/bpi-r2pro/rk3568_bl31_v1.24.elf bl31.elf
+#			ln -sf files/bpi-r2pro/rk3568_bl32_v1.05.bin tee.bin
+		fi
+
 		make LOCALVERSION="-$ubranch" ${CFLAGS} 2> >(tee "build.log")
 		if [[ $? -eq 0 ]];then
 			FILESIZE=$(stat -c%s "u-boot.bin");
@@ -113,10 +122,6 @@ case $1 in
 				echo "if you use this u-boot.bin don't use saveenv!"
 			fi;
 			if [[ "$board" == "bpi-r2pro" ]]; then
-				#https://forum.pine64.org/showthread.php?tid=14507
-				#binaries from: https://github.com/rockchip-linux/rkbin/tree/master/bin/rk35
-				ln -sf files/bpi-r2pro/rk3568_bl31_v1.24.elf bl31.elf
-				ln -sf files/bpi-r2pro/rk3568_bl32_v1.05.bin tee.bin
 				make -j4 u-boot.itb
 				tools/mkimage -n rk3568 -T rksd -d files/bpi-r2pro/rk3568_ddr_1560MHz_v1.11.bin:spl/u-boot-spl.bin idblock.bin
 			fi

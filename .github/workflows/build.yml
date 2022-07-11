@@ -40,7 +40,7 @@ jobs:
       - name: Print env
         run: |
           echo $BRANCH $UBOOTVER $DT
-          
+
       - name: Setup cache
         id: cache
         uses: actions/cache@v2
@@ -67,15 +67,15 @@ jobs:
           bash build.sh build
           bash build.sh rename
 
-      - name: Build for bananapi-r2pro
-        run: |
-          sed -i 's/#\(board=bpi-r2pro\)/\1/' build.conf #change board to r2pro
-          bash build.sh importconfig
-          bash build.sh build
-          bash build.sh rename
+#      - name: Build for bananapi-r2pro
+#        run: |
+#          sed -i 's/#\(board=bpi-r2pro\)/\1/' build.conf #change board to r2pro
+#          bash build.sh importconfig
+#          bash build.sh build
+#          bash build.sh rename
 
       - name: Upload binaries to release
-        if: endsWith(github.ref,'-bpi') 
+        if: endsWith(github.ref,'-bpi')
         uses: marvinpinto/action-automatic-releases@latest
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
@@ -85,5 +85,5 @@ jobs:
           files: |
             u-boot-r2*.bin
             u-boot-r64*.bin
-            u-boot-r2pro*.bin
-            idblock.bin
+#            u-boot-r2pro*.bin
+#            idblock.bin

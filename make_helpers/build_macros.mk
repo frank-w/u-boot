@@ -519,7 +519,7 @@ ifdef MAKE_BUILD_STRINGS
 	$(call MAKE_BUILD_STRINGS, $(BUILD_DIR)/build_message.o)
 else
 	@echo 'const char build_message[] = "Built : "$(BUILD_MESSAGE_TIMESTAMP); \
-	       const char version_string[] = "${VERSION_STRING}";' | \
+	       const char version_string[] = "${VERSION_STRING} $(BOOT_DEVICE)";' | \
 		$$(CC) $$(TF_CFLAGS) $$(CFLAGS) -xc -c - -o $(BUILD_DIR)/build_message.o
 endif
 $(if $(findstring 2,${1}) $(findstring 31,${1}),

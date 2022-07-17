@@ -19,6 +19,9 @@ case $1 in
 	"importconfig")
 		make $DEFCONFIG
 	;;
+	"defconfig")
+		nano configs/$DEFCONFIG
+	;;
 	"config")
 		make menuconfig
 	;;

@@ -382,6 +382,20 @@ static int initr_nand(void)
 }
 #endif
 
+#ifdef CONFIG_NMBM_MTD
+
+__weak int board_nmbm_init(void)
+{
+	return 0;
+}
+
+/* go init the NMBM */
+static int initr_nmbm(void)
+{
+	return board_nmbm_init();
+}
+#endif
+
 #if defined(CONFIG_CMD_ONENAND)
 /* go init the NAND */
 static int initr_onenand(void)
@@ -702,6 +716,9 @@ static init_fnc_t init_sequence_r[] = {
 #endif
 #ifdef CONFIG_CMD_ONENAND
 	initr_onenand,
+#endif
+#ifdef CONFIG_NMBM_MTD
+	initr_nmbm,
 #endif
 #ifdef CONFIG_MMC
 	initr_mmc,

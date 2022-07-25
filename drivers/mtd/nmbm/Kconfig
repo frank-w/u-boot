@@ -27,3 +27,8 @@ config NMBM_LOG_LEVEL_NONE
 	bool "5 - None"
 
 endchoice
+
+config NMBM_MTD
+	bool "Enable MTD based NAND mapping block management"
+	default n
+	depends on NMBM

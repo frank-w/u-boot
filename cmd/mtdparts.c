@@ -1060,6 +1060,9 @@ int mtd_id_parse(const char *id, const char **ret_id, u8 *dev_type,
 	} else if (strncmp(p, "spi-nand", 8) == 0) {
 		*dev_type = MTD_DEV_TYPE_SPINAND;
 		p += 8;
+	} else if (strncmp(p, "nmbm", 4) == 0) {
+		*dev_type = MTD_DEV_TYPE_NMBM;
+		p += 4;
 	} else {
 		printf("incorrect device type in %s\n", id);
 		return 1;

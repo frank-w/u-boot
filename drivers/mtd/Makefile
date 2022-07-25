@@ -41,3 +41,4 @@ obj-$(CONFIG_SPL_UBI) += ubispl/
 endif
 
 obj-$(CONFIG_MTK_SPI_NAND) += mtk-snand/
+obj-$(CONFIG_NMBM) += nmbm/

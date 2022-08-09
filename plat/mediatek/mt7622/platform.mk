@@ -7,6 +7,7 @@
 MTK_PLAT		:=	plat/mediatek
 MTK_PLAT_SOC		:=	${MTK_PLAT}/${PLAT}
 
+include make_helpers/dep.mk
 include lib/xz/xz.mk
 
 PLAT_INCLUDES		:=	-I${MTK_PLAT}/common/				\
@@ -264,6 +265,23 @@ $(ROTPK_HASH): $(ROT_KEY)
 	$(Q)openssl rsa -in $< -pubout -outform DER 2>/dev/null |\
 	openssl dgst -sha256 -binary > $@ 2>/dev/null
 endif
+
+# Make sure make command parameter takes effect on .o files immediately
+$(call GEN_DEP_RULES,bl2,bl2_boot_ram bl2_boot_snand bl2_boot_mmc mtk_efuse bl2_plat_setup)
+$(call MAKE_DEP,bl2,bl2_plat_setup,BOOT_DEVICE BL2_COMPRESS)
+$(call MAKE_DEP,bl2,bl2_boot_ram,RAM_BOOT_DEBUGGER_HOOK RAM_BOOT_UART_DL)
+$(call MAKE_DEP,bl2,bl2_boot_snand,NMBM NMBM_MAX_RATIO NMBM_MAX_RESERVED_BLOCKS NMBM_DEFAULT_LOG_LEVEL)
+$(call MAKE_DEP,bl2,bl2_boot_mmc,BOOT_DEVICE)
+$(call MAKE_DEP,bl2,mtk_efuse,ANTI_ROLLBACK TRUSTED_BOARD_BOOT)
+
+ifneq ($(HAVE_DRAM_OBJ_FILE),yes)
+$(call GEN_DEP_RULES,bl2,emi dramc_calib)
+$(call MAKE_DEP,bl2,emi,DDR3_FLYBY)
+$(call MAKE_DEP,bl2,dramc_calib,DDR3_FLYBY)
+endif
+
+$(call GEN_DEP_RULES,bl31,mtk_efuse)
+$(call MAKE_DEP,bl31,mtk_efuse,ANTI_ROLLBACK TRUSTED_BOARD_BOOT)
 
 # BL2 compress
 ifeq ($(BL2_COMPRESS),1)

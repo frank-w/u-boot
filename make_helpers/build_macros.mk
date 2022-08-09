@@ -251,6 +251,15 @@ endef
 
 GZIP_SUFFIX := .gz
 
+# XZ
+define XZ_RULE
+$(1): $(2)
+	$(ECHO) "  XZ      $$@"
+	$(Q)xz -e -k -9 -C crc32 $$< --stdout > $$@
+endef
+
+XZ_SUFFIX := .xz
+
 ################################################################################
 # Auxiliary macros to build TF images from sources
 ################################################################################

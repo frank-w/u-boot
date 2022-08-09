@@ -10,6 +10,7 @@ ARM_ARCH_MAJOR		:=	7
 MARCH32_DIRECTIVE	:=	-mcpu=cortex-a7 -msoft-float
 BL2_AT_EL3		:=	1
 
+include make_helpers/dep.mk
 include lib/xz/xz.mk
 
 # Not needed for Cortex-A7
@@ -189,6 +190,15 @@ $(ROTPK_HASH): $(ROT_KEY)
 	$(Q)openssl rsa -in $< -pubout -outform DER 2>/dev/null |\
 	openssl dgst -sha256 -binary > $@ 2>/dev/null
 endif
+
+# Make sure make command parameter takes effect on .o files immediately
+$(call GEN_DEP_RULES,bl2,bl2_boot_ram bl2_boot_snand mtk_efuse)
+$(call MAKE_DEP,bl2,bl2_boot_ram,RAM_BOOT_DEBUGGER_HOOK RAM_BOOT_UART_DL)
+$(call MAKE_DEP,bl2,bl2_boot_snand,NMBM NMBM_MAX_RATIO NMBM_MAX_RESERVED_BLOCKS NMBM_DEFAULT_LOG_LEVEL)
+$(call MAKE_DEP,bl2,mtk_efuse,TRUSTED_BOARD_BOOT)
+
+$(call GEN_DEP_RULES,bl32,mtk_efuse)
+$(call MAKE_DEP,bl32,mtk_efuse,TRUSTED_BOARD_BOOT)
 
 # FIP compress
 ifeq ($(FIP_COMPRESS),1)

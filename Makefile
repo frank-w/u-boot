@@ -970,6 +970,11 @@ ifeq (${NEED_BL2},yes)
 include bl2/bl2.mk
 endif
 
+ifdef BL2PL_SOURCES
+NEED_BL2PL := yes
+include bl2pl/bl2pl.mk
+endif
+
 ifeq (${NEED_BL2U},yes)
 include bl2u/bl2u.mk
 endif
@@ -1302,6 +1307,10 @@ endif
 
 ifeq (${NEED_SCP_BL2},yes)
 $(eval $(call TOOL_ADD_IMG,scp_bl2,--scp-fw))
+endif
+
+ifeq (${NEED_BL2PL},yes)
+$(eval $(call MAKE_BL,bl2pl))
 endif
 
 ifeq (${NEED_BL31},yes)

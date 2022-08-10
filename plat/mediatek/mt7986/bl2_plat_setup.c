@@ -12,6 +12,7 @@
 #include <plat/common/platform.h>
 #include <timer.h>
 #include <pll.h>
+#include <emi.h>
 #include <tools_share/firmware_image_package.h>
 #include <hsuart.h>
 #include <drivers/delay_timer.h>
@@ -327,6 +328,7 @@ void bl2_platform_setup(void)
 	mtk_clock_init();
 	mtk_netsys_init();
 	mtk_pcie_init();
+	mtk_mem_init();
 	mtk_io_setup();
 	mtk_rng_init();
 	mtk_dcm_init();

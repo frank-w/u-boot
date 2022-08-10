@@ -59,6 +59,89 @@ BL2_SOURCES		:=	common/desc_image_load.c			\
 
 CPPFLAGS		+=	-DDTB_PATH=\"${BUILD_PLAT}/fdts/${DTS_NAME}.dtb\"
 
+# Whether supports DDR4
+ifeq ($(DRAM_USE_DDR4), 1)
+BL2_CPPFLAGS		+=	-DDRAM_USE_DDR4
+AVAIL_DRAM_SIZE		:=	512 1024 2048
+else
+override DRAM_USE_DDR4	:=	0
+AVAIL_DRAM_SIZE		:=	256 512
+endif # END OF DRAM_USE_DDR4
+
+# DDR4 frequency
+ifeq ($(DDR4_FREQ_3200), 1)
+BL2_CPPFLAGS		+=	-DDDR4_FREQ_3200
+endif
+ifeq ($(DDR4_FREQ_2666), 1)
+BL2_CPPFLAGS		+=	-DDDR4_FREQ_2666
+endif # END OF DDR4_FREQ_xxxx
+
+# Whether to limit the DRAM size
+ifdef DRAM_SIZE_LIMIT
+ifneq ($(filter $(DRAM_SIZE_LIMIT),$(AVAIL_DRAM_SIZE)),)
+BL2_CPPFLAGS		+=	-DDRAM_SIZE_LIMIT=$(DRAM_SIZE_LIMIT)
+else
+$(error You must specify the correct DRAM_SIZE_LIMIT. Avaliable values: $(AVAIL_DRAM_SIZE))
+endif # END OF DRAM_SIZE_LIMIT check
+else
+DRAM_SIZE_LIMIT		:= 	0
+endif # END OF DRAM_SIZE_LIMIT
+
+# Whether to display verbose DRAM log
+ifeq ($(DRAM_DEBUG_LOG), 1)
+BL2_CPPFLAGS		+=	-DDRAM_DEBUG_LOG
+endif # END OF DRAM_DEBUG_LOG
+
+HAVE_DRAM_OBJ_FILE	:=	$(shell test -f ${MTK_PLAT_SOC}/drivers/dram/release/dram.o && echo yes)
+ifeq ($(HAVE_DRAM_OBJ_FILE),yes)
+PREBUILT_LIBS		+=	${MTK_PLAT_SOC}/drivers/dram/release/dram.o
+BL2_SOURCES		+=	${MTK_PLAT_SOC}/drivers/dram/emicfg.c
+else
+PLAT_INCLUDES		+=	-I${MTK_PLAT_SOC}/drivers/dram/inc/
+
+BL2_SOURCES		+=							\
+	${MTK_PLAT_SOC}/drivers/dram/emicfg.c					\
+	${MTK_PLAT_SOC}/drivers/dram/memory.c					\
+	${MTK_PLAT_SOC}/drivers/dram/common/ANA_init_config.c			\
+	${MTK_PLAT_SOC}/drivers/dram/common/SRAM_init_lib.c			\
+	${MTK_PLAT_SOC}/drivers/dram/common/DIG_NONSHUF_config.c		\
+	${MTK_PLAT_SOC}/drivers/dram/common/DIG_SHUF_config.c			\
+	${MTK_PLAT_SOC}/drivers/dram/common/DRAM_config_collection.c		\
+	${MTK_PLAT_SOC}/drivers/dram/common/dramc_dv_freq_related.c		\
+	${MTK_PLAT_SOC}/drivers/dram/common/dramc_dv_main.c			\
+	${MTK_PLAT_SOC}/drivers/dram/common/dramc_dvfs.c			\
+	${MTK_PLAT_SOC}/drivers/dram/common/DRAMC_SUBSYS_config.c		\
+	${MTK_PLAT_SOC}/drivers/dram/common/dvsim_dummy.c			\
+	${MTK_PLAT_SOC}/drivers/dram/common/Hal_io.c				\
+	${MTK_PLAT_SOC}/drivers/dram/common/sv_c_data_traffic.c			\
+	${MTK_PLAT_SOC}/drivers/dram/common/TX_RX_auto_gen_library.c		\
+	${MTK_PLAT_SOC}/drivers/dram/common/TX_path_auto_gen.c			\
+	${MTK_PLAT_SOC}/drivers/dram/common/RX_path_auto_gen.c			\
+	${MTK_PLAT_SOC}/drivers/dram/common/HW_FUNC_MANAGE.c			\
+	${MTK_PLAT_SOC}/drivers/dram/common/ESL_DPHY_FPGA_TX_settings.c		\
+	${MTK_PLAT_SOC}/drivers/dram/common/ESL_DPHY_FPGA_RX_settings.c		\
+	${MTK_PLAT_SOC}/drivers/dram/common/dramc_dv_api.c			\
+	${MTK_PLAT_SOC}/drivers/dram/common/emi.c				\
+	${MTK_PLAT_SOC}/drivers/dram/common/dramc_top.c				\
+	${MTK_PLAT_SOC}/drivers/dram/common/dramc_actiming.c			\
+	${MTK_PLAT_SOC}/drivers/dram/common/dramc_utility.c			\
+	${MTK_PLAT_SOC}/drivers/dram/common/MD32_initial.c			\
+	${MTK_PLAT_SOC}/drivers/dram/pcddr_cal/dramc_pi_main.c			\
+	${MTK_PLAT_SOC}/drivers/dram/pcddr_cal/dramc_pi_basic_api.c		\
+	${MTK_PLAT_SOC}/drivers/dram/pcddr_cal/dramc_pi_calibration_api.c	\
+	${MTK_PLAT_SOC}/drivers/dram/pcddr_cal/dramc_utility_pcddr.c		\
+	${MTK_PLAT_SOC}/drivers/dram/pcddr_cal/dramc_slt.c			\
+	${MTK_PLAT_SOC}/drivers/dram/pcddr_cal/dramc_tracking.c			\
+	${MTK_PLAT_SOC}/drivers/dram/pcddr_cal/IPM_actiming_setting_DDR3.c	\
+	${MTK_PLAT_SOC}/drivers/dram/pcddr_cal/IPM_actiming_setting_DDR4.c	\
+	${MTK_PLAT_SOC}/drivers/dram/pcddr_cal/DDR3_dram_init.c			\
+	${MTK_PLAT_SOC}/drivers/dram/pcddr_cal/DDR4_dram_init.c			\
+	${MTK_PLAT_SOC}/drivers/dram/pcddr_cal/dramc_debug.c			\
+	${MTK_PLAT_SOC}/drivers/dram/pcddr_cal/dramc_lowpower.c			\
+	${MTK_PLAT_SOC}/drivers/dram/pcddr_cal/dramc_pi_ddr_reserve.c		\
+	${MTK_PLAT_SOC}/drivers/dram/pcddr_cal/mtk_drm.c
+endif # END OF HAVE_DRAM_OBJ_FILE
+
 # IF BL33 is AARCH64, need to add this define
 CPPFLAGS		+=	-DKERNEL_IS_DEFAULT_64BIT
 

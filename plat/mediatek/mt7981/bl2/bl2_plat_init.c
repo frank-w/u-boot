@@ -12,6 +12,7 @@
 #include <mt7981_gpio.h>
 #include <pll.h>
 #include <timer.h>
+#include <emi.h>
 #include <mtk_wdt.h>
 
 static void mt7981_pll_init(void)
@@ -72,6 +73,7 @@ const struct initcall bl2_initcalls[] = {
 	INITCALL(mt7981_pll_init),
 	INITCALL(mtk_sgmii_init),
 	INITCALL(mtk_pcie_init),
+	INITCALL(mtk_mem_init),
 	INITCALL(mtk_print_cpu),
 
 	INITCALL(NULL)

@@ -43,4 +43,5 @@ include $(MTK_PLAT_SOC)/bl31.mk
 include $(MTK_PLAT_SOC)/drivers/efuse/efuse.mk
 
 include $(MTK_PLAT)/apsoc_common/bl2/tbbr_post.mk
+include $(MTK_PLAT)/apsoc_common/bl2/ar_post.mk
 include $(MTK_PLAT)/apsoc_common/bl2/bl2_image_post.mk

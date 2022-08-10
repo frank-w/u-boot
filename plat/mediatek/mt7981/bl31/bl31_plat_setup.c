@@ -15,6 +15,7 @@
 #include <timer.h>
 #include <devapc.h>
 #include <emi_mpu.h>
+#include <mtk_efuse.h>
 
 static void mt7981_disable_l2c_shared(void)
 {
@@ -70,6 +71,13 @@ static void platform_setup_sram(void)
 	mmio_write_32((uintptr_t)0x1A020018, 0x0);
 }
 
+static void plat_efuse_init(void)
+{
+#if TRUSTED_BOARD_BOOT
+	plat_efuse_sbc_init();
+#endif
+}
+
 /*******************************************************************************
  * Perform any BL3-1 platform setup code
  ******************************************************************************/
@@ -83,6 +91,8 @@ void bl31_platform_setup(void)
 
 	/* Initialize MPU */
 	emi_mpu_init();
+
+	plat_efuse_init();
 }
 
 /*******************************************************************************

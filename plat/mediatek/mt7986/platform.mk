@@ -369,6 +369,46 @@ else
 PREBUILT_LIBS		+=	${MTK_PLAT_SOC}/drivers/efuse/release/efuse_cmd.o
 endif
 
+#
+# Anti-rollback related build macros
+#
+DOVERSIONPATH		:=	tools/mediatek/ar-tool
+DOVERSIONTOOL		:=	${DOVERSIONPATH}/ar-tool
+AUTO_AR_VER		:=	${MTK_PLAT_SOC}/auto_ar_ver.c
+AUTO_AR_CONF		:=	${MTK_PLAT_SOC}/auto_ar_conf.mk
+ifeq ($(ANTI_ROLLBACK),1)
+ifneq ($(TRUSTED_BOARD_BOOT),1)
+$(error You must enable TRUSTED_BOARD_BOOT when ANTI_ROLLBACK enabled)
+endif
+ifeq ($(ANTI_ROLLBACK_TABLE),)
+$(error You must specify ANTI_ROLLBACK_TABLE when ANTI_ROLLBACK enabled)
+endif
+
+BL2_SOURCES		+=	{AUTO_AR_VER}					\
+				${MTK_PLAT}/common/mtk_ar.c
+CPPFLAGS		+=	-DMTK_ANTI_ROLLBACK
+
+ar_tool: $(DOVERSIONTOOL) $(AUTO_AR_VER) $(AUTO_AR_CONF)
+	$(eval $(shell sed -n 1p $(AUTO_AR_CONF)))
+	$(eval $(call CERT_REMOVE_CMD_OPT,0,--tfw-nvctr))
+	$(eval $(call CERT_REMOVE_CMD_OPT,0,--ntfw-nvctr))
+	$(eval $(call CERT_ADD_CMD_OPT,$(BL_AR_VER),--tfw-nvctr))
+	$(eval $(call CERT_ADD_CMD_OPT,$(BL_AR_VER),--ntfw-nvctr))
+	@echo "BL_AR_VER = $(BL_AR_VER)"
+
+$(AUTO_AR_VER): $(DOVERSIONTOOL)
+	$(Q)$(DOVERSIONTOOL) bl_ar_table create_ar_ver $(ANTI_ROLLBACK_TABLE) $(AUTO_AR_VER)
+
+$(AUTO_AR_CONF): $(DOVERSIONTOOL)
+	$(Q)$(DOVERSIONTOOL) bl_ar_table create_ar_conf $(ANTI_ROLLBACK_TABLE) $(AUTO_AR_CONF)
+
+$(DOVERSIONTOOL):
+	$(Q)$(MAKE) --no-print-directory -C $(DOVERSIONPATH)
+else
+ar_tool:
+	@echo "Warning: anti-rollback function has been turn-off"
+endif
+
 # BL2 compress
 ifeq ($(BL2_COMPRESS),1)
 BL2PLIMAGEPATH		:= tools/bl2plimage
@@ -423,13 +463,14 @@ $(BUILD_PLAT)/bl2.img: $(BL2_IMG_PAYLOAD) $(DOIMAGETOOL)
 	$(Q)$(DOIMAGETOOL) -c mt7986 -f $(BROM_HEADER_TYPE) -a $(BL2_BASE) -d -e	\
 		$(if $(BROM_SIGN_KEY), -s sha256+rsa-pss -k $(BROM_SIGN_KEY))	\
 		$(if $(BROM_SIGN_KEY), -p $@.signkeyhash)			\
+		$(if $(BL_AR_VER), -r $(BL_AR_VER))				\
 		$(if $(NAND_TYPE), -n $(NAND_TYPE))				\
 		$(BL2_IMG_PAYLOAD) $@
 else
 MKIMAGE ?= mkimage
 
-ifneq ($(BROM_SIGN_KEY),)
-$(warning BL2 signing is not supported using mkimage)
+ifneq ($(BROM_SIGN_KEY)$(AUTO_AR_VER),)
+$(warning BL2 signing/anti-rollback is not supported using mkimage)
 endif
 
 $(BUILD_PLAT)/bl2.img: $(BL2_IMG_PAYLOAD)
@@ -441,4 +482,4 @@ endif
 $(DOIMAGETOOL):
 	$(Q)$(MAKE) --no-print-directory -C $(DOIMAGEPATH)
 
-.PHONY: $(BUILD_PLAT)/bl2.img
+.PHONY: $(BUILD_PLAT)/bl2.img $(AUTO_AR_VER) $(AUTO_AR_CONF)

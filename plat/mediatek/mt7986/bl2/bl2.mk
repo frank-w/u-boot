@@ -45,6 +45,9 @@ BL2_SOURCES		+=	common/desc_image_load.c			\
 				$(MTK_PLAT_SOC)/drivers/spi/boot_spi.c		\
 				$(MTK_PLAT_SOC)/drivers/pll/pll.c
 
+# Include dram driver files
+include $(MTK_PLAT_SOC)/drivers/dram/dram.mk
+
 ifeq ($(I2C_SUPPORT), 1)
 include $(APSOC_COMMON)/drivers/i2c/i2c.mk
 endif

@@ -24,6 +24,7 @@ struct ecc {
 struct nand_device {
 	unsigned int block_size;
 	unsigned int page_size;
+	unsigned int oob_size;
 	unsigned long long size;
 	unsigned int nb_planes;
 	unsigned int buswidth;

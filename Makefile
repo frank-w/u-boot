@@ -32,6 +32,10 @@ include ${MAKE_HELPERS_DIRECTORY}common.mk
 
 include ${MAKE_HELPERS_DIRECTORY}defaults.mk
 PLAT				:= ${DEFAULT_PLAT}
+
+# Include Kconfig script
+include makeconfig_pre.mk
+
 include ${MAKE_HELPERS_DIRECTORY}plat_helpers.mk
 
 # To be able to set platform specific defaults
@@ -166,14 +170,14 @@ ifneq (${DEBUG}, 0)
 	ASFLAGS		+=	-g -Wa,-gdwarf-4
 
 	# Use LOG_LEVEL_INFO by default for debug builds
-	LOG_LEVEL	:=	40
+	LOG_LEVEL	?=	40
 else
 	BUILD_TYPE	:=	release
 	TF_CFLAGS	+=	-g -gdwarf-4
 	ASFLAGS		+=	-g -Wa,-gdwarf-4
 
 	# Use LOG_LEVEL_NOTICE by default for release builds
-	LOG_LEVEL	:=	20
+	LOG_LEVEL	?=	20
 endif #(Debug)
 
 # Default build string (git branch and commit)
@@ -1847,6 +1851,9 @@ help:
 	$(s)echo ""
 	$(s)echo "example: build all targets for the FVP platform:"
 	$(s)echo "  CROSS_COMPILE=aarch64-none-elf- make PLAT=fvp all"
+
+# Include Kconfig script
+include makeconfig_post.mk
 
 .PHONY: FORCE
 FORCE:;

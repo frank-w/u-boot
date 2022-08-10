@@ -44,6 +44,9 @@ BL2_SOURCES		:=	common/desc_image_load.c			\
 				$(MTK_PLAT_SOC)/drivers/gpio/mt7981_gpio.c	\
 				$(MTK_PLAT_SOC)/drivers/pll/pll.c
 
+# Include dram driver files
+include $(MTK_PLAT_SOC)/drivers/dram/dram.mk
+
 # Dual-FIP
 include $(APSOC_COMMON)/bl2/dual_fip.mk
 

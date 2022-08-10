@@ -43,6 +43,15 @@ struct nor_device {
 	uint8_t bank_read_cmd;
 };
 
+#define FLASH_DEVICE_ID_LENGTH	3U
+
+struct nor_device_info {
+	const char	*device_name;
+	uint8_t		device_id[FLASH_DEVICE_ID_LENGTH];
+	uint32_t	device_size;
+	uint32_t	flags;
+};
+
 int spi_nor_read(unsigned int offset, uintptr_t buffer, size_t length,
 		 size_t *length_read);
 int spi_nor_init(unsigned long long *device_size, unsigned int *erase_size);
@@ -53,6 +62,8 @@ int spi_nor_init(unsigned long long *device_size, unsigned int *erase_size);
  * @device: target NOR instance.
  * Return 0 on success, negative value otherwise.
  */
-int plat_get_nor_data(struct nor_device *device);
+int plat_get_nor_data(struct nor_device *device, struct nor_device_info *nor_info);
+
+
 
 #endif /* DRIVERS_SPI_NOR_H */

@@ -53,6 +53,9 @@ include $(APSOC_COMMON)/bl2/dual_fip.mk
 # Trusted board boot
 include $(APSOC_COMMON)/bl2/tbbr.mk
 
+# Anti-rollback
+include $(APSOC_COMMON)/bl2/ar.mk
+
 ifeq ($(BL2_COMPRESS),1)
 BL2_CPPFLAGS		+=	-DUSING_BL2PL
 endif # END OF BL2_COMPRESS

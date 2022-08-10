@@ -13,6 +13,7 @@
 #include <mcucfg.h>
 #include <mtspmc.h>
 #include <mtk_gic_v3.h>
+#include <mtk_efuse.h>
 #include <emi_mpu.h>
 #include <devapc.h>
 #include <timer.h>
@@ -64,6 +65,16 @@ static void platform_setup_sram(void)
 	}
 }
 
+static void plat_efuse_init(void)
+{
+#if TRUSTED_BOARD_BOOT
+	plat_efuse_sbc_init();
+#endif
+#if MTK_ANTI_ROLLBACK
+	plat_efuse_ar_init();
+#endif
+}
+
 /*******************************************************************************
  * Perform any BL3-1 platform setup code
  ******************************************************************************/
@@ -78,6 +89,8 @@ void bl31_platform_setup(void)
 	emi_mpu_init();
 
 	devapc_init();
+
+	plat_efuse_init();
 }
 
 /*******************************************************************************

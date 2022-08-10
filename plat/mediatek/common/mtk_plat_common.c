@@ -83,18 +83,16 @@ uint64_t get_kernel_info_r2(void)
 
 void boot_to_kernel(uint64_t x1, uint64_t x2, uint64_t x3, uint64_t x4)
 {
-	static uint8_t kernel_boot_once_flag;
-	/* only support in booting flow */
+	static uint8_t kernel_boot_once_flag = 0;
+
 	if (0 == kernel_boot_once_flag) {
 		kernel_boot_once_flag = 1;
-
-		console_init(gteearg.atf_log_port,
-			UART_CLOCK, UART_BAUDRATE);
+		console_switch_state(CONSOLE_FLAG_BOOT);
 		INFO("save kernel info\n");
 		save_kernel_info(x1, x2, x3, x4);
 		bl31_prepare_kernel_entry(x4);
 		INFO("el3_exit\n");
-		console_uninit();
+		console_switch_state(CONSOLE_FLAG_RUNTIME);
 	}
 }
 #endif

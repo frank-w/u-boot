@@ -47,6 +47,9 @@ BL2_SOURCES		:=	common/desc_image_load.c			\
 				$(MTK_PLAT_SOC)/drivers/pll/pll.c		\
 				$(MTK_PLAT_SOC)/drivers/wdt/mtk_wdt.c
 
+# Include dram driver files
+include $(MTK_PLAT_SOC)/drivers/dram/dram.mk
+
 # Trusted board boot
 include $(MTK_PLAT)/apsoc_common/bl2/tbbr.mk
 

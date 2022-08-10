@@ -12,6 +12,7 @@
 #include <plat/common/common_def.h>
 #include <plat/common/platform.h>
 #include <timer.h>
+#include <emi.h>
 #include <tools_share/firmware_image_package.h>
 #include <hsuart.h>
 #include <drivers/delay_timer.h>
@@ -314,6 +315,7 @@ void bl2_platform_setup(void)
 #endif
 	mtk_sgmii_init();
 	mtk_pcie_init();
+	mtk_mem_init();
 
 #ifndef IMAGE_BL2PL
 	NOTICE("CPU: MT%x (%uMHz)\n", SOC_CHIP_ID, mtk_get_cpu_freq());

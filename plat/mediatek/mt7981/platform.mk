@@ -17,6 +17,8 @@ PLAT_INCLUDES		:=	-I${MTK_PLAT}/common/				\
 				-I${MTK_PLAT}/common/drivers/uart		\
 				-I${MTK_PLAT}/common/drivers/gpt		\
 				-I${MTK_PLAT}/common/drivers/spi		\
+				-I${MTK_PLAT}/common/drivers/efuse		\
+				-I${MTK_PLAT}/common/drivers/efuse/include	\
 				-Iinclude/plat/arm/common			\
 				-Iinclude/plat/arm/common/aarch64		\
 				-I${MTK_PLAT_SOC}/drivers/spmc/			\
@@ -46,6 +48,7 @@ BL2_SOURCES		:=	common/desc_image_load.c			\
 				${MTK_PLAT}/common/mtk_plat_common.c		\
 				${MTK_PLAT}/common/drivers/gpt/mt_gpt.c		\
 				${MTK_PLAT}/common/drivers/spi/mtk_spi.c	\
+				${MTK_PLAT}/common/drivers/efuse/mtk_efuse.c	\
 				${MTK_PLAT_SOC}/aarch64/plat_helpers.S		\
 				${MTK_PLAT_SOC}/aarch64/platform_common.c	\
 				${MTK_PLAT_SOC}/dtb.S				\
@@ -173,6 +176,7 @@ BL31_SOURCES		+=	drivers/arm/cci/cci.c				\
 				${MTK_PLAT}/common/drivers/uart/aarch64/hsuart.S\
 				${MTK_PLAT}/common/mtk_plat_common.c		\
 				${MTK_PLAT}/common/drivers/gpt/mt_gpt.c		\
+				${MTK_PLAT}/common/drivers/efuse/mtk_efuse.c	\
 				${MTK_PLAT}/common/mtk_sip_svc.c		\
 				${MTK_PLAT_SOC}/aarch64/plat_helpers.S		\
 				${MTK_PLAT_SOC}/aarch64/platform_common.c	\
@@ -334,6 +338,7 @@ include drivers/auth/mbedtls/mbedtls_x509.mk
 ifeq ($(MBEDTLS_DIR),)
 $(error You must specify MBEDTLS_DIR when TRUSTED_BOARD_BOOT enabled)
 endif
+CPPFLAGS		+=	-DMTK_EFUSE_FIELD_NORMAL
 AUTH_SOURCES		:=	drivers/auth/auth_mod.c				\
 				drivers/auth/crypto_mod.c			\
 				drivers/auth/img_parser_mod.c			\
@@ -358,6 +363,17 @@ $(ROTPK_HASH): $(ROT_KEY)
 	@echo "  OPENSSL $@"
 	$(Q)openssl rsa -in $< -pubout -outform DER 2>/dev/null |\
 	openssl dgst -sha256 -binary > $@ 2>/dev/null
+endif
+
+#
+# Read/Write efuse related build macros
+#
+HAVE_EFUSE_SRC_FILE	:=	$(shell test -f ${MTK_PLAT}/common/drivers/efuse/src/efuse_cmd.c && echo yes)
+ifeq ($(HAVE_EFUSE_SRC_FILE),yes)
+PLAT_INCLUDES		+=	-I${MTK_PLAT}/common/drivers/efuse/src
+BL31_SOURCES		+=	${MTK_PLAT}/common/drivers/efuse/src/efuse_cmd.c
+else
+PREBUILT_LIBS		+=	${MTK_PLAT_SOC}/drivers/efuse/release/efuse_cmd.o
 endif
 
 # Build dtb before embedding to BL2

@@ -13,6 +13,7 @@ ENABLE_JTAG		?=	0
 
 include lib/libfdt/libfdt.mk
 include lib/xz/xz.mk
+include make_helpers/dep.mk
 
 PLAT_INCLUDES		:=	-I${MTK_PLAT}/common/				\
 				-I${MTK_PLAT}/common/drivers/uart		\
@@ -408,6 +409,19 @@ else
 ar_tool:
 	@echo "Warning: anti-rollback function has been turn-off"
 endif
+
+# Make sure make command parameter reflects on .o files immediately
+$(call GEN_DEP_RULES,bl2,emicfg bl2_boot_ram bl2_boot_snand bl2_boot_spim_nand mtk_efuse bl2_plat_setup)
+$(call MAKE_DEP,bl2,emicfg,DRAM_USE_DDR4 DRAM_SIZE_LIMIT DRAM_DEBUG_LOG)
+$(call MAKE_DEP,bl2,bl2_plat_setup,BOOT_DEVICE BL2_COMPRESS I2C_SUPPORT)
+$(call MAKE_DEP,bl2,bl2_boot_ram,RAM_BOOT_DEBUGGER_HOOK RAM_BOOT_UART_DL)
+$(call MAKE_DEP,bl2,bl2_boot_snand,NMBM NMBM_MAX_RATIO NMBM_MAX_RESERVED_BLOCKS NMBM_DEFAULT_LOG_LEVEL)
+$(call MAKE_DEP,bl2,bl2_boot_spim_nand,NMBM NMBM_MAX_RATIO NMBM_MAX_RESERVED_BLOCKS NMBM_DEFAULT_LOG_LEVEL)
+$(call MAKE_DEP,bl2,mtk_efuse,ANTI_ROLLBACK TRUSTED_BOARD_BOOT)
+$(call MAKE_DEP,bl2,mt7986_gpio,ENABLE_JTAG)
+
+$(call GEN_DEP_RULES,bl31,mtk_efuse)
+$(call MAKE_DEP,bl31,mtk_efuse,ANTI_ROLLBACK TRUSTED_BOARD_BOOT)
 
 # BL2 compress
 ifeq ($(BL2_COMPRESS),1)

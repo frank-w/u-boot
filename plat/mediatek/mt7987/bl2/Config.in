@@ -1,0 +1,31 @@
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Copyright (c) 2023, MediaTek Inc. All rights reserved.
+# Author: Weijie Gao <weijie.gao@mediatek.com>
+#
+# MT7987 booting configurations
+#
+
+if _PLAT_MT7987
+
+config _MT7987_SPIM_NAND_PREFER_SPI2
+	bool "Prefer booting FIP from SPI2"
+	depends on _BOOT_DEVICE_SPIM_NAND
+	default n
+
+config _MT7987_SPIM_NAND_NO_RETRY
+	bool "Don't try another SPI controller"
+	depends on _BOOT_DEVICE_SPIM_NAND
+	default n
+
+config SPIM_NAND_PREFER_SPI2
+	int
+	default 1
+	depends on _MT7987_SPIM_NAND_PREFER_SPI2
+
+config SPIM_NAND_NO_RETRY
+	int
+	default 1
+	depends on _MT7987_SPIM_NAND_NO_RETRY
+
+endif # _PLAT_MT7987

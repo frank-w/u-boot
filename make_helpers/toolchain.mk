@@ -253,12 +253,21 @@ ifndef toolchain-mk
         toolchain-guess-tool-llvm-objdump = $(shell LANG=C $(1) --help 2>&1 </dev/null | grep -o "llvm object file dumper")
         toolchain-guess-tool-llvm-ar = $(shell LANG=C $(1) --help 2>&1 </dev/null | grep -o "LLVM Archiver")
 
+ifeq ($(DO_ATF_KCONFIG),)
         # GNU Compiler Collection & GNU Binary Utilities
         toolchain-guess-tool-gnu-gcc = $(shell LANG=C $(1) -v 2>&1 </dev/null | grep -o "gcc version")
         toolchain-guess-tool-gnu-ld = $(shell LANG=C $(1) -v 2>&1 </dev/null | grep -o "GNU ld")
         toolchain-guess-tool-gnu-objcopy = $(shell LANG=C $(1) --version 2>&1 </dev/null | grep -o "GNU objcopy")
         toolchain-guess-tool-gnu-objdump = $(shell LANG=C $(1) --version 2>&1 </dev/null | grep -o "GNU objdump")
         toolchain-guess-tool-gnu-ar = $(shell LANG=C $(1) --version 2>&1 </dev/null | grep -o "GNU ar")
+else
+        # Set fake toolchain for menuconfig
+        toolchain-guess-tool-gnu-gcc = gcc version
+        toolchain-guess-tool-gnu-ld = GNU ld
+        toolchain-guess-tool-gnu-objcopy = GNU objcopy
+        toolchain-guess-tool-gnu-objdump = GNU objdump
+        toolchain-guess-tool-gnu-ar = GNU ar
+endif
 
         # Other tools
         toolchain-guess-tool-generic-dtc = $(shell LANG=C $(1) --version 2>&1 </dev/null | grep -o "Version: DTC")

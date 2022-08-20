@@ -106,7 +106,7 @@ case $1 in
 		echo "LV: -$ubranch, crosscompile: $CROSS_COMPILE, CFLAGS: $CFLAGS"
 
 		if [[ "$board" == "bpi-r2pro" ]]; then
-			rm tee.bin #due to invalid format
+			rm tee.bin 2>/dev/null #due to invalid format
 			#https://forum.pine64.org/showthread.php?tid=14507
 			#binaries from: https://github.com/rockchip-linux/rkbin/tree/master/bin/rk35
 			ln -sf files/bpi-r2pro/rk3568_bl31_v1.24.elf bl31.elf
@@ -127,6 +127,7 @@ case $1 in
 			fi
 		else
 			echo "build failed!"
+			exit 1
 		fi
 	;;
 	"config")

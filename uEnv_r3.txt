@@ -30,7 +30,7 @@ useusb=if usb info; then usb reset;else usb start;fi; setenv device usb;setenv p
 useinitrd=setenv root "/dev/ram0 rw";setenv bootopts "${bootopts} initrd=${rdaddr},20M";fatload ${device} ${partition} ${rdaddr} ${initrd};
 checkrd=if printenv initrd;then run useinitrd;fi
 
-newboot=run checkrd buildargs;if printenv fit;then setenv kernel ${fit};if run loadkernel; then bootm ${kaddr}${bootconf}; fi;fi;
+newboot=run checkrd; run buildargs;if printenv fit;then setenv kernel ${fit};if run loadkernel; then bootm ${kaddr}${bootconf}; fi;fi;
 
 checkmmc=if mmc partconf 0; then echo "emmc available";mmcdev="emmc";else echo "sd available";mmcdev="sd";fi
 checkspi=if nand info; then echo "spim-nand available";spidev="nand";else echo "nor available";spidev="nor";fi
@@ -42,3 +42,17 @@ wremmc=if printenv bl2file;then mmc partconf 0 1 1 1;if fatload $device $partiti
 
 bootdelay=0
 bootcmd=setenv bootdelay 3; run loadenv;
+
+##untested
+lskernel=ls ${device} ${partition};
+askkernel=askenv kernelinput "enter kernel name:";
+
+
+boot0=run lskernel;run askkernel;if printenv kernelinput ;then setenv fit ${kernelinput}; run newboot; fi;
+boot1=run loadenv; run newboot;
+
+bootmenu_0=1. Enter kernel-name to boot from SD/EMMC.=run boot0
+bootmenu_1=2. Boot kernel from TFTP.=run bootnet
+bootmenu_2=3. Boot from SD/EMMC.=run boot1
+
+bootmenu_default=2

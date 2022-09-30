@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016, ARM Limited and Contributors. All rights reserved.
+ * Copyright (c) 2013-2022, ARM Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -13,8 +13,6 @@
 #include <common/debug.h>
 #include <drivers/arm/cci.h>
 #include <lib/utils.h>
-#include <lib/xlat_tables/xlat_tables.h>
-
 #include <plat_private.h>
 
 #ifdef PLAT_RK_CCI_BASE
@@ -28,6 +26,7 @@ static const int cci_map[] = {
  * Macro generating the code for the function setting up the pagetables as per
  * the platform memory map & initialize the mmu, for the given exception level
  ******************************************************************************/
+#if USE_COHERENT_MEM
 #define DEFINE_CONFIGURE_MMU_EL(_el)					\
 	void plat_configure_mmu_el ## _el(unsigned long total_base,	\
 					  unsigned long total_size,	\
@@ -51,6 +50,25 @@ static const int cci_map[] = {
 									\
 		enable_mmu_el ## _el(0);				\
 	}
+#else
+#define DEFINE_CONFIGURE_MMU_EL(_el)					\
+	void plat_configure_mmu_el ## _el(unsigned long total_base,	\
+					  unsigned long total_size,	\
+					  unsigned long ro_start,	\
+					  unsigned long ro_limit) \
+	{								\
+		mmap_add_region(total_base, total_base,			\
+				total_size,				\
+				MT_MEMORY | MT_RW | MT_SECURE);		\
+		mmap_add_region(ro_start, ro_start,			\
+				ro_limit - ro_start,			\
+				MT_MEMORY | MT_RO | MT_SECURE);		\
+		mmap_add(plat_rk_mmap);					\
+		rockchip_plat_mmu_el##_el();				\
+		init_xlat_tables();					\
+		enable_mmu_el ## _el(0);				\
+	}
+#endif
 
 /* Define EL3 variants of the function initialising the MMU */
 DEFINE_CONFIGURE_MMU_EL(3)

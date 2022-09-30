@@ -18,6 +18,9 @@
 #define CORTEX_A55_CPUPWRCTLR_EL1	S3_0_C15_C2_7
 #define CORTEX_A55_CPUECTLR_EL1		S3_0_C15_C1_4
 
+#define CORTEX_A55_CLUSTERPWRCTLR_EL1	S3_0_C15_C3_5
+#define CORTEX_A55_CLUSTERPWRDN_EL1	S3_0_C15_C3_6
+
 #define CORTEX_A55_CPUECTLR_EL1_L1WSCTL	(ULL(3) << 25)
 
 /*******************************************************************************
@@ -44,5 +47,9 @@
 #define CPUPCR_EL3	S3_6_C15_C8_1
 #define CPUPOR_EL3	S3_6_C15_C8_2
 #define CPUPMR_EL3	S3_6_C15_C8_3
-
+#ifndef __ASSEMBLER__
+#include <stdint.h>
+void cortex_a55_core_pwr_dwn(void);
+void cortex_a55_dsu_pwr_dwn(void);
+#endif /* __ASSEMBLER__ */
 #endif /* CORTEX_A55_H */

@@ -18,6 +18,7 @@
 
 	.globl cortex_a55_reset_func
 	.globl cortex_a55_core_pwr_dwn
+	.globl cortex_a55_dsu_pwr_dwn
 	/* --------------------------------------------------
 	 * Errata Workaround for Cortex A55 Errata #768277.
 	 * This applies only to revision r0p0 of Cortex A55.
@@ -300,6 +301,13 @@ func cortex_a55_core_pwr_dwn
 	isb
 	ret
 endfunc cortex_a55_core_pwr_dwn
+
+func cortex_a55_dsu_pwr_dwn
+	mov     x1, #0x00
+	msr     CORTEX_A55_CLUSTERPWRCTLR_EL1, x0
+	isb
+	ret
+endfunc cortex_a55_dsu_pwr_dwn
 
 #if REPORT_ERRATA
 /*

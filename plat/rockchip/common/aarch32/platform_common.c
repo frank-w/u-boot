@@ -12,7 +12,6 @@
 #include <common/bl_common.h>
 #include <common/debug.h>
 #include <lib/utils.h>
-#include <lib/xlat_tables/xlat_tables.h>
 
 #include <plat_private.h>
 

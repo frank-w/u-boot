@@ -33,7 +33,7 @@ checkrd=if printenv initrd;then run useinitrd;fi
 newboot=run checkrd; run buildargs;if printenv fit;then setenv kernel ${fit};if run loadkernel; then bootm ${kaddr}${bootconf}; fi;fi;
 
 checkmmc=if mmc partconf 0; then echo "emmc available";mmcdev="emmc";else echo "sd available";mmcdev="sd";fi
-checkspi=if nand info; then echo "spim-nand available";spidev="nand";else echo "nor available";spidev="nor";fi
+checkspi=if sf probe; then echo "NOR available";spidev="nor";else echo "NAND available";spidev="nand";fi
 
 setbootconf=run checkmmc checkspi;echo $mmcdev $spidev;setenv bootconf "#conf-$mmcdev-$spidev"
 

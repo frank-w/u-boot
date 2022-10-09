@@ -138,7 +138,7 @@
 	dma_ext;
 	ipm_design;
 	support_quad;
-	tick_dly = <2>;
+	tick_dly = <1>;
 	sample_sel = <0>;
 
 	spi_nor@0 {

@@ -12,6 +12,11 @@ if [[ -e build.conf ]];then
        . build.conf
 fi
 
+case $device in
+	"spi-nand") device="spim_nand";;
+	"spi-nor") device="spim_nor";;
+esac
+
 DEFCONFIG="mt7986_rfb_${device}_defconfig"
 
 
@@ -68,6 +73,10 @@ case $1 in
 			;;
 		esac
 		#sudo losetup -d $LDEV
+	;;
+	"rename")
+		cp build/mt7986/release/bl2.img ${board}_${device}_bl2.img
+		cp build/mt7986/release/fip.bin ${board}_${device}_fip.bin
 	;;
 	"")
 		$0 build

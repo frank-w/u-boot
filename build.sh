@@ -47,7 +47,7 @@ case $1 in
 		IMGNAME=${board}_${device}
 		REALSIZE=7000
 		dd if=/dev/zero of=$IMGDIR/$IMGNAME.img bs=1M count=$REALSIZE 1> /dev/null 2>&1
-		LDEV=`losetup -f`
+		LDEV=`sudo losetup -f`
 		DEV=`echo $LDEV | cut -d "/" -f 3`     #mount image to loop device
 		echo "run losetup to assign image $IMGNAME.img to loopdev $LDEV ($DEV)"
 		sudo losetup $LDEV $IMGDIR/$IMGNAME.img 1> /dev/null #2>&1

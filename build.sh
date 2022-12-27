@@ -90,7 +90,8 @@ case $1 in
 				rootstart=$(( ${bootend}+1 ))
 				rootend=$(( ${rootstart} + (${rootsize}*1024*2) ))
 				sudo sgdisk -o ${LDEV}
-				sudo sgdisk -a 1 -n 1:34:8191		-t 1:8300 -c 1:"bl2"		${LDEV}
+				sudo sgdisk -a 1 -n 1:34:8191 -A 1:set:2 -t 1:8300 -c 1:"bl2"		${LDEV}
+				#sudo sgdisk --attributes=1:set:2 ${LDEV}
 				sudo sgdisk -a 1 -n 2:8192:9215		-t 2:8300 -c 2:"u-boot-env"	${LDEV}
 				sudo sgdisk -a 1 -n 3:9216:13311	-t 3:8300 -c 3:"factory"	${LDEV}
 				sudo sgdisk -a 1 -n 4:13312:17407	-t 4:8300 -c 4:"fip"		${LDEV}

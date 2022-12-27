@@ -8,6 +8,9 @@ device="sdmmc"
 #device="spim_nand"
 #device="spim_nor"
 
+#https://forum.banana-pi.org/t/tutorial-build-customize-and-use-mediatek-open-source-u-boot-and-atf/13785/
+mkimg="USE_MKIMAGE=1 MKIMAGE=./tools/mkimage"
+
 if [[ -e build.conf ]];then
        . build.conf
 fi
@@ -31,7 +34,14 @@ case $1 in
 		make menuconfig
 	;;
 	"build")
-		make
+		#make -f Makefile PLAT=mt7622 BOOT_DEVICE=sdmmc DDR3_FLYBY=1 all fip
+		#make -f Makefile PLAT=mt7986 BOOT_DEVICE=sdmmc DRAM_USE_DDR4=1 all fip
+		case "$board" in
+			"bpi-r64") makeflags="PLAT=mt7622 DDR3_FLYBY=1";;
+			"bpi-r3") makeflags="PLAT=mt7986 DRAM_USE_DDR4=1";;
+		esac
+		makeflags="$makeflags BL33=u-boot.bin"
+		make $makeflags $mkimg BOOT_DEVICE=$device all fip
 	;;
 	"install")
 		if [[ "$device" != "sdmmc" ]];then echo "$1 not supported for $device";exit 1;fi

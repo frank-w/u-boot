@@ -81,8 +81,20 @@ case $1 in
 		read -p "size of root? (MiB):" rootsize
 		case $board in
 			"bpi-r64")
+				bootstart=8192
+				bootend=$(( ${bootstart}+(${bootsize}*1024*2)-1 ))
+				rootstart=$(( ${bootend}+1 ))
+				rootend=$(( ${rootstart} + (${rootsize}*1024*2) ))
+				sudo sgdisk -o ${LDEV}
+				sudo sgdisk -a 1 -n 1:2048:6143 -t 1:8300 -c 1:"fip"		${LDEV}
+				sudo sgdisk -a 1 -n 2:6144:7167 -t 2:8300 -c 2:"config"		${LDEV}
+				sudo sgdisk -a 1 -n 3:7168:8191 -t 3:8300 -c 3:"rf"		${LDEV}
+				sudo sgdisk -a 1024 -n 4:${bootstart}:${bootend} -t 4:0700 -c 4:"kernel" ${LDEV}
+				sudo sgdisk -a 1024 -n 5:${rootstart}:${rootend} -t 5:8300 -c 5:"root" ${LDEV}
 				dd of=${LDEV} if=build/${PLAT}/release/bl2.img bs=512 seek=1024
 				dd of=${LDEV} if=build/${PLAT}/release/fip.bin bs=512 seek=2048
+				sudo mkfs.vfat "${LDEV}p4" -n BPI-BOOT #1> /dev/null 2>&1
+				sudo mkfs.ext4 -O ^metadata_csum,^64bit "${LDEV}p5" -L BPI-ROOT #1> /dev/null 2>&1
 			;;
 			"bpi-r3")
 				bootstart=17408

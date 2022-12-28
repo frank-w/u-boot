@@ -192,7 +192,7 @@ case $1 in
 	"rename")
 		filename=$(generate_filename)
 		echo "rename $UBOOT_FILE to $filename"
-		mv $UBOOT_FILE $filename
+		cp $UBOOT_FILE $filename
 	;;
 	*)
 		$0 build;

@@ -14,6 +14,12 @@ fi
 
 echo "ver:$uver,ubranch:$ubranch"
 
+device=sd
+#device=emmc
+#bpi-r3-only:
+#device=spi-nand
+#device=spi-nor
+
 if [[ -e "build.conf" ]];
 then
 	. build.conf
@@ -46,8 +52,25 @@ case $board in
 		export ARCH=arm64
 		export CROSS_COMPILE=aarch64-linux-gnu-
 		UBOOT_FILE=u-boot.bin
+	;;
+	"bpi-r3")
+		export ARCH=arm64
+		export CROSS_COMPILE=aarch64-linux-gnu-
 
-		FILE_UENV=/media/$USER/BPI-BOOT/bananapi/bpi-r64/linux/uEnv.txt
+		if [[ "$device" =~ (emmc|spi-nand|spi-nor) ]];then
+			dev=emmc
+		else
+			dev=$device
+		fi
+		FILE_DEFCFG=mt7986a_bpir3_${dev}_defconfig
+
+		DTS=mt7986a-${dev}-rfb
+		FILE_DTS=arch/arm/dts/${DTS}.dts
+		FILE_DTSI=arch/arm/dts/mt7986.dtsi
+
+		FILE_BOARD=board/mediatek/mt7986/mt7986_rfb.c
+		FILE_SOC=include/configs/mt7986.h
+		UBOOT_FILE=u-boot.bin
 	;;
 	*)
 		echo "unsupported"
@@ -65,7 +88,7 @@ fi
 function generate_filename
 {
 	#grep '^CONFIG_MT7531=y' .config >/dev/null;if [[ $? -eq 0 ]];then ETH="MT7531";fi
-	filename=u-boot-${board//bpi-/}_${uver}-${ubranch}-${ARCH}.bin
+	filename=u-boot-${board//bpi-/}_${uver}-${ubranch}-${ARCH}-${device}.bin
 	echo $filename
 }
 
@@ -94,6 +117,9 @@ case $1 in
 				echo "u-boot will overwrite env-storage area!"
 				echo "if you use this u-boot.bin don't use saveenv!"
 			fi;
+			if [[ -e uEnv_r3.txt.bak ]];then
+				mv uEnv_r3.txt{.bak,}
+			fi
 		else
 			echo "build failed!"
 		fi
@@ -104,7 +130,17 @@ case $1 in
 	"importconfig")
 		if [[ -n "$FILE_DEFCFG" ]];then
 			echo "importing $FILE_DEFCFG"
+			if [[ "$board" == "bpi-r3" ]];then
+				rm ${FILE_DEFCFG}.bak 2>/dev/null
+				if [[ "$device" =~ "spi" ]];then
+					sed -i.bak '/^CONFIG_ENV_IS_IN_MMC/d' $FILE_DEFCFG
+				fi
+				sed -i.bak 's/\(bootdevice=\).*/\1'${device}'/' uEnv_r3.txt
+			fi
 			make $FILE_DEFCFG
+			if [[ -e ${FILE_DEFCFG}.bak ]];then
+				mv ${FILE_DEFCFG}{.bak,}
+			fi
 		fi
 	;;
 	"defconfig")
@@ -126,7 +162,7 @@ case $1 in
 				sync
 			fi
 		else
-			echo "bpi-r64 with new ATF needs uboot packed into fip!"
+			echo "bpi-r64/bpi-r3 with new ATF needs uboot packed into fip!"
 		fi
 	;;
 	"umount")
@@ -156,7 +192,7 @@ case $1 in
 	"rename")
 		filename=$(generate_filename)
 		echo "rename $UBOOT_FILE to $filename"
-		mv $UBOOT_FILE $filename
+		cp $UBOOT_FILE $filename
 	;;
 	*)
 		$0 build;

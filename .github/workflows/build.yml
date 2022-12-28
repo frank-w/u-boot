@@ -49,19 +49,91 @@ jobs:
           key: ${{ runner.os }}-ccache
           restore-keys: ${{ runner.os }}-ccache
 
-      - name: Build for bananapi-r2
+      - name: Fetch mtk-atf branch for R64 + R3
+        run: |
+          git fetch origin mtk-atf
+
+      - name: Build for BananaPi-R2
         run: |
           export PATH=/usr/lib/ccache:$PATH
           bash build.sh importconfig
           bash build.sh build
           bash build.sh rename
 
-      - name: Build for bananapi-r64
+      - name: Build for BananaPi-R64
         run: |
           sed -i 's/#\(board=bpi-r64\)/\1/' build.conf #change board to r64
           bash build.sh importconfig
           bash build.sh build
           bash build.sh rename
+          git stash #stash build.conf
+
+          git checkout mtk-atf
+          echo -e "board=bpi-r64\ndevice=sdmmc" > build.conf
+          bash build.sh build
+          bash build.sh rename
+          bash build.sh createimg non-interactive
+          rm build.conf
+
+          git checkout ${{ env.BRANCH }}
+          git stash pop #restore build.conf
+
+      - name: Build for BananaPi-R3
+        run: |
+          sed -i 's/#\(board=bpi-r3\)/\1/' build.conf #change board to r3
+          bash build.sh importconfig
+          bash build.sh build
+          bash build.sh rename
+          git stash #stash build.conf
+
+          git checkout mtk-atf
+          echo -e "board=bpi-r3\ndevice=sdmmc" > build.conf
+          bash build.sh build
+          bash build.sh rename
+          bash build.sh createimg non-interactive
+          rm build.conf
+
+          git checkout ${{ env.BRANCH }}
+          git stash pop #restore build.conf
+          sed -i 's/#\(device=emmc\)/\1/' build.conf #change device
+          bash build.sh importconfig
+          bash build.sh build
+          bash build.sh rename
+          git stash #stash build.conf
+
+          git checkout mtk-atf
+          echo -e "board=bpi-r3\ndevice=emmc" > build.conf
+          bash build.sh build
+          bash build.sh rename
+          rm build.conf
+
+          git checkout ${{ env.BRANCH }}
+          git stash pop #restore build.conf
+          sed -i 's/#\(device=spi-nand\)/\1/' build.conf #change device
+          bash build.sh importconfig
+          bash build.sh build
+          bash build.sh rename
+          git stash #stash build.conf
+
+          git checkout mtk-atf
+          echo -e "board=bpi-r3\ndevice=spim-nand" > build.conf
+          bash build.sh build
+          bash build.sh rename
+          rm build.conf
+
+          git checkout ${{ env.BRANCH }}
+          git stash pop #restore build.conf
+          sed -i 's/#\(device=spi-nor\)/\1/' build.conf #change device
+          bash build.sh importconfig
+          bash build.sh build
+          bash build.sh rename
+          git stash #stash build.conf
+
+          git checkout mtk-atf
+          echo -e "board=bpi-r3\ndevice=nor" > build.conf
+          bash build.sh build
+          bash build.sh rename
+          rm build.conf
 
       - name: Upload binaries to release
         if: endsWith(github.ref,'-bpi')
@@ -74,3 +146,7 @@ jobs:
           files: |
             u-boot-r2*.bin
             u-boot-r64*.bin
+            u-boot-r3*.bin
+            *_fip.bin
+            *_bl2.img
+            *.img.gz

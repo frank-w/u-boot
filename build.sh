@@ -14,6 +14,12 @@ fi
 
 echo "ver:$uver,ubranch:$ubranch"
 
+device=sd
+#device=emmc
+#bpi-r3-only:
+#device=spi-nand
+#device=spi-nor
+
 if [[ -e "build.conf" ]];
 then
 	. build.conf
@@ -46,8 +52,25 @@ case $board in
 		export ARCH=arm64
 		export CROSS_COMPILE=aarch64-linux-gnu-
 		UBOOT_FILE=u-boot.bin
+	;;
+	"bpi-r3")
+		export ARCH=arm64
+		export CROSS_COMPILE=aarch64-linux-gnu-
 
-		FILE_UENV=/media/$USER/BPI-BOOT/bananapi/bpi-r64/linux/uEnv.txt
+		if [[ "$device" =~ (emmc|spi-nand|spi-nor) ]];then
+			dev=emmc
+		else
+			dev=$device
+		fi
+		FILE_DEFCFG=mt7986a_bpir3_${dev}_defconfig
+
+		DTS=mt7986a-${dev}-rfb
+		FILE_DTS=arch/arm/dts/${DTS}.dts
+		FILE_DTSI=arch/arm/dts/mt7986.dtsi
+
+		FILE_BOARD=board/mediatek/mt7986/mt7986_rfb.c
+		FILE_SOC=include/configs/mt7986.h
+		UBOOT_FILE=u-boot.bin
 	;;
 	*)
 		echo "unsupported"
@@ -126,7 +149,7 @@ case $1 in
 				sync
 			fi
 		else
-			echo "bpi-r64 with new ATF needs uboot packed into fip!"
+			echo "bpi-r64/bpi-r3 with new ATF needs uboot packed into fip!"
 		fi
 	;;
 	"umount")

@@ -63,6 +63,13 @@ jobs:
           bash build.sh build
           bash build.sh rename
 
+      - name: Build for bananapi-r3
+        run: |
+          sed -i 's/#\(board=bpi-r3\)/\1/' build.conf #change board to r3
+          bash build.sh importconfig
+          bash build.sh build
+          bash build.sh rename
+
       - name: Upload binaries to release
         if: endsWith(github.ref,'-bpi')
         uses: marvinpinto/action-automatic-releases@latest

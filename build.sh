@@ -117,7 +117,9 @@ case $1 in
 				echo "u-boot will overwrite env-storage area!"
 				echo "if you use this u-boot.bin don't use saveenv!"
 			fi;
-			mv uEnv_r3.txt{.bak,} 2>/dev/null
+			if [[ -e uEnv_r3.txt.bak ]];then
+				mv uEnv_r3.txt{.bak,}
+			fi
 		else
 			echo "build failed!"
 		fi

@@ -81,3 +81,4 @@ jobs:
           files: |
             u-boot-r2*.bin
             u-boot-r64*.bin
+            u-boot-r3*.bin

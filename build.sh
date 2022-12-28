@@ -19,6 +19,7 @@ then
 	. build.conf
 fi
 
+ENV_START=0
 case $board in
 	"bpi-r2")
 		FILE_DTS=arch/arm/dts/mt7623n-bananapi-bpi-r2.dts
@@ -26,7 +27,6 @@ case $board in
 		FILE_DEFCFG=mt7623n_bpir2_defconfig
 		FILE_BOARD=board/mediatek/mt7623/mt7623_rfb.c
 		FILE_SOC=include/configs/mt7623.h
-		FILE_UENV=/media/$USER/BPI-BOOT/bananapi/bpi-r2/linux/uEnv.txt
 
 		#start-values in kB
 		UBOOT_START=320
@@ -34,11 +34,9 @@ case $board in
 		ENV_START=1024 #ENV_OFFSET = 0x100000
 	;;
 	"bpi-r64")
-		#FILE_DTS=arch/arm/dts/mt7622-bananapi-bpi-r64.dts
-		FILE_DTS=arch/arm/dts/mt7622-rfb.dts
+		FILE_DTS=arch/arm/dts/mt7622-bananapi-bpi-r64.dts
 		FILE_DEFCFG=mt7622_bpi-r64_defconfig
 		FILE_DTSI=arch/arm/dts/mt7622.dtsi
-		#FILE_DEFCFG=mt7622_bpi-r64_32_defconfig
 		FILE_BOARD=board/mediatek/mt7622/mt7622_rfb.c
 		FILE_SOC=include/configs/mt7622.h
 
@@ -53,11 +51,16 @@ case $board in
 	;;
 	*)
 		echo "unsupported"
+		exit 1;
 	;;
 esac
+FILE_UENV=/media/$USER/BPI-BOOT/bananapi/$board/linux/uEnv.txt
 
-
-MAXSIZE=$(( ($ENV_START - $UBOOT_START)*1024 -1 ))
+if [[ $ENV_START -ne 0 ]];then
+	MAXSIZE=$(( ($ENV_START - $UBOOT_START) *1024 -1 ))
+else
+	MAXSIZE=0
+fi
 
 function generate_filename
 {

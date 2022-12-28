@@ -117,6 +117,7 @@ case $1 in
 				echo "u-boot will overwrite env-storage area!"
 				echo "if you use this u-boot.bin don't use saveenv!"
 			fi;
+			mv uEnv_r3.txt{.bak,} 2>/dev/null
 		else
 			echo "build failed!"
 		fi
@@ -127,7 +128,17 @@ case $1 in
 	"importconfig")
 		if [[ -n "$FILE_DEFCFG" ]];then
 			echo "importing $FILE_DEFCFG"
+			if [[ "$board" == "bpi-r3" ]];then
+				rm ${FILE_DEFCFG}.bak 2>/dev/null
+				if [[ "$device" =~ "spi" ]];then
+					sed -i.bak '/^CONFIG_ENV_IS_IN_MMC/d' $FILE_DEFCFG
+				fi
+				sed -i.bak 's/\(bootdevice=\).*/\1'${device}'/' uEnv_r3.txt
+			fi
 			make $FILE_DEFCFG
+			if [[ -e ${FILE_DEFCFG}.bak ]];then
+				mv ${FILE_DEFCFG}{.bak,}
+			fi
 		fi
 	;;
 	"defconfig")

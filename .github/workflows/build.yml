@@ -77,6 +77,7 @@ jobs:
           echo -e "board=bpi-r3\ndevice=sdmmc" > build.conf
           bash build.sh build
           bash build.sh rename
+          bash build.sh createimg non-interactive
           rm build.conf
 
           git checkout ${{ env.BRANCH }}
@@ -107,3 +108,4 @@ jobs:
             u-boot-r3*.bin
             *_fip.bin
             *_bl2.img
+            *.img.gz

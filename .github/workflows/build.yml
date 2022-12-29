@@ -65,10 +65,33 @@ jobs:
 
       - name: Build for bananapi-r3
         run: |
+          git remote set-branches origin '*'
+          git fetch --depth 1
           sed -i 's/#\(board=bpi-r3\)/\1/' build.conf #change board to r3
           bash build.sh importconfig
           bash build.sh build
           bash build.sh rename
+          git stash #stash build.conf
+
+          git checkout mtk-atf
+          echo -e "board=bpi-r3\ndevice=sdmmc" > build.conf
+          bash build.sh build
+          bash build.sh rename
+          rm build.conf
+
+          git checkout ${{ env.BRANCH }}
+          git stash pop #restore build.conf
+          sed -i 's/#\(device=emmc\)/\1/' build.conf #change device
+          bash build.sh importconfig
+          bash build.sh build
+          bash build.sh rename
+          git stash #stash build.conf
+
+          git checkout mtk-atf
+          echo -e "board=bpi-r3\ndevice=emmc" > build.conf
+          bash build.sh build
+          bash build.sh rename
+          rm build.conf
 
       - name: Upload binaries to release
         if: endsWith(github.ref,'-bpi')
@@ -82,3 +105,5 @@ jobs:
             u-boot-r2*.bin
             u-boot-r64*.bin
             u-boot-r3*.bin
+            *.fip
+            bl2*.img

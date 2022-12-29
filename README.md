@@ -1,16 +1,19 @@
-# U-boot for BPI-R2
+# U-boot for BPI-R2/R64/R3
 
 ![CI](https://github.com/frank-w/u-boot/workflows/CI/badge.svg?branch=2021-01-bpi)
+
+BPI-R2Pro is not supported due to internal changes in U-boot and no Open-Source-ATF.
+Last working Version is in Branch 2022-04-bpi
 
 ## Requirements
 
 On x86/x64-host you need cross compile tools for the armhf architecture:
 ```sh
-sudo apt-get install gcc-arm-linux-gnueabihf libc6-armhf-cross u-boot-tools make gcc swig python-dev
+sudo apt-get install gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu libc6-armhf-cross u-boot-tools make gcc swig python-dev
 ```
 
 ## Issues
-- loadenv failes because of resized environment (4096 => 8188)
+- loadenv fails because of resized environment (4096 => 8188)
   - backup your saved environment before update uboot or 
     change back CONFIG_ENV_SIZE to SZ_4K (./build.sh soc)
   - erase your saved environment
@@ -24,7 +27,7 @@ env erase
 ## Usage
 
 ```sh
-  #edit build.conf to select bpi-r64 if needed
+  #edit build.conf to select bpi-r64/bpi-r3 if needed
   ./build.sh importconfig
   ./build.sh config #optional (menuconfig)
   ./build.sh

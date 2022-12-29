@@ -94,6 +94,34 @@ jobs:
           bash build.sh rename
           rm build.conf
 
+          git checkout ${{ env.BRANCH }}
+          git stash pop #restore build.conf
+          sed -i 's/#\(device=spi-nand\)/\1/' build.conf #change device
+          bash build.sh importconfig
+          bash build.sh build
+          bash build.sh rename
+          git stash #stash build.conf
+
+          git checkout mtk-atf
+          echo -e "board=bpi-r3\ndevice=spim-nand" > build.conf
+          bash build.sh build
+          bash build.sh rename
+          rm build.conf
+
+          git checkout ${{ env.BRANCH }}
+          git stash pop #restore build.conf
+          sed -i 's/#\(device=spi-nor\)/\1/' build.conf #change device
+          bash build.sh importconfig
+          bash build.sh build
+          bash build.sh rename
+          git stash #stash build.conf
+
+          git checkout mtk-atf
+          echo -e "board=bpi-r3\ndevice=nor" > build.conf
+          bash build.sh build
+          bash build.sh rename
+          rm build.conf
+
       - name: Upload binaries to release
         if: endsWith(github.ref,'-bpi')
         uses: marvinpinto/action-automatic-releases@latest

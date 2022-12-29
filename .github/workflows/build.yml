@@ -49,6 +49,10 @@ jobs:
           key: ${{ runner.os }}-ccache
           restore-keys: ${{ runner.os }}-ccache
 
+      - name: fetch additional mtk-atf branch
+        run: |
+          git fetch origin mtk-atf
+
       - name: Build for bananapi-r2
         run: |
           export PATH=/usr/lib/ccache:$PATH
@@ -62,11 +66,20 @@ jobs:
           bash build.sh importconfig
           bash build.sh build
           bash build.sh rename
+          git stash #stash build.conf
+
+          git checkout mtk-atf
+          echo -e "board=bpi-r64\ndevice=sdmmc" > build.conf
+          bash build.sh build
+          bash build.sh rename
+          bash build.sh createimg non-interactive
+          rm build.conf
+
+          git checkout ${{ env.BRANCH }}
+          git stash pop #restore build.conf
 
       - name: Build for bananapi-r3
         run: |
-          git remote set-branches origin '*'
-          git fetch --depth 1
           sed -i 's/#\(board=bpi-r3\)/\1/' build.conf #change board to r3
           bash build.sh importconfig
           bash build.sh build

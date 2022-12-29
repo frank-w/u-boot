@@ -80,8 +80,8 @@ case $1 in
 		bootsize=100
 		rootsize=6144
 		if [[ "$2" != "non-interactive" ]];then
-			read -p "size of boot? (MiB):" -i bootsize bootsize
-			read -p "size of root? (MiB):" -i rootsize rootsize
+			read -p "size of boot? (MiB): " -ei $bootsize bootsize
+			read -p "size of root? (MiB): " -ei $rootsize rootsize
 		fi
 		case $board in
 			"bpi-r64")
@@ -95,8 +95,11 @@ case $1 in
 				sudo sgdisk -a 1 -n 3:7168:8191 -t 3:8300 -c 3:"rf"		${LDEV}
 				sudo sgdisk -a 1024 -n 4:${bootstart}:${bootend} -t 4:0700 -c 4:"kernel" ${LDEV}
 				sudo sgdisk -a 1024 -n 5:${rootstart}:${rootend} -t 5:8300 -c 5:"root" ${LDEV}
-				dd of=${LDEV} if=build/${PLAT}/release/bl2.img bs=512 seek=1024
-				dd of=${LDEV} if=build/${PLAT}/release/fip.bin bs=512 seek=2048
+				sudo dd of=${LDEV} if=build/${PLAT}/release/bl2.img bs=512 seek=1024
+				sudo dd of=${LDEV} if=build/${PLAT}/release/fip.bin bs=512 seek=2048
+				#re-read part table
+				sudo losetup -d $LDEV
+				sudo losetup -P $LDEV $IMGDIR/$IMGNAME.img 1> /dev/null #2>&1
 				sudo mkfs.vfat "${LDEV}p4" -n BPI-BOOT #1> /dev/null 2>&1
 				sudo mkfs.ext4 -O ^metadata_csum,^64bit "${LDEV}p5" -L BPI-ROOT #1> /dev/null 2>&1
 			;;

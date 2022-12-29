@@ -6,8 +6,8 @@ board="bpi-r3"
 #board="bpi-r64"
 device="sdmmc"
 #device="emmc"
-#device="spim_nand"
-#device="spim_nor"
+#device="spim-nand"
+#device="nor"
 
 #https://forum.banana-pi.org/t/tutorial-build-customize-and-use-mediatek-open-source-u-boot-and-atf/13785/
 mkimg="USE_MKIMAGE=1 MKIMAGE=./tools/mkimage"
@@ -17,8 +17,8 @@ if [[ -e build.conf ]];then
 fi
 
 case $device in
-	"spi-nand") device="spim_nand";;
-	"spi-nor") device="spim_nor";;
+	"spi-nand") device="spim-nand";;
+	"spi-nor") device="nor";;
 esac
 
 #DEFCONFIG="mt7986_rfb_${device}_defconfig"

@@ -77,8 +77,12 @@ case $1 in
 		DEV=`echo $LDEV | cut -d "/" -f 3`     #mount image to loop device
 		echo "run losetup to assign image $IMGNAME.img to loopdev $LDEV ($DEV)"
 		sudo losetup $LDEV $IMGDIR/$IMGNAME.img 1> /dev/null #2>&1
-		read -p "size of boot? (MiB):" bootsize
-		read -p "size of root? (MiB):" rootsize
+		bootsize=100
+		rootsize=6144
+		if [[ "$2" != "non-interactive" ]];then
+			read -p "size of boot? (MiB):" -i bootsize bootsize
+			read -p "size of root? (MiB):" -i rootsize rootsize
+		fi
 		case $board in
 			"bpi-r64")
 				bootstart=8192
@@ -125,7 +129,9 @@ case $1 in
 				sudo mkfs.ext4 -O ^metadata_csum,^64bit "${LDEV}p6" -L BPI-ROOT #1> /dev/null 2>&1
 			;;
 		esac
-		#sudo losetup -d $LDEV
+		sudo losetup -d $LDEV
+		echo "packing image..."
+		gzip $IMGDIR/$IMGNAME.img
 	;;
 	"rename")
 		cp build/${PLAT}/release/bl2.img ${board}_${device}_bl2.img

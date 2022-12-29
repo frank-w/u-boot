@@ -1,4 +1,4 @@
-# U-boot for BPI-R2
+# U-boot for BPI-R2/R64/R2Pro
 
 ![CI](https://github.com/frank-w/u-boot/workflows/CI/badge.svg?branch=2021-01-bpi)
 

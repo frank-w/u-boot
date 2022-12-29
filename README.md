@@ -21,7 +21,7 @@ then run
 and for sdcard-creation maybe
 
 ```sh
-./build.sh rename
+./build.sh createimg
 ```
 
 sdcard-image can be flashed with this command:

@@ -34,3 +34,64 @@ env erase
   ./build.sh install #write to sd-card
   ./build.sh umount #umount automatic mounted partitions
 ```
+
+## building and flash image
+
+for r64 and r3 there are basic image templates created containing
+the full bootchain till uboot.
+
+- bpi_r64-sdmmc.img.gz
+- bpi_r3-sdmmc.img.gz
+
+These do not contain linux kernel or rootfs.
+
+```sh
+gunzip -c bpi-r3_sdmmc.img.gz | sudo dd bs=1M status=progress conv=notrunc,fsync of=/dev/sdX
+```
+
+After this you can extract the rootfs and kernel to the card.
+
+refresh partitiontable and mounting
+
+```sh
+sudo partprobe /dev/sdX
+udisksctl mount -b /dev/disk/by-label/BPI-BOOT
+udisksctl mount -b /dev/disk/by-label/BPI-ROOT
+```
+
+debian bullseye rootfs (created by buildchroot.sh in same folder):
+https://drive.google.com/drive/folders/1mEcz1NLX8kv_AOKCPGGBcebRtLVNrQqF?usp=share_link
+
+kernel:
+https://github.com/frank-w/BPI-Router-Linux/releases/
+
+```sh
+# unpack debian rootfs
+sudo tar -xzf bullseye_arm64.tar.gz -C /media/$USER/BPI-ROOT
+# unpack kernel binary files
+sudo tar -xzf bpi-r3_6.1.0-main.tar.gz --strip-components=1 -C /media/$USER/BPI-BOOT BPI-BOOT
+# for r3 move kernel binary to root of boot-partition and rename it
+mv /media/$USER/BPI-BOOT/bananapi/bpi-r3/linux/bpi-r3.itb /media/$USER/BPI-BOOT/bananapi/bpi-r3/linux/bpi-r3-6.1.0.itb
+echo "fit=bpi-r3-6.1.0.itb" >> /media/$USER/BPI-BOOT/uEnv.txt
+# unpack kernel modules to rootfs
+# debian uses /lib as symlink to usr/lib, extracting the dir from tar overwrites symlink with directory
+# which contains then only the kernel-modules, but not other libs so extract the subfolder to /lib
+sudo tar -xzf bpi-r3_6.1.0-main.tar.gz --strip-components=2 -C /media/$USER/BPI-ROOT/lib/ BPI-ROOT/lib/
+```
+
+set root-password and maybe make additional changes:
+
+```sh
+sudo chroot /media/$USER/BPI-ROOT
+passwd
+echo "bpi-r3" > /etc/hostname
+```
+/etc/fstab
+```sh
+# <file system>	<dir>	<type>	<options>		<dump>	<pass>
+/dev/mmcblk0p5	/boot	vfat    errors=remount-ro	0	1
+/dev/mmcblk0p6	/	ext4	defaults		0	0
+```
+
+maybe add network-config (systemd) and systemd services i uploaded here:
+https://drive.google.com/drive/folders/1kST9ZOv8xQWFfo9GUNIIpKjD8QuYMj8i?usp=share_link

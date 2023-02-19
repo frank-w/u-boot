@@ -11,6 +11,8 @@ if [[ "${ubranch}" =~ ^\(.* ]]; then
 fi
 #uboot 2020-01 needs python.h...just note for a checkdep-function
 #sudo apt-get install python3-dev
+#r2pro needs python elftools
+#sudo apt-get install python3-pyelftools
 
 echo "ver:$uver,ubranch:$ubranch"
 
@@ -52,6 +54,23 @@ case $board in
 		export ARCH=arm64
 		export CROSS_COMPILE=aarch64-linux-gnu-
 		UBOOT_FILE=u-boot.bin
+	;;
+	"bpi-r2pro")
+		FILE_DTS=arch/arm/dts/rk3568-evb.dts
+		FILE_DTSI=arch/arm/dts/rk3568.dtsi
+		FILE_DEFCFG=evb-rk3568_defconfig
+		FILE_BOARD=board/rockchip/evb_rk3568/evb_rk3568.c
+		FILE_SOC=include/configs/rk3568_bpi-r2-pro.h
+
+		export BL31=files/bpi-r2pro/rk3568_bl31_v1.34.elf
+		export ROCKCHIP_TPL=files/bpi-r2pro/rk3568_ddr_1560MHz_v1.13.bin
+
+		#start-values in kB
+		UBOOT_START=32
+		#ENV_START=1024 #ENV_OFFSET = 0x100000
+		export ARCH=arm64
+		export CROSS_COMPILE=aarch64-linux-gnu-
+		UBOOT_FILE=u-boot-rockchip.bin
 	;;
 	"bpi-r3")
 		export ARCH=arm64
@@ -149,20 +168,39 @@ case $1 in
 		fi
 	;;
 	"install")
-		if [[ $ARCH == "arm" ]];then
+		if [[ $ARCH == "arm" ]] || [[ "$board" == "bpi-r2pro" ]];then
 			dev=/dev/sdb
 			choice=y
 			read -e -i "$dev" -p "Please enter target device: " dev
-			if ! [[ "$(lsblk ${dev}1 -o label -n)" == "BPI-BOOT" ]]; then
+			if [[ "$board" == "bpi-r2pro" ]];then
+				bootpart=$(lsblk ${dev}2 -o label -n)
+			else
+				bootpart=$(lsblk ${dev}1 -o label -n)
+			fi
+			if ! [[ "$bootpart" == "BPI-BOOT" ]]; then
 				read -e -p "this device seems not to be a BPI-R2 SD-Card, do you really want to use this device? [yn]" choice
 			fi
 			if [[ "$choice" == "y" ]];then
 				echo "writing to $dev ($UBOOT_FILE to ${UBOOT_START}k)"
-				sudo dd of=$dev if=$UBOOT_FILE bs=1k seek=$UBOOT_START;
+				if [[ "$board" == "bpi-r2pro" ]];then
+					sudo dd of=$dev if=u-boot-rockchip.bin bs=1k seek=$UBOOT_START; #seek=64
+				else
+					sudo dd of=$dev if=$UBOOT_FILE bs=1k seek=$UBOOT_START;
+				fi
 				sync
 			fi
 		else
 			echo "bpi-r64/bpi-r3 with new ATF needs uboot packed into fip!"
+		fi
+	;;
+	"mount")
+		mount | grep "BPI-BOOT" > /dev/null
+		if [[ $? -ne 0 ]];then
+			udisksctl mount -b /dev/disk/by-label/BPI-BOOT
+		fi
+		mount | grep "BPI-ROOT" > /dev/null
+		if [[ $? -ne 0 ]];then
+			udisksctl mount -b /dev/disk/by-label/BPI-ROOT
 		fi
 	;;
 	"umount")
@@ -193,6 +231,37 @@ case $1 in
 		filename=$(generate_filename)
 		echo "rename $UBOOT_FILE to $filename"
 		cp $UBOOT_FILE $filename
+	;;
+
+	"createimg")
+		IMGDIR=.
+		IMGNAME=${board}
+		REALSIZE=6000
+		dd if=/dev/zero of=$IMGDIR/$IMGNAME.img bs=1M count=$REALSIZE 1> /dev/null #2>&1
+		LDEV=`losetup -f`
+		DEV=`echo $LDEV | cut -d "/" -f 3`     #mount image to loop device
+		echo "run losetup to assign image $IMGNAME.img to loopdev $LDEV ($DEV)"
+		sudo losetup $LDEV $IMGDIR/$IMGNAME.img 1> /dev/null #2>&1
+		case $board in
+			"bpi-r2pro")
+				#https://gitlab.manjaro.org/manjaro-arm/applications/manjaro-arm-tools/-/blob/master/lib/functions.sh
+				sudo parted -s $LDEV mklabel gpt 1> /dev/null 2>&1
+				sudo parted -s $LDEV mkpart uboot fat32 8M 16M 1> /dev/null 2>&1
+				sudo parted -s $LDEV mkpart boot fat32 32M 256M 1> /dev/null 2>&1
+				START=`cat /sys/block/$DEV/${DEV}p2/start`
+				SIZE=`cat /sys/block/$DEV/${DEV}p2/size`
+				END_SECTOR=$(expr $START + $SIZE)
+				sudo parted -s $LDEV mkpart root ext4 "${END_SECTOR}s" 100% 1> /dev/null 2>&1
+				sudo parted -s $LDEV set 2 esp on
+				sudo partprobe $LDEV 1> /dev/null 2>&1
+				sudo mkfs.vfat "${LDEV}p2" -n BPI-BOOT 1> /dev/null 2>&1
+				sudo mkfs.ext4 -O ^metadata_csum,^64bit "${LDEV}p3" -L BPI-ROOT 1> /dev/null 2>&1
+				sudo dd if=u-boot-rockchip.bin of=${LDEV} seek=64 conv=notrunc,fsync 1> /dev/null 2>&1
+			;;
+		esac
+		sudo losetup -d $LDEV
+		echo "packing image..."
+		gzip $IMGDIR/$IMGNAME.img
 	;;
 	*)
 		$0 build;

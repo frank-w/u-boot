@@ -9,7 +9,7 @@ Last working Version is in Branch 2022-04-bpi
 
 On x86/x64-host you need cross compile tools for the armhf architecture:
 ```sh
-sudo apt-get install gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu libc6-armhf-cross u-boot-tools make gcc swig python-dev
+sudo apt-get install gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu libc6-armhf-cross u-boot-tools make gcc swig python-dev python3-pyelftools
 ```
 
 ## Issues

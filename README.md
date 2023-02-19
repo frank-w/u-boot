@@ -1,15 +1,12 @@
-# U-boot for BPI-R2/R64/R3
+# U-boot for BPI-R2/R64/R2Pro/R3
 
-![CI](https://github.com/frank-w/u-boot/workflows/CI/badge.svg?branch=2021-01-bpi)
-
-BPI-R2Pro is not supported due to internal changes in U-boot and no Open-Source-ATF.
-Last working Version is in Branch 2022-04-bpi
+![CI](https://github.com/frank-w/u-boot/workflows/CI/badge.svg?branch=2023-04-bpi)
 
 ## Requirements
 
 On x86/x64-host you need cross compile tools for the armhf architecture:
 ```sh
-sudo apt-get install gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu libc6-armhf-cross u-boot-tools make gcc swig python-dev
+sudo apt-get install gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu libc6-armhf-cross u-boot-tools make gcc swig python-dev python3-pyelftools
 ```
 
 ## Issues
@@ -27,7 +24,7 @@ env erase
 ## Usage
 
 ```sh
-  #edit build.conf to select bpi-r64/bpi-r3 if needed
+  #edit build.conf to select bpi-r64/bpi-r2pro/bpi-r3 if needed
   ./build.sh importconfig
   ./build.sh config #optional (menuconfig)
   ./build.sh
@@ -37,10 +34,11 @@ env erase
 
 ## building and flash image
 
-for r64 and r3 there are basic image templates created containing
+for r64, r2pro and r3 there are basic image templates created containing
 the full bootchain till uboot.
 
 - bpi_r64-sdmmc.img.gz
+- bpi_r2pro.img.gz
 - bpi_r3-sdmmc.img.gz
 
 These do not contain linux kernel or rootfs.
@@ -71,13 +69,16 @@ sudo tar -xzf bullseye_arm64.tar.gz -C /media/$USER/BPI-ROOT
 # unpack kernel binary files
 sudo tar -xzf bpi-r3_6.1.0-main.tar.gz --strip-components=1 -C /media/$USER/BPI-BOOT BPI-BOOT
 # for r3 move kernel binary to root of boot-partition and rename it
-mv /media/$USER/BPI-BOOT/bananapi/bpi-r3/linux/bpi-r3.itb /media/$USER/BPI-BOOT/bananapi/bpi-r3/linux/bpi-r3-6.1.0.itb
+mv /media/$USER/BPI-BOOT/bananapi/bpi-r3/linux/bpi-r3.itb /media/$USER/BPI-BOOT/bpi-r3-6.1.0.itb
 echo "fit=bpi-r3-6.1.0.itb" >> /media/$USER/BPI-BOOT/uEnv.txt
 # unpack kernel modules to rootfs
 # debian uses /lib as symlink to usr/lib, extracting the dir from tar overwrites symlink with directory
 # which contains then only the kernel-modules, but not other libs so extract the subfolder to /lib
 sudo tar -xzf bpi-r3_6.1.0-main.tar.gz --strip-components=2 -C /media/$USER/BPI-ROOT/lib/ BPI-ROOT/lib/
 ```
+R2 uses uImage and kernel=xxx in uEnv.txt (in folder bananapi/bpi-r2/linux)
+R64 uses fit like r3
+R2Pro uses Image.gz+dtb in extlinux folder + config for each entry,no uEnv.txt here.
 
 set root-password and maybe make additional changes:
 

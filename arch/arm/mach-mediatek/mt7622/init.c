@@ -27,10 +27,12 @@ int dram_init(void)
 
 }
 
+#ifndef CONFIG_SYSRESET
 void reset_cpu(void)
 {
 	psci_system_reset();
 }
+#endif
 
 static struct mm_region mt7622_mem_map[] = {
 	{

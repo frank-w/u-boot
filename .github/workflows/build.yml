@@ -157,4 +157,3 @@ jobs:
             *_fip.bin
             *_bl2.img
             *.img.gz
-            u-boot-r2pro*.bin

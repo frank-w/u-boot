@@ -233,13 +233,27 @@ case $1 in
 	"createimg")
 		IMGDIR=.
 		IMGNAME=${board}
-		REALSIZE=6000
+		REALSIZE=7000
 		dd if=/dev/zero of=$IMGDIR/$IMGNAME.img bs=1M count=$REALSIZE 1> /dev/null #2>&1
 		LDEV=`losetup -f`
 		DEV=`echo $LDEV | cut -d "/" -f 3`     #mount image to loop device
 		echo "run losetup to assign image $IMGNAME.img to loopdev $LDEV ($DEV)"
 		sudo losetup $LDEV $IMGDIR/$IMGNAME.img 1> /dev/null #2>&1
 		case $board in
+			"bpi-r2")
+				sudo parted -s $LDEV mklabel msdos
+				sudo parted -s $LDEV unit MiB mkpart primary fat32 -- 100MiB 356MiB
+				sudo parted -s $LDEV unit MiB mkpart primary ext4 -- 356MiB 6600MiB
+				sudo partprobe $LDEV
+				sudo mkfs.vfat ${LDEV}p1 -I -n BPI-BOOT
+				sudo mkfs.ext4 -O ^has_journal -E stride=2,stripe-width=1024 -b 4096 ${LDEV}p2 -L BPI-ROOT
+
+				gunzip -c files/bpi-r2/BPI-R2-HEAD440-0k.img.gz | sudo dd of=$LDEV bs=1024 seek=0
+				gunzip -c files/bpi-r2/BPI-R2-HEAD1-512b.img.gz | sudo dd of=$LDEV bs=512 seek=1
+				gunzip -c files/bpi-r2/BPI-R2-preloader-DDR1600-20191024-2k.img.gz | sudo dd of=$LDEV bs=1024 seek=2
+				sudo dd if=u-boot.bin of=$LDEV bs=1024 seek=320
+				sync
+			;;
 			"bpi-r2pro")
 				#https://gitlab.manjaro.org/manjaro-arm/applications/manjaro-arm-tools/-/blob/master/lib/functions.sh
 				sudo parted -s $LDEV mklabel gpt 1> /dev/null 2>&1

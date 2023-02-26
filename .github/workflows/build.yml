@@ -83,6 +83,7 @@ jobs:
           sed -i 's/#\(board=bpi-r2pro\)/\1/' build.conf #change board to r2pro
           bash build.sh importconfig
           bash build.sh build
+          bash build.sh createimg
           bash build.sh rename
 
       - name: Build for BananaPi-R3

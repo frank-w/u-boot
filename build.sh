@@ -141,6 +141,7 @@ case $1 in
 			fi
 		else
 			echo "build failed!"
+			exit 1;
 		fi
 	;;
 	"config")
@@ -182,11 +183,7 @@ case $1 in
 			fi
 			if [[ "$choice" == "y" ]];then
 				echo "writing to $dev ($UBOOT_FILE to ${UBOOT_START}k)"
-				if [[ "$board" == "bpi-r2pro" ]];then
-					sudo dd of=$dev if=u-boot-rockchip.bin bs=1k seek=$UBOOT_START; #seek=64
-				else
-					sudo dd of=$dev if=$UBOOT_FILE bs=1k seek=$UBOOT_START;
-				fi
+				sudo dd of=$dev if=$UBOOT_FILE bs=1k seek=$UBOOT_START;
 				sync
 			fi
 		else

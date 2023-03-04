@@ -58,6 +58,7 @@ jobs:
           export PATH=/usr/lib/ccache:$PATH
           bash build.sh importconfig
           bash build.sh build
+          bash build.sh createimg
           bash build.sh rename
 
       - name: Build for BananaPi-R64

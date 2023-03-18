@@ -16,6 +16,18 @@ root=/dev/mmcblk0p6 rootfstype=ext4 rootwait
 console=ttyS0,115200n1 earlycon=uart8250,mmio32,0x11002000
 bootopts=debug=7
 
+#netboot
+ipaddr=192.168.0.19
+netmask=255.255.255.0
+serverip=192.168.0.10
+
+lstftp=if tftp ${loadaddr} ${serverip}:r3-itbfiles.lst;then setexpr listend ${loadaddr} + ${filesize};mw.b ${listend} 00 2;strings ${loadaddr};else echo "tftp download failed";fi
+askkernel=askenv kernelinput "enter kernel-name:";
+askbootnetfit=run lstftp askkernel;if printenv kernelinput; then setenv bootfile "${kernelinput}"; run bootnetfit;fi
+
+bootnetfit=run buildargs;if tftp $kaddr ${bootfile}; then bootm $kaddr;fi
+bootfile=bpi-r3.itb
+
 checkenv=test -e ${device} ${partition} ${bootenv}
 loadenvfile=if fatload ${device} ${partition} ${loadaddr} ${bootenv};then env import -t ${loadaddr} ${filesize};else echo "fatload (${bootenv}) failed";fi
 loadenv=if run checkenv;then run loadenvfile;fi
@@ -31,6 +43,7 @@ useinitrd=setenv root "/dev/ram0 rw";setenv bootopts "${bootopts} initrd=${rdadd
 checkrd=if printenv initrd;then run useinitrd;fi
 
 newboot=run checkrd; run setbootconf; run buildargs;if printenv fit;then setenv kernel ${fit};if run loadkernel; then bootm ${kaddr}${bootconf}; fi;fi;
+bootnetfit=run checkrd; run setbootconf;run buildargs;if tftp $kaddr ${bootfile}; then bootm ${kaddr}${bootconf};fi
 
 checkmmc=if mmc partconf 0; then echo "emmc available";mmcdev="emmc";else echo "sd available";mmcdev="sd";fi
 checkspi=if sf probe; then echo "NOR available";spidev="nor";else echo "NAND available";spidev="nand";fi
@@ -47,12 +60,11 @@ bootcmd=setenv bootdelay 3; run loadenv;bootmenu;
 lskernel=ls ${device} ${partition};
 askkernel=askenv kernelinput "enter kernel name:";
 
-
 boot0=run lskernel;run askkernel;if printenv kernelinput ;then setenv fit ${kernelinput}; run newboot; fi;
-boot1=run loadenv; run newboot;
 
 bootmenu_0=1. Enter kernel-name to boot from SD/EMMC.=run boot0
-#bootmenu_1=2. Boot kernel from TFTP.=run bootnet
-bootmenu_1=2. Boot from SD/EMMC.=run boot1
+bootmenu_1=2. Boot kernel from TFTP.=run askbootnetfit
+bootmenu_2=3. Boot from SD/EMMC.=run newboot
 
-bootmenu_default=1
+bootmenu_default=2
+

@@ -1,0 +1,9 @@
+PINENOTE-RK3566
+M:	Arnaud Ferraris <arnaud.ferraris@collabora.com>
+S:	Maintained
+F:	board/pine64/pinenote-rk3566
+F:	include/configs/pinenote-rk3566.h
+F:	configs/pinenote-rk3566_defconfig
+F:	arch/arm/dts/rk3566-pinenote.dtsi
+F:	arch/arm/dts/rk3566-pinenote-v1.1.dts
+F:	arch/arm/dts/rk3566-pinenote-v1.2.dts

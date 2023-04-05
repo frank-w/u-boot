@@ -139,8 +139,10 @@ case $1 in
 		gzip $IMGDIR/$IMGNAME.img
 	;;
 	"rename")
+		set -x
 		cp build/${PLAT}/release/bl2.img ${board}_${device}_bl2.img
 		cp build/${PLAT}/release/fip.bin ${board}_${device}_fip.bin
+		set +x
 	;;
 	"")
 		$0 build

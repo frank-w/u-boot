@@ -9,6 +9,8 @@ device="sdmmc"
 #device="spim-nand"
 #device="nor"
 
+FIP_COMPRESS=0
+
 #https://forum.banana-pi.org/t/tutorial-build-customize-and-use-mediatek-open-source-u-boot-and-atf/13785/
 mkimg="USE_MKIMAGE=1 MKIMAGE=./tools/mkimage"
 
@@ -25,7 +27,7 @@ esac
 
 case $board in
 	"bpi-r64") PLAT="mt7622";;
-	"bpi-r3") PLAT="mt7986";;
+	"bpi-r3") PLAT="mt7986";FIP_COMPRESS=1;;
 esac
 
 case $1 in
@@ -45,7 +47,13 @@ case $1 in
 			"bpi-r64") makeflags="PLAT=${PLAT} DDR3_FLYBY=1";;
 			"bpi-r3") makeflags="PLAT=${PLAT} DRAM_USE_DDR4=1";;
 		esac
-		makeflags="$makeflags BL33=u-boot.bin"
+		if [[ $FIP_COMPRESS -eq 1 ]];then
+			xz -f -e -k -9 -C crc32 u-boot.bin
+			makeflags="$makeflags BL33=u-boot.bin.xz"
+		else
+			makeflags="$makeflags BL33=u-boot.bin"
+		fi
+		echo "make-flags: $makeflags ($FIP_COMPRESS)"
 		make $makeflags $mkimg BOOT_DEVICE=$device all fip
 	;;
 	"install")

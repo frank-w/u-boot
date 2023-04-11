@@ -4,10 +4,7 @@ partition=1:2
 bootenv=uEnv.txt
 
 loadaddr=0xc00800
-
-#BPI-R2PRO> fatload mmc 1:2 $loadaddr bpi-r2pro.itb
-#BPI-R2PRO> setenv bootargs root=/dev/mmcblk0p3 rootfstype=ext4 rootwait
-#BPI-R2PRO> bootm $loadaddr
+fit=bpi-r2pro.itb
 
 #console=earlyprintk console=ttyS0,115200
 root=/dev/mmcblk0p3 rootfstype=ext4 rootwait
@@ -24,11 +21,16 @@ resetenv=env default -a;printenv;
 checksd=fatinfo ${device} 1:2
 selectmmc=if run checksd; then echo Boot from SD ; setenv partition 1:2;else echo Boot from eMMC; setenv partition 0:2 ; fi;
 
+loadkernel=fatload $device $partition $loadaddr ${fit}
+useinitrd=setenv root "/dev/ram0 rw";setenv bootopts "${bootopts} initrd=${rdaddr},20M";
+checkrd=if printenv initrd;then if fatload ${device} ${partition} ${rdaddr} ${initrd};then run useinitrd;fi;fi
+
+newboot=run checkrd; run buildargs;if printenv fit;then if run loadkernel; then bootm $loadaddr; fi;fi;
+
 reloadmenu=run selectmmc;if run checkenv; then run loadbootenv; else echo file not found; fi;bootmenu;
 
 #bootmenu
-boot0=run distro_bootcmd
-bootmenu_0=1. Run extlinux.=run boot0
+bootmenu_0=1. Boot from SD/EMMC.=run newboot
 bootmenu_default=0
 
 #automatic reload from sd/emmc

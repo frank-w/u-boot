@@ -8,7 +8,7 @@ fit=bpi-r2pro.itb
 
 #console=earlyprintk console=ttyS0,115200
 root=/dev/mmcblk0p3 rootfstype=ext4 rootwait
-#bootopts=vmalloc=496M debug=7 initcall_debug=0
+bootopts=net.ifnames=0
 #graphic=video=1920x1080 console=tty1 fbcon=map:0 drm.debug=0x7
 
 buildargs=setenv bootargs "board=${board} ${console} root=${root} ${bootopts} ${graphic}"

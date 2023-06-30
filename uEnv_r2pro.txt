@@ -6,6 +6,13 @@ bootenv=uEnv.txt
 loadaddr=0xc00800
 fit=bpi-r2pro.itb
 
+#vars for distroboot (bootflow scan -lb)
+fdt_addr_r=0x0a100000
+kernel_addr_r=0x02080000
+kernel_comp_addr_r=0x0c000000
+kernel_comp_size=0x03000000
+ramdisk_addr_r=0x0a200000
+
 #console=earlyprintk console=ttyS0,115200
 root=/dev/mmcblk0p3 rootfstype=ext4 rootwait
 bootopts=net.ifnames=0

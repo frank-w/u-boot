@@ -12,6 +12,7 @@ kernel_addr_r=0x02080000
 kernel_comp_addr_r=0x0c000000
 kernel_comp_size=0x03000000
 ramdisk_addr_r=0x0a200000
+distro_bootcmd=bootflow scan -lb
 
 #console=earlyprintk console=ttyS0,115200
 root=/dev/mmcblk0p3 rootfstype=ext4 rootwait

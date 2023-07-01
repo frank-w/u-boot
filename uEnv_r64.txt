@@ -9,8 +9,9 @@ service=linux
 device=mmc
 partition=1:1
 #
-kernel=uImage
+kernel=uImage_nodt
 fdt=bpi-r64.dtb
+fit=bpi-r64.itb
 #
 kaddr=0x44000000
 loadaddr=0x44000000
@@ -30,7 +31,7 @@ loaddt=fatload $device $partition $dtaddr ${bpi}/${board}/${service}/dtb/${fdt}
 loadkernel=fatload $device $partition $kaddr ${bpi}/${board}/${service}/${kernel}
 
 checksd=mmc dev 1
-checkgpt=if gpt guid $device $devnum;then setenv partnum 4;else setenv partnum 1;fi
+checkgpt=if gpt guid $device $devnum;then setenv partnum 4;setenv root "/dev/mmcblk1p5 rootfstype=ext4 rootwait";else setenv partnum 1;fi
 checkfat=fatinfo $device $devnum:$partnum
 selectmmc=if run checksd; then echo Boot from SD ; setenv devnum 1;else echo Boot from eMMC; setenv devnum 0; fi;run checkgpt;setenv partition $devnum:$partnum;
 

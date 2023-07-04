@@ -62,6 +62,11 @@ typedef struct io_block_spec {
 	size_t length;
 } io_block_spec_t;
 
+/* UBI specification - used to refer to data of a volume on a UBI device */
+typedef struct io_ubi_spec {
+	int vol_id;
+	const char *vol_name;
+} io_ubi_spec_t;
 
 /* Access modes used when accessing data on a device */
 #define IO_MODE_INVALID (0)

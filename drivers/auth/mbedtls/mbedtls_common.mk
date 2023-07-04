@@ -64,6 +64,18 @@ LIBMBEDTLS_SRCS		+= $(addprefix ${MBEDTLS_DIR}/library/,		\
 					x509.c 				\
 					x509_crt.c 			\
 					)
+#
+# FIP_ENC FW_ENC related build macros
+#
+ifneq (,$(filter 1, $(FW_ENC) $(FIP_ENC)))
+LIBMBEDTLS_SRCS		+=	${MBEDTLS_DIR}/library/hkdf.c
+DECRYPTION_SUPPORT	:=	aes_gcm
+$(eval $(call add_defines,\
+    $(sort \
+        MBEDTLS_HKDF_C \
+	MBEDTLS_AES_ROM_TABLES \
+)))
+endif
 
 ifeq (${PSA_CRYPTO},1)
 LIBMBEDTLS_SRCS         += $(addprefix ${MBEDTLS_DIR}/library/,    	\
@@ -155,6 +167,7 @@ $(eval $(call add_defines,\
         TF_MBEDTLS_KEY_SIZE \
         TF_MBEDTLS_HASH_ALG_ID \
         TF_MBEDTLS_USE_AES_GCM \
+	MBEDTLS_CIPHER_MODE_CBC \
 )))
 
 $(eval $(call MAKE_LIB,mbedtls))

@@ -31,6 +31,9 @@ OBJECTS := src/cert.o \
            src/main.o \
            src/sha.o
 
+# offline sign source files
+OBJECTS += src/signoffline.o
+
 # Chain of trust.
 ifeq (${COT},tbbr)
   include src/tbbr/tbbr.mk

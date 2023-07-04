@@ -20,6 +20,7 @@
 #include "debug.h"
 #include "key.h"
 #include "sha.h"
+#include "signoffline.h"
 
 #define SERIAL_RAND_BITS	64
 
@@ -123,6 +124,9 @@ int cert_new(
 		pkey = ikey;
 	}
 
+	if (offsign.signoffline)
+		ikey = offsign.dummy_key.key;
+
 	/* If we do not have an issuer certificate, use our own (the certificate
 	 * will become self signed) */
 	if (!issuer) {
@@ -211,6 +215,12 @@ int cert_new(
 		goto END;
 	}
 
+	if (offsign.signoffline) {
+		if (!offline_sign(&x, cert, &keys[issuer_cert->key], md_alg)) {
+			ERR_print_errors_fp(stdout);
+			goto END;
+		}
+	}
 	/* X509 certificate signed successfully */
 	rc = 1;
 	cert->x = x;

@@ -27,6 +27,7 @@
 #include "ext.h"
 #include "key.h"
 #include "sha.h"
+#include "signoffline.h"
 
 /*
  * Helper macros to simplify the code. This macro assigns the return value of
@@ -287,7 +288,11 @@ static const cmd_opt_t common_cmd_opt[] = {
 	{
 		{ "print-cert", no_argument, NULL, 'p' },
 		"Print the certificates in the standard output"
-	}
+	},
+	{
+		{ "offline-sign", no_argument, NULL, 'o' },
+		"Sign certificates offline without private keys"
+	},
 };
 
 int main(int argc, char *argv[])
@@ -343,7 +348,7 @@ int main(int argc, char *argv[])
 
 	while (1) {
 		/* getopt_long stores the option index here. */
-		c = getopt_long(argc, argv, "a:b:hknps:", cmd_opt, &opt_idx);
+		c = getopt_long(argc, argv, "a:b:hknops:", cmd_opt, &opt_idx);
 
 		/* Detect the end of the options. */
 		if (c == -1) {
@@ -373,6 +378,9 @@ int main(int argc, char *argv[])
 			break;
 		case 'n':
 			new_keys = 1;
+			break;
+		case 'o':
+			offsign.signoffline = 1;
 			break;
 		case 'p':
 			print_cert = 1;
@@ -411,6 +419,11 @@ int main(int argc, char *argv[])
 		key_size = KEY_SIZES[key_alg][0];
 	}
 
+	if (offsign.signoffline && (new_keys || save_keys)) {
+		ERROR("Offline sign mode cannot enable NEW_KEYS or SAVE_KEYS options\n");
+		exit(1);
+	}
+
 	/* Check command line arguments */
 	check_cmd_params();
 
@@ -427,6 +440,20 @@ int main(int argc, char *argv[])
 		md_len  = SHA256_DIGEST_LENGTH;
 	}
 
+	if (offsign.signoffline) {
+#if !USING_OPENSSL3
+		if (!key_new(&offsign.dummy_key)) {
+			ERROR("Failed to allocate key container\n");
+			exit(1);
+		}
+#endif
+
+		if (!key_create(&offsign.dummy_key, key_alg, key_size)) {
+			ERROR("Error create dummy key\n");
+			exit(1);
+		}
+	}
+
 	/* Load private keys from files (or generate new ones) */
 	for (i = 0 ; i < num_keys ; i++) {
 #if !USING_OPENSSL3
@@ -436,8 +463,12 @@ int main(int argc, char *argv[])
 		}
 #endif
 
-		/* First try to load the key from disk */
-		err_code = key_load(&keys[i]);
+		if (!offsign.signoffline) {
+			/* First try to load the key from disk */
+			err_code = key_load(&keys[i]);
+		} else {
+			err_code = key_load_pub(&keys[i]);
+		}
 		if (err_code == KEY_ERR_NONE) {
 			/* Key loaded successfully */
 			continue;

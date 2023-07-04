@@ -44,3 +44,19 @@ include $(MTK_PLAT_SOC)/drivers/efuse/efuse.mk
 include $(MTK_PLAT)/apsoc_common/bl2/tbbr_post.mk
 include $(MTK_PLAT_SOC)/bl2/ar_post.mk
 include $(MTK_PLAT)/apsoc_common/bl2/bl2_image_post.mk
+
+# Make sure make command parameter takes effect on .o files immediately
+include make_helpers/dep.mk
+
+$(call GEN_DEP_RULES,bl2,emi dramc_calib bl2_boot_ram bl2_boot_nand_nmbm bl2_dev_mmc mtk_efuse bl2_plat_init bl2_plat_setup)
+$(call MAKE_DEP,bl2,emi,DDR3_FLYBY)
+$(call MAKE_DEP,bl2,dramc_calib,DDR3_FLYBY)
+$(call MAKE_DEP,bl2,bl2_plat_init,BL2_COMPRESS)
+$(call MAKE_DEP,bl2,bl2_plat_setup,BOOT_DEVICE TRUSTED_BOARD_BOOT)
+$(call MAKE_DEP,bl2,bl2_dev_mmc,BOOT_DEVICE)
+$(call MAKE_DEP,bl2,bl2_boot_ram,RAM_BOOT_DEBUGGER_HOOK RAM_BOOT_UART_DL)
+$(call MAKE_DEP,bl2,bl2_boot_nand_nmbm,NMBM_MAX_RATIO NMBM_MAX_RESERVED_BLOCKS NMBM_DEFAULT_LOG_LEVEL)
+$(call MAKE_DEP,bl2,mtk_efuse,ANTI_ROLLBACK TRUSTED_BOARD_BOOT)
+
+$(call GEN_DEP_RULES,bl31,mtk_efuse)
+$(call MAKE_DEP,bl31,mtk_efuse,ANTI_ROLLBACK TRUSTED_BOARD_BOOT)

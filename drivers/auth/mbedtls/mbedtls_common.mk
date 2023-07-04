@@ -57,6 +57,19 @@ LIBMBEDTLS_SRCS		+= $(addprefix ${MBEDTLS_DIR}/library/,		\
 					x509.c 				\
 					x509_crt.c 			\
 					)
+#
+# MTK-FSEK related build macros
+#
+ifeq ($(FSEK),1)
+LIBMBEDTLS_SRCS		+=	${MBEDTLS_DIR}/library/hkdf.c
+DECRYPTION_SUPPORT	:=	aes_gcm
+$(eval $(call add_defines,\
+    $(sort \
+        MBEDTLS_HKDF_C \
+	MBEDTLS_AES_ROM_TABLES \
+	MBEDTLS_CIPHER_MODE_CBC \
+)))
+endif
 
 ifeq (${MBEDTLS_MAJOR}, 2)
 	LIBMBEDTLS_SRCS +=  $(addprefix ${MBEDTLS_DIR}/library/,	\

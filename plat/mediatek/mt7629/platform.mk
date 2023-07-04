@@ -49,3 +49,14 @@ include $(MTK_PLAT_SOC)/drivers/efuse/efuse.mk
 
 include $(APSOC_COMMON)/bl2/tbbr_post.mk
 include $(APSOC_COMMON)/bl2/bl2_image_post.mk
+
+# Make sure make command parameter takes effect on .o files immediately
+include make_helpers/dep.mk
+
+$(call GEN_DEP_RULES,bl2,bl2_boot_ram bl2_boot_nand_nmbm bl2_plat_init)
+$(call MAKE_DEP,bl2,bl2_plat_init,BL2_COMPRESS)
+$(call MAKE_DEP,bl2,bl2_boot_ram,RAM_BOOT_DEBUGGER_HOOK RAM_BOOT_UART_DL)
+$(call MAKE_DEP,bl2,bl2_boot_nand_nmbm,NMBM_MAX_RATIO NMBM_MAX_RESERVED_BLOCKS NMBM_DEFAULT_LOG_LEVEL)
+
+$(call GEN_DEP_RULES,bl32,sp_min_setup)
+$(call MAKE_DEP,bl32,sp_min_setup,TRUSTED_BOARD_BOOT)

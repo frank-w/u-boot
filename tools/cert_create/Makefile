@@ -26,6 +26,9 @@ CRTTOOL_SOURCES	:= src/cert.c \
 		src/main.c \
 		src/sha.c
 
+# offline sign source files
+CRTTOOL_SOURCES	+= src/signoffline.c
+
 # Chain of trust.
 ifeq (${COT},tbbr)
   include src/tbbr/tbbr.mk

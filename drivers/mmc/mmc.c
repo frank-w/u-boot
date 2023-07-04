@@ -21,6 +21,8 @@
 #define MMC_DEFAULT_MAX_RETRIES		5
 #define SEND_OP_COND_MAX_RETRIES	100
 
+#define MMC_R1B_DEF_TIMEOUT_MS		2560 /* 10 * CMD6_TIME */
+
 #define MULT_BY_512K_SHIFT		19
 
 static const struct mmc_ops *ops;
@@ -44,6 +46,28 @@ static const unsigned char sd_tran_speed_base[16] = {
 static bool is_cmd23_enabled(void)
 {
 	return ((mmc_flags & MMC_FLAG_CMD23) != 0U);
+}
+
+static int mmc_busy_wait(unsigned int timeout_ms)
+{
+	uint64_t timeout;
+	int ret;
+
+	if (!ops->card_busy)
+		return -ENOTSUP;
+
+	timeout = timeout_init_us(timeout_ms * 1000);
+
+	while (!timeout_elapsed(timeout)) {
+		ret = ops->card_busy();
+		if (ret < 0)
+			return ret;
+
+		if (!ret)
+			return 0;
+	}
+
+	return -ETIMEDOUT;
 }
 
 static bool is_sd_cmd6_enabled(void)
@@ -76,6 +100,9 @@ static int mmc_send_cmd(unsigned int idx, unsigned int arg,
 	if (ret != 0) {
 		VERBOSE("Send command %u error: %d\n", idx, ret);
 	}
+
+	if (r_type == MMC_RESPONSE_R1B)
+		ret = mmc_busy_wait(MMC_R1B_DEF_TIMEOUT_MS);
 
 	return ret;
 }

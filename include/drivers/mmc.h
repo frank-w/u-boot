@@ -139,6 +139,7 @@ struct mmc_ops {
 	int (*prepare)(int lba, uintptr_t buf, size_t size, int write);
 	int (*read)(int lba, uintptr_t buf, size_t size);
 	int (*write)(int lba, const uintptr_t buf, size_t size);
+	int (*card_busy)(void);
 };
 
 struct mmc_csd_emmc {

@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include <arch/aarch64/arch.h>
+#include <arch/aarch64/arch_helpers.h>
 #include <common/debug.h>
 #include <common/runtime_svc.h>
 #include <lib/utils_def.h>
@@ -12,6 +14,7 @@
 #include <plat_sip_calls.h>
 #include <string.h>
 #include <mtk_efuse.h>
+#include <mtk_fsek.h>
 
 /* Authorized secure register list */
 enum {
@@ -66,6 +69,7 @@ uintptr_t mediatek_plat_sip_handler(uint32_t smc_fid,
 	uint32_t efuse_len = 0;
 	uint32_t efuse_data[2] = { (uint32_t)x3, (uint32_t)x4 };
 	static uint32_t efuse_buffer[MTK_EFUSE_PUBK_HASH_INDEX_MAX];
+	u_register_t buffer[4] = {0};
 
 	switch (smc_fid) {
 	case MTK_SIP_PWR_ON_MTCMOS:
@@ -113,6 +117,47 @@ uintptr_t mediatek_plat_sip_handler(uint32_t smc_fid,
 	case MTK_SIP_EFUSE_DISABLE:
 		ret = mtk_efuse_disable((uint32_t)x1);
 		SMC_RET4(handle, ret, 0x0, 0x0, 0x0);
+
+	case MTK_SIP_FSEK_GET_SHM_CONFIG:
+		if (GET_EL(read_spsr_el3()) == MODE_EL2) {
+			ret = mtk_fsek_get_shm_config((uintptr_t *)&buffer[0],
+						      (size_t *)&buffer[1]);
+			SMC_RET3(handle, ret, buffer[0], buffer[1]);
+		}
+
+		SMC_RET3(handle, MTK_FSEK_ERR_WRONG_SRC, 0x0, 0x0);
+
+	case MTK_SIP_FSEK_DECRYPT_RFSK:
+		if (GET_EL(read_spsr_el3()) == MODE_EL2) {
+			ret = mtk_fsek_decrypt_rfsk();
+			SMC_RET1(handle, ret);
+		}
+
+		SMC_RET1(handle, MTK_FSEK_ERR_WRONG_SRC);
+
+	case MTK_SIP_FSEK_GET_KEY:
+		ret = mtk_fsek_get_key((uint32_t)x1,
+				       (void *)buffer,
+				       sizeof(buffer));
+		if (!ret) {
+			SMC_RET4(handle, buffer[0], buffer[1],
+				 buffer[2], buffer[3]);
+		} else {
+			SMC_RET4(handle, ret, 0x0, 0x0, 0x0);
+		}
+
+		SMC_RET4(handle, MTK_FSEK_ERR_WRONG_SRC, 0x0, 0x0, 0x0);
+
+	case MTK_SIP_FSEK_ENCRYPT_ROEK:
+		ret = mtk_fsek_encrypt_roek(x1, x2, x3, x4,
+					    (void *)buffer, sizeof(buffer));
+		if (!ret) {
+			SMC_RET4(handle, buffer[0], buffer[1],
+				 buffer[2], buffer[3]);
+		}
+		else {
+			SMC_RET4(handle, ret, 0x0, 0x0, 0x0);
+		}
 
 	default:
 		ERROR("%s: unhandled SMC (0x%x)\n", __func__, smc_fid);

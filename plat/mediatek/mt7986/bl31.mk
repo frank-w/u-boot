@@ -39,6 +39,8 @@ BL31_SOURCES		+=	drivers/arm/cci/cci.c				\
 BL31_SOURCES		+=	$(XLAT_TABLES_LIB_SRCS)
 BL31_CPPFLAGS		+=	-DPLAT_XLAT_TABLES_DYNAMIC
 
+include $(MTK_PLAT)/apsoc_common/fsek.mk
+
 $(eval $(call add_define,MTK_SIP_SET_AUTHORIZED_SECURE_REG_ENABLE))
 
 MTK_SIP_KERNEL_BOOT_ENABLE := 1

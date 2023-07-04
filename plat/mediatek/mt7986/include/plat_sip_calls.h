@@ -10,7 +10,7 @@
 /*******************************************************************************
  * Plat SiP function constants
  ******************************************************************************/
-#define MTK_PLAT_SIP_NUM_CALLS		9
+#define MTK_PLAT_SIP_NUM_CALLS		13
 
 #define MTK_SIP_PWR_ON_MTCMOS		0x82000402
 #define MTK_SIP_PWR_OFF_MTCMOS		0x82000403
@@ -90,5 +90,58 @@
  *  @r0:	status
  */
 #define MTK_SIP_EFUSE_DISABLE		0xC2000506
+
+/*
+ * MTK_SIP_FSEK_GET_SHM_CONFIG
+ *
+ * parameters
+ *
+ * return
+ * @r0:		status
+ * @r1:		shm addr
+ * @r2:		shm size
+ */
+#define MTK_SIP_FSEK_GET_SHM_CONFIG	0xC2000520
+
+/*
+ * MTK_SIP_FSEK_DECRYPT_RFSK
+ *
+ * parameters
+ *
+ * return
+ * @r0:		status
+ */
+#define MTK_SIP_FSEK_DECRYPT_RFSK	0xC2000521
+
+/*
+ * MTK_SIP_FSEK_GET_KEY
+ *
+ * parameters
+ * @x1:		key identifier
+ *
+ * return
+ * @r0:		key[63:0]
+ * @r1:		key[127:64]
+ * @r2:		key[191:128]
+ * @r3:		key[255:192]
+ */
+#define MTK_SIP_FSEK_GET_KEY		0xC2000522
+
+/*
+ * MTK_SIP_FSEK_ENCRYPT_ROEK - encrypt roek using SEJ
+ *
+ * parameters
+ * @x1:		roek[63:0]
+ * @x2:		roek[127:64]
+ * @x3:		roek[191:128]
+ * @x4:		roek[255:192]
+ *
+ * return
+ * @r0:		roek_enc[63:0]
+ * @r1:		roek_enc[127:64]
+ * @r2:		roek_enc[191:128]
+ * @r3:		roek_enc[255:192]
+ */
+#define MTK_SIP_FSEK_ENCRYPT_ROEK	0xC2000530
 
 #endif /* PLAT_SIP_CALLS_H */

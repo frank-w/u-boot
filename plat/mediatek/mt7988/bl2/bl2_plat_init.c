@@ -12,6 +12,7 @@
 #include <mt7988_gpio.h>
 #include <cpuxgpt.h>
 #include <pll.h>
+#include <emi.h>
 #include <mtk_wdt.h>
 #ifdef EIP197_SUPPORT
 #include <eip197_init.h>
@@ -177,6 +178,7 @@ const struct initcall bl2_initcalls[] = {
 	INITCALL(mtk_infra_ao_init),
 	INITCALL(mtk_pcie_init),
 	INITCALL(mtk_eip197_init),
+	INITCALL(mtk_mem_init),
 	INITCALL(mtk_wed_init),
 	INITCALL(mtk_i2p5g_phy_init),
 

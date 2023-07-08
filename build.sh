@@ -26,9 +26,19 @@ esac
 #DEFCONFIG="mt7986_rfb_${device}_defconfig"
 
 case $board in
-	"bpi-r64") PLAT="mt7622";;
-	"bpi-r3") PLAT="mt7986";FIP_COMPRESS=1;;
+	"bpi-r64") PLAT="mt7622";makeflags="PLAT=${PLAT} DDR3_FLYBY=1";;
+	"bpi-r3") PLAT="mt7986";FIP_COMPRESS=1;makeflags="PLAT=${PLAT} DRAM_USE_DDR4=1";;
 esac
+
+makeflags="$makeflags BOOT_DEVICE=$device"
+
+if [[ $FIP_COMPRESS -eq 1 ]];then
+	xz -f -e -k -9 -C crc32 u-boot.bin
+	makeflags="$makeflags BL33=u-boot.bin.xz"
+else
+	makeflags="$makeflags BL33=u-boot.bin"
+fi
+
 
 case $1 in
 	#"importconfig")
@@ -41,20 +51,8 @@ case $1 in
 		make menuconfig
 	;;
 	"build")
-		#make -f Makefile PLAT=mt7622 BOOT_DEVICE=sdmmc DDR3_FLYBY=1 all fip
-		#make -f Makefile PLAT=mt7986 BOOT_DEVICE=sdmmc DRAM_USE_DDR4=1 all fip
-		case "$board" in
-			"bpi-r64") makeflags="PLAT=${PLAT} DDR3_FLYBY=1";;
-			"bpi-r3") makeflags="PLAT=${PLAT} DRAM_USE_DDR4=1";;
-		esac
-		if [[ $FIP_COMPRESS -eq 1 ]];then
-			xz -f -e -k -9 -C crc32 u-boot.bin
-			makeflags="$makeflags BL33=u-boot.bin.xz"
-		else
-			makeflags="$makeflags BL33=u-boot.bin"
-		fi
 		echo "make-flags: $makeflags ($FIP_COMPRESS)"
-		make $makeflags $mkimg BOOT_DEVICE=$device all fip
+		make $makeflags $mkimg all fip
 	;;
 	"install")
 		if [[ "$device" != "sdmmc" ]];then echo "$1 not supported for $device";exit 1;fi
@@ -152,7 +150,13 @@ case $1 in
 		cp build/${PLAT}/release/fip.bin ${board}_${device}_fip.bin
 		set +x
 	;;
+	"clean")
+		make $makeflags clean
+	;;
 	"")
 		$0 build
+	;;
+	*)
+		echo "unsupported option $1"
 	;;
 esac

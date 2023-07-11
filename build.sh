@@ -28,9 +28,9 @@ esac
 #DEFCONFIG="mt7986_rfb_${device}_defconfig"
 
 case $board in
-	"bpi-r64") PLAT="mt7622";makeflags="PLAT=${PLAT} DDR3_FLYBY=1";;
-	"bpi-r3") PLAT="mt7986";makeflags="PLAT=${PLAT} DRAM_USE_DDR4=1";FIP_COMPRESS=1;;
-	"bpi-r4") PLAT="mt7988";makeflags="PLAT=${PLAT} DRAM_USE_COMB=1";FIP_COMPRESS=1;;
+	"bpi-r64") PLAT="mt7622";makeflags="DDR3_FLYBY=1";;
+	"bpi-r3") PLAT="mt7986";makeflags="DRAM_USE_DDR4=1";FIP_COMPRESS=1;;
+	"bpi-r4") PLAT="mt7988";makeflags="DRAM_USE_COMB=1";FIP_COMPRESS=1;;
 esac
 
 if [[ $FIP_COMPRESS -eq 1 ]];then
@@ -40,7 +40,7 @@ else
 	makeflags="$makeflags BL33=u-boot.bin"
 fi
 
-makeflags="$makeflags BOOT_DEVICE=$device"
+makeflags="PLAT=${PLAT} BOOT_DEVICE=$device $makeflags"
 
 case $1 in
 	#"importconfig")

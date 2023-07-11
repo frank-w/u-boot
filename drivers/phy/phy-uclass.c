@@ -506,24 +506,22 @@ int generic_phy_power_off_bulk(struct phy_bulk *bulk)
 
 int generic_setup_phy(struct udevice *dev, struct phy *phy, int index)
 {
-	int ret = 0;
+	int ret;
 
 	if (!phy)
 		return 0;
 
 	ret = generic_phy_get_by_index(dev, index, phy);
-	if (ret) {
-		if (ret != -ENOENT)
-			return ret;
-	} else {
-		ret = generic_phy_init(phy);
-		if (ret)
-			return ret;
+	if (ret)
+		return ret;
 
-		ret = generic_phy_power_on(phy);
-		if (ret)
-			ret = generic_phy_exit(phy);
-	}
+	ret = generic_phy_init(phy);
+	if (ret)
+		return ret;
+
+	ret = generic_phy_power_on(phy);
+	if (ret)
+		generic_phy_exit(phy);
 
 	return ret;
 }

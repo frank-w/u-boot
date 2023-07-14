@@ -148,6 +148,11 @@ static void mmc_gpio_setup(void)
 int mtk_plat_mmc_setup(void)
 {
 	const struct mt7988_msdc_conf *conf = &mt7988_msdc[MSDC_INDEX];
+	int i;
+	for (i = 0; i < conf->pinmux->count; i++) {
+		mt_set_pinmux_mode(conf->pinmux->pins[i], conf->pinmux->mux);
+		mt_set_gpio_pull(conf->pinmux->pins[i], conf->pinmux->pupd[i]);
+	}
 
 	mmc_gpio_setup();
 

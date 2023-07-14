@@ -16,7 +16,11 @@
 
 uint32_t __weak spl_nand_get_uboot_raw_page(void)
 {
+#ifdef CONFIG_SYS_NAND_U_BOOT_OFFS
 	return CONFIG_SYS_NAND_U_BOOT_OFFS;
+#else
+	return 0;
+#endif
 }
 
 #if defined(CONFIG_SPL_NAND_RAW_ONLY)

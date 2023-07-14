@@ -13,6 +13,14 @@
 	};
 };
 
+&sdhci {
+	cap-mmc-highspeed;
+	mmc-ddr-1_8v;
+	mmc-hs200-1_8v;
+	mmc-hs400-1_8v;
+	mmc-hs400-enhanced-strobe;
+};
+
 &sdmmc2 {
 	status = "disabled";
 };
@@ -23,6 +31,14 @@
 
 &uart2 {
 	clock-frequency = <24000000>;
-	u-boot,dm-pre-reloc;
+	bootph-all;
 	status = "okay";
+};
+
+&vcc5v0_usb_host {
+	regulator-boot-on;
+};
+
+&vcc5v0_usb_hub {
+	regulator-boot-on;
 };

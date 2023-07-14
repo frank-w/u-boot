@@ -476,6 +476,14 @@ config MMC_SDHCI_SDMA
 	  This enables support for the SDMA (Single Operation DMA) defined
 	  in the SD Host Controller Standard Specification Version 1.00 .
 
+config SPL_MMC_SDHCI_SDMA
+	bool "Support SDHCI SDMA in SPL"
+	depends on SPL_MMC && MMC_SDHCI
+	default y if MMC_SDHCI_SDMA
+	help
+	  This enables support for the SDMA (Single Operation DMA) defined
+	  in the SD Host Controller Standard Specification Version 1.00 in SPL.
+
 config MMC_SDHCI_ADMA
 	bool "Support SDHCI ADMA2"
 	depends on MMC_SDHCI
@@ -621,6 +629,7 @@ config MMC_SDHCI_MV
 	bool "SDHCI support on Marvell platform"
 	depends on ARCH_MVEBU
 	depends on MMC_SDHCI
+	depends on DM_MMC
 	help
 	  This selects the Secure Digital Host Controller Interface on
 	  Marvell platform.
@@ -662,18 +671,6 @@ config MMC_SDHCI_S5P
 	help
 	  This selects the Secure Digital Host Controller Interface (SDHCI)
 	  on Samsung S5P SoCs.
-
-	  If you have a controller with this interface, say Y here.
-
-	  If unsure, say N.
-
-config MMC_SDHCI_SPEAR
-	bool "SDHCI support on ST SPEAr platform"
-	depends on MMC_SDHCI
-	help
-	  This selects the Secure Digital Host Controller Interface (SDHCI)
-	  often referrered to as the HSMMC block in some of the ST SPEAR range
-	  of SoC
 
 	  If you have a controller with this interface, say Y here.
 
@@ -822,6 +819,14 @@ config MMC_MTK
 	  If you have a machine with a integrated SD/MMC card reader, say Y or M here.
 	  This is needed if support for any SD/SDIO/MMC devices is required.
 	  If unsure, say N.
+
+config MMC_MTK_DEBUG
+	bool "Display verbose error log"
+	default n
+	depends on MMC_MTK
+	help
+	  Enable this option to allow verbose error log being displayed for
+	  debugging.
 
 endif
 

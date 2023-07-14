@@ -4,6 +4,7 @@
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 
 obj-$(CONFIG_JFFS2_LZO) += compr_lzo.o
+obj-$(CONFIG_JFFS2_LZMA) += compr_lzma.o
 obj-y += compr_rtime.o
 obj-y += compr_rubin.o
 obj-y += compr_zlib.o

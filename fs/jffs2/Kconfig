@@ -6,6 +6,11 @@ config FS_JFFS2
 	  for use with flash memory devices. It supports raw NAND devices,
 	  hard links and compression.
 
+config JFFS2_LZMA
+	bool "Enable JFFS2 LZMA support"
+	depends on FS_JFFS2
+	select LZMA
+
 config JFFS2_LZO
 	bool "Enable LZO compression in JFFS2"
 	depends on FS_JFFS2

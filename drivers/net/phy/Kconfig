@@ -77,6 +77,21 @@ config PHY_ADIN
 	help
 		Add support for configuring RGMII on Analog Devices ADIN PHYs.
 
+menuconfig PHY_AIROHA
+	bool "Airoha Ethernet PHYs support"
+
+config PHY_AIROHA_EN8801S
+	bool "Airoha Ethernet EN8801S support"
+	depends on PHY_AIROHA
+	help
+		AIROHA EN8801S supported.
+
+config PHY_AIROHA_EN8811H
+	bool "Airoha Ethernet EN8811H support"
+	depends on PHY_AIROHA
+	help
+		AIROHA EN8811H supported.
+
 menuconfig PHY_AQUANTIA
 	bool "Aquantia Ethernet PHYs support"
 	select PHY_GIGE
@@ -90,6 +105,12 @@ config PHY_AQUANTIA_UPLOAD_FW
 		from storage directly attached to the phy or loaded by the boot loader
 		via MDIO commands.  The firmware is loaded from a file, specified by
 		the PHY_AQUANTIA_FW_PART and PHY_AQUANTIA_FW_NAME options.
+
+config PHY_AQUANTIA_FW_ARRAY
+	bool "Aquantia firmware array"
+	depends on PHY_AQUANTIA_UPLOAD_FW
+	help
+		Array containing the firmware file.
 
 config PHY_AQUANTIA_FW_PART
 	string "Aquantia firmware partition"
@@ -105,6 +126,9 @@ config PHY_AQUANTIA_FW_NAME
 
 config PHY_ATHEROS
 	bool "Atheros Ethernet PHYs support"
+
+config SPL_PHY_ATHEROS
+	bool "Atheros Ethernet PHYs support (SPL)"
 
 config PHY_BROADCOM
 	bool "Broadcom Ethernet PHYs support"
@@ -170,6 +194,11 @@ config PHY_LXT
 
 config PHY_MARVELL
 	bool "Marvell Ethernet PHYs support"
+
+config PHY_MARVELL_10G
+	bool "Marvell Alaska 10Gbit PHYs"
+	help
+	  Support for the Marvell Alaska MV88X3310 and compatible PHYs.
 
 config PHY_MESON_GXL
 	bool "Amlogic Meson GXL Internal PHY support"

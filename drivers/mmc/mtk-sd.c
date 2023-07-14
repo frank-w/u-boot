@@ -778,18 +778,24 @@ static int msdc_ops_send_cmd(struct udevice *dev, struct mmc_cmd *cmd,
 	if (cmd_ret &&
 	    !(cmd_ret == -EIO &&
 	    (cmd->cmdidx == MMC_CMD_SEND_TUNING_BLOCK ||
-	    cmd->cmdidx == MMC_CMD_SEND_TUNING_BLOCK_HS200)))
+	    cmd->cmdidx == MMC_CMD_SEND_TUNING_BLOCK_HS200))) {
+		dev_dbg(dev, "MSDC start command failure with %d, cmd=%d, arg=0x%x\n",
+			cmd_ret, cmd->cmdidx, cmd->cmdarg);
 		return cmd_ret;
-
-	if (data) {
-		data_ret = msdc_start_data(host, data);
-		if (cmd_ret)
-			return cmd_ret;
-		else
-			return data_ret;
 	}
 
-	return 0;
+	if (!data)
+		return cmd_ret;
+
+	data_ret = msdc_start_data(host, data);
+	if (cmd_ret)
+		return cmd_ret;
+
+	if (data_ret)
+		dev_dbg(dev, "MSDC start data failure with %d, cmd=%d, arg=0x%x\n",
+			data_ret, cmd->cmdidx, cmd->cmdarg);
+
+	return data_ret;
 }
 
 static void msdc_set_timeout(struct msdc_host *host, u32 ns, u32 clks)

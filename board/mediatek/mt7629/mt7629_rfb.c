@@ -15,3 +15,8 @@ int board_init(void)
 
 	return 0;
 }
+
+uint32_t spl_nand_get_uboot_raw_page(void)
+{
+	return CONFIG_SPL_PAD_TO;
+}

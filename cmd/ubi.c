@@ -213,8 +213,8 @@ bad:
 	return err;
 }
 
-static int ubi_create_vol(char *volume, int64_t size, int dynamic, int vol_id,
-			  bool skipcheck)
+int ubi_create_vol(char *volume, int64_t size, int dynamic, int vol_id,
+		   bool skipcheck)
 {
 	struct ubi_mkvol_req req;
 	int err;
@@ -226,7 +226,11 @@ static int ubi_create_vol(char *volume, int64_t size, int dynamic, int vol_id,
 
 	req.vol_id = vol_id;
 	req.alignment = 1;
-	req.bytes = size;
+
+	if (size < 0)
+		req.bytes = ubi->avail_pebs * ubi->leb_size;
+	else
+		req.bytes = size;
 
 	strcpy(req.name, volume);
 	req.name_len = strlen(volume);
@@ -247,7 +251,7 @@ static int ubi_create_vol(char *volume, int64_t size, int dynamic, int vol_id,
 	return ubi_create_volume(ubi, &req);
 }
 
-static struct ubi_volume *ubi_find_volume(char *volume)
+struct ubi_volume *ubi_find_volume(char *volume)
 {
 	struct ubi_volume *vol = NULL;
 	int i;
@@ -262,7 +266,7 @@ static struct ubi_volume *ubi_find_volume(char *volume)
 	return NULL;
 }
 
-static int ubi_remove_vol(char *volume)
+int ubi_remove_vol(char *volume)
 {
 	int err, reserved_pebs, i;
 	struct ubi_volume *vol;

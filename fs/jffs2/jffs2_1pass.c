@@ -415,6 +415,114 @@ static inline void *get_node_mem_nor(u32 off, void *ext_buf)
 }
 #endif
 
+#if defined(CONFIG_NMBM)
+#include <nmbm/nmbm-mtd.h>
+/*
+ * Support for jffs2 on top of NMBM
+ *
+ * NMBM memory isn't mapped in processor's address space,
+ * so data should be fetched from flash before
+ * being processed. This is exactly what functions declared
+ * here do.
+ *
+ */
+
+#ifndef NMBM_CACHE_PAGES
+#define NMBM_CACHE_PAGES 8
+#endif
+
+static u8* nmbm_cache = NULL;
+static u32 nmbm_cache_off = (u32)-1;
+
+int read_nmbm_cached(u32 off, u32 size, u_char *buf)
+{
+	struct mtdids *id = current_part->dev->id;
+	struct mtd_info *mtd;
+	u32 bytes_read = 0, nmbm_cache_size;
+	size_t retlen;
+	int cpy_bytes;
+
+	mtd = nmbm_mtd_get_upper_by_index(id->num);
+	if (!mtd)
+		return -1;
+
+	nmbm_cache_size = NMBM_CACHE_PAGES * mtd->writesize;
+
+	while (bytes_read < size) {
+		if ((off + bytes_read < nmbm_cache_off) ||
+		    (off + bytes_read >= nmbm_cache_off+nmbm_cache_size)) {
+			nmbm_cache_off = (off + bytes_read) & ~mtd->writesize_mask;
+			if (!nmbm_cache) {
+				/* This memory never gets freed but 'cause
+				   it's a bootloader, nobody cares */
+				nmbm_cache = malloc(nmbm_cache_size);
+				if (!nmbm_cache) {
+					printf("read_nand_cached: can't alloc cache size %d bytes\n",
+					       nmbm_cache_size);
+					return -1;
+				}
+			}
+
+			retlen = nmbm_cache_size;
+			if (mtd_read(mtd, nmbm_cache_off, nmbm_cache_size,
+				      &retlen, nmbm_cache) < 0 ||
+					retlen != nmbm_cache_size) {
+				printf("read_nand_cached: error reading nand off %#x size %d bytes\n",
+						nmbm_cache_off, nmbm_cache_size);
+				return -1;
+			}
+		}
+		cpy_bytes = nmbm_cache_off + nmbm_cache_size - (off + bytes_read);
+		if (cpy_bytes > size - bytes_read)
+			cpy_bytes = size - bytes_read;
+		memcpy(buf + bytes_read,
+		       nmbm_cache + off + bytes_read - nmbm_cache_off,
+		       cpy_bytes);
+		bytes_read += cpy_bytes;
+	}
+	return bytes_read;
+}
+
+static void *get_fl_mem_nmbm(u32 off, u32 size, void *ext_buf)
+{
+	u_char *buf = ext_buf ? (u_char*)ext_buf : (u_char*)malloc(size);
+
+	if (NULL == buf) {
+		printf("get_fl_mem_nmbm: can't alloc %d bytes\n", size);
+		return NULL;
+	}
+	if (read_nmbm_cached(off, size, buf) < 0) {
+		if (!ext_buf)
+			free(buf);
+		return NULL;
+	}
+
+	return buf;
+}
+
+static void *get_node_mem_nmbm(u32 off, void *ext_buf)
+{
+	struct jffs2_unknown_node node;
+	void *ret = NULL;
+
+	if (NULL == get_fl_mem_nmbm(off, sizeof(node), &node))
+		return NULL;
+
+	if (!(ret = get_fl_mem_nmbm(off, node.magic ==
+			       JFFS2_MAGIC_BITMASK ? node.totlen : sizeof(node),
+			       ext_buf))) {
+		printf("off = %#x magic %#x type %#x node.totlen = %d\n",
+		       off, node.magic, node.nodetype, node.totlen);
+	}
+	return ret;
+}
+
+static void put_fl_mem_nmbm(void *buf)
+{
+	free(buf);
+}
+#endif
+
 
 /*
  * Generic jffs2 raw memory and node read routines.
@@ -438,6 +546,11 @@ static inline void *get_fl_mem(u32 off, u32 size, void *ext_buf)
 #if defined(CONFIG_CMD_ONENAND)
 	case MTD_DEV_TYPE_ONENAND:
 		return get_fl_mem_onenand(off, size, ext_buf);
+		break;
+#endif
+#if defined(CONFIG_NMBM)
+	case MTD_DEV_TYPE_NMBM:
+		return get_fl_mem_nmbm(off, size, ext_buf);
 		break;
 #endif
 	default:
@@ -468,6 +581,11 @@ static inline void *get_node_mem(u32 off, void *ext_buf)
 		return get_node_mem_onenand(off, ext_buf);
 		break;
 #endif
+#if defined(CONFIG_NMBM)
+	case MTD_DEV_TYPE_NMBM:
+		return get_node_mem_nmbm(off, ext_buf);
+		break;
+#endif
 	default:
 		printf("get_fl_mem: unknown device type, " \
 			"using raw offset!\n");
@@ -491,6 +609,10 @@ static inline void put_fl_mem(void *buf, void *ext_buf)
 #if defined(CONFIG_CMD_ONENAND)
 	case MTD_DEV_TYPE_ONENAND:
 		return put_fl_mem_onenand(buf);
+#endif
+#if defined(CONFIG_NMBM)
+	case MTD_DEV_TYPE_NMBM:
+		return put_fl_mem_nmbm(buf);
 #endif
 	}
 }
@@ -793,6 +915,11 @@ jffs2_1pass_read_inode(struct b_lists *pL, u32 inode, char *dest)
 #if defined(CONFIG_JFFS2_LZO)
 				case JFFS2_COMPR_LZO:
 					lzo_decompress(src, lDest, jNode->csize, jNode->dsize);
+					break;
+#endif
+#if defined(CONFIG_JFFS2_LZMA)
+				case JFFS2_COMPR_LZMA:
+					lzma_decompress(src, lDest, jNode->csize, jNode->dsize);
 					break;
 #endif
 				default:
@@ -1804,6 +1931,8 @@ jffs2_1pass_build_lists(struct part_info * part)
 						sizeof(struct jffs2_unknown_node));
 				break;
 			case JFFS2_NODETYPE_SUMMARY:
+			case JFFS2_NODETYPE_XATTR:
+			case JFFS2_NODETYPE_XREF:
 				break;
 			default:
 				printf("Unknown node type: %x len %d offset 0x%x\n",

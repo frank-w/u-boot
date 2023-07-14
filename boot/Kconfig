@@ -36,6 +36,14 @@ config TIMESTAMP
 	  loaded that does not, the message 'Wrong FIT format: no timestamp'
 	  is shown.
 
+config IMAGE_FORCED_VERIFY
+	bool "Forced image doing verification"
+	help
+	  This option let you forced image doing verification. the verification
+	  can not be skipped via setting environment variable(verify) anymore.
+
+if FIT
+
 config FIT_EXTERNAL_OFFSET
 	hex "FIT external data offset"
 	depends on FIT
@@ -344,6 +352,8 @@ config VPL_FIT_SIGNATURE_MAX_SIZE
 
 endif # VPL
 
+endif # FIT
+
 config PXE_UTILS
 	bool
 	select MENU
@@ -411,7 +421,7 @@ config BOOTSTD_FULL
 	    as well as the "boot_targets" environment variable
 
 config SPL_BOOTSTD
-	bool "Standard boot support in VPL"
+	bool "Standard boot support in SPL"
 	depends on SPL && SPL_DM && SPL_OF_CONTROL && SPL_BLK
 	default y if VPL
 	help
@@ -536,6 +546,26 @@ config VPL_BOOTMETH_VBE
 	  boot as well as updating these using fwupd.
 
 if BOOTMETH_VBE
+
+config BOOTMETH_VBE_REQUEST
+	bool "Support for serving VBE OS requests"
+	default y
+	help
+	  Enables support for looking that the requests made by the
+	  Operating System being booted. These requests result in additions to
+	  the device tree /chosen node, added during the device tree fixup
+	  phase.
+
+config SPL_BOOTMETH_VBE_REQUEST
+	bool "Support for serving VBE OS requests (SPL)"
+	depends on SPL
+	help
+	  Enables support for looking that the requests made by the
+	  Operating System being booted. These requests result in additions to
+	  the device tree /chosen node, added during the device tree fixup
+	  phase.
+
+	  This is only useful if you are booting an OS direct from SPL.
 
 config BOOTMETH_VBE_SIMPLE
 	bool "Bootdev support for VBE 'simple' method"
@@ -1393,6 +1423,12 @@ config AUTOBOOT_MENU_SHOW
 	  defined by the board. The menu starts after running the 'preboot'
 	  environmnent variable (if enabled) and before handling the boot delay.
 	  See README.bootmenu for more details.
+
+config AUTOBOOT_MENU_MTK_SHOW
+	bool "Show MediaTek-specific menu on boot"
+	depends on AUTOBOOT_MENU_SHOW
+	help
+	  Show MediaTek-specific menu instead of the common boot menu.
 
 config BOOTMENU_DISABLE_UBOOT_CONSOLE
 	bool "Disallow bootmenu to enter the U-Boot console"

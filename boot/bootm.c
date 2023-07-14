@@ -51,6 +51,16 @@ __weak void board_quiesce_devices(void)
 {
 }
 
+__weak int mtk_ar_update_fw_ar_ver(uint32_t fw_ar_ver)
+{
+	return 0;
+}
+
+__weak int mtk_secure_data_set_fdt(void *fdt)
+{
+	return 0;
+}
+
 #ifdef CONFIG_LMB
 static void boot_start_lmb(struct bootm_headers *images)
 {
@@ -72,7 +82,11 @@ static int bootm_start(struct cmd_tbl *cmdtp, int flag, int argc,
 		       char *const argv[])
 {
 	memset((void *)&images, 0, sizeof(images));
+#if defined(CONFIG_IMAGE_FORCED_VERIFY)
+	images.verify = 1;
+#else
 	images.verify = env_get_yesno("verify");
+#endif
 
 	boot_start_lmb(&images);
 
@@ -113,6 +127,10 @@ static int bootm_find_os(struct cmd_tbl *cmdtp, int flag, int argc,
 			 char *const argv[])
 {
 	const void *os_hdr;
+#ifdef CONFIG_ANDROID_BOOT_IMAGE
+	const void *vendor_boot_img;
+	const void *boot_img;
+#endif
 	bool ep_found = false;
 	int ret;
 
@@ -181,14 +199,23 @@ static int bootm_find_os(struct cmd_tbl *cmdtp, int flag, int argc,
 #endif
 #ifdef CONFIG_ANDROID_BOOT_IMAGE
 	case IMAGE_FORMAT_ANDROID:
+		boot_img = os_hdr;
+		vendor_boot_img = NULL;
+		if (IS_ENABLED(CONFIG_CMD_ABOOTIMG)) {
+			boot_img = map_sysmem(get_abootimg_addr(), 0);
+			vendor_boot_img = map_sysmem(get_avendor_bootimg_addr(), 0);
+		}
 		images.os.type = IH_TYPE_KERNEL;
-		images.os.comp = android_image_get_kcomp(os_hdr);
+		images.os.comp = android_image_get_kcomp(boot_img, vendor_boot_img);
 		images.os.os = IH_OS_LINUX;
-
-		images.os.end = android_image_get_end(os_hdr);
-		images.os.load = android_image_get_kload(os_hdr);
+		images.os.end = android_image_get_end(boot_img, vendor_boot_img);
+		images.os.load = android_image_get_kload(boot_img, vendor_boot_img);
 		images.ep = images.os.load;
 		ep_found = true;
+		if (IS_ENABLED(CONFIG_CMD_ABOOTIMG)) {
+			unmap_sysmem(vendor_boot_img);
+			unmap_sysmem(boot_img);
+		}
 		break;
 #endif
 	default:
@@ -791,6 +818,13 @@ int do_bootm_states(struct cmd_tbl *cmdtp, int flag, int argc,
 		return ret;
 	}
 
+	/* Update firmware anti-rollback version */
+	if (!ret && (states & BOOTM_STATE_OS_GO))
+		ret = mtk_ar_update_fw_ar_ver(images->fw_ar_ver);
+
+	if (!ret && (states & BOOTM_STATE_OS_GO))
+		ret = mtk_secure_data_set_fdt(images->ft_addr);
+
 	/* Now run the OS! We hope this doesn't return */
 	if (!ret && (states & BOOTM_STATE_OS_GO))
 		ret = boot_selected_os(argc, argv, BOOTM_STATE_OS_GO,
@@ -889,6 +923,10 @@ static const void *boot_get_kernel(struct cmd_tbl *cmdtp, int flag, int argc,
 	int		os_noffset;
 #endif
 
+#ifdef CONFIG_ANDROID_BOOT_IMAGE
+	const void *boot_img;
+	const void *vendor_boot_img;
+#endif
 	img_addr = genimg_get_kernel_addr_fit(argc < 1 ? NULL : argv[0],
 					      &fit_uname_config,
 					      &fit_uname_kernel);
@@ -964,10 +1002,20 @@ static const void *boot_get_kernel(struct cmd_tbl *cmdtp, int flag, int argc,
 #endif
 #ifdef CONFIG_ANDROID_BOOT_IMAGE
 	case IMAGE_FORMAT_ANDROID:
+		boot_img = buf;
+		vendor_boot_img = NULL;
+		if (IS_ENABLED(CONFIG_CMD_ABOOTIMG)) {
+			boot_img = map_sysmem(get_abootimg_addr(), 0);
+			vendor_boot_img = map_sysmem(get_avendor_bootimg_addr(), 0);
+		}
 		printf("## Booting Android Image at 0x%08lx ...\n", img_addr);
-		if (android_image_get_kernel(buf, images->verify,
+		if (android_image_get_kernel(boot_img, vendor_boot_img, images->verify,
 					     os_data, os_len))
 			return NULL;
+		if (IS_ENABLED(CONFIG_CMD_ABOOTIMG)) {
+			unmap_sysmem(vendor_boot_img);
+			unmap_sysmem(boot_img);
+		}
 		break;
 #endif
 	default:

@@ -21,6 +21,9 @@
 #include <asm-generic/unaligned.h>
 #include <linux/compat.h> /* U16_MAX */
 
+#ifdef CONFIG_BLKMAP
+const efi_guid_t efi_guid_blkmap_dev = U_BOOT_BLKMAP_DEV_GUID;
+#endif
 #ifdef CONFIG_SANDBOX
 const efi_guid_t efi_guid_host_dev = U_BOOT_HOST_DEV_GUID;
 #endif
@@ -62,20 +65,6 @@ static bool is_sd(struct blk_desc *desc)
 	return IS_SD(mmc) != 0U;
 }
 #endif
-
-static void *dp_alloc(size_t sz)
-{
-	void *buf;
-
-	if (efi_allocate_pool(EFI_BOOT_SERVICES_DATA, sz, &buf) !=
-	    EFI_SUCCESS) {
-		debug("EFI: ERROR: out of memory in %s\n", __func__);
-		return NULL;
-	}
-
-	memset(buf, 0, sz);
-	return buf;
-}
 
 /*
  * Iterate to next block in device-path, terminating (returning NULL)
@@ -293,7 +282,7 @@ struct efi_device_path *efi_dp_dup(const struct efi_device_path *dp)
 	if (!dp)
 		return NULL;
 
-	ndp = dp_alloc(sz);
+	ndp = efi_alloc(sz);
 	if (!ndp)
 		return NULL;
 	memcpy(ndp, dp, sz);
@@ -337,7 +326,7 @@ efi_device_path *efi_dp_append_or_concatenate(const struct efi_device_path *dp1,
 		/* both dp1 and dp2 are non-null */
 		unsigned sz1 = efi_dp_size(dp1);
 		unsigned sz2 = efi_dp_size(dp2);
-		void *p = dp_alloc(sz1 + sz2 + end_size);
+		void *p = efi_alloc(sz1 + sz2 + end_size);
 		if (!p)
 			return NULL;
 		ret = p;
@@ -400,7 +389,7 @@ struct efi_device_path *efi_dp_append_node(const struct efi_device_path *dp,
 		ret = efi_dp_dup(dp);
 	} else if (!dp) {
 		size_t sz = node->length;
-		void *p = dp_alloc(sz + sizeof(END));
+		void *p = efi_alloc(sz + sizeof(END));
 		if (!p)
 			return NULL;
 		memcpy(p, node, sz);
@@ -409,7 +398,7 @@ struct efi_device_path *efi_dp_append_node(const struct efi_device_path *dp,
 	} else {
 		/* both dp and node are non-null */
 		size_t sz = efi_dp_size(dp);
-		void *p = dp_alloc(sz + node->length + sizeof(END));
+		void *p = efi_alloc(sz + node->length + sizeof(END));
 		if (!p)
 			return NULL;
 		memcpy(p, dp, sz);
@@ -430,7 +419,7 @@ struct efi_device_path *efi_dp_create_device_node(const u8 type,
 	if (length < sizeof(struct efi_device_path))
 		return NULL;
 
-	ret = dp_alloc(length);
+	ret = efi_alloc(length);
 	if (!ret)
 		return ret;
 	ret->type = type;
@@ -452,7 +441,7 @@ struct efi_device_path *efi_dp_append_instance(
 		return efi_dp_dup(dpi);
 	sz = efi_dp_size(dp);
 	szi = efi_dp_instance_size(dpi);
-	p = dp_alloc(sz + szi + 2 * sizeof(END));
+	p = efi_alloc(sz + szi + 2 * sizeof(END));
 	if (!p)
 		return NULL;
 	ret = p;
@@ -477,7 +466,7 @@ struct efi_device_path *efi_dp_get_next_instance(struct efi_device_path **dp,
 	if (!dp || !*dp)
 		return NULL;
 	sz = efi_dp_instance_size(*dp);
-	p = dp_alloc(sz + sizeof(END));
+	p = efi_alloc(sz + sizeof(END));
 	if (!p)
 		return NULL;
 	memcpy(p, *dp, sz + sizeof(END));
@@ -570,6 +559,16 @@ __maybe_unused static unsigned int dp_size(struct udevice *dev)
 			return dp_size(dev->parent)
 				+ sizeof(struct efi_device_path_vendor) + 1;
 #endif
+#ifdef CONFIG_BLKMAP
+		case UCLASS_BLKMAP:
+			 /*
+			  * blkmap devices will be represented as a vendor
+			  * device node with an extra byte for the device
+			  * number.
+			  */
+			return dp_size(dev->parent)
+				+ sizeof(struct efi_device_path_vendor) + 1;
+#endif
 		default:
 			return dp_size(dev->parent);
 		}
@@ -627,6 +626,23 @@ __maybe_unused static void *dp_fill(void *buf, struct udevice *dev)
 #endif
 	case UCLASS_BLK:
 		switch (dev->parent->uclass->uc_drv->id) {
+#ifdef CONFIG_BLKMAP
+		case UCLASS_BLKMAP: {
+			struct efi_device_path_vendor *dp;
+			struct blk_desc *desc = dev_get_uclass_plat(dev);
+
+			dp_fill(buf, dev->parent);
+			dp = buf;
+			++dp;
+			dp->dp.type = DEVICE_PATH_TYPE_HARDWARE_DEVICE;
+			dp->dp.sub_type = DEVICE_PATH_SUB_TYPE_VENDOR;
+			dp->dp.length = sizeof(*dp) + 1;
+			memcpy(&dp->guid, &efi_guid_blkmap_dev,
+			       sizeof(efi_guid_t));
+			dp->vendor_data[0] = desc->devnum;
+			return &dp->vendor_data[1];
+			}
+#endif
 #ifdef CONFIG_SANDBOX
 		case UCLASS_HOST: {
 			/* stop traversing parents at this point: */
@@ -918,7 +934,7 @@ struct efi_device_path *efi_dp_from_part(struct blk_desc *desc, int part)
 {
 	void *buf, *start;
 
-	start = buf = dp_alloc(dp_part_size(desc, part) + sizeof(END));
+	start = buf = efi_alloc(dp_part_size(desc, part) + sizeof(END));
 	if (!buf)
 		return NULL;
 
@@ -945,7 +961,7 @@ struct efi_device_path *efi_dp_part_node(struct blk_desc *desc, int part)
 		dpsize = sizeof(struct efi_device_path_cdrom_path);
 	else
 		dpsize = sizeof(struct efi_device_path_hard_drive_path);
-	buf = dp_alloc(dpsize);
+	buf = efi_alloc(dpsize);
 
 	if (buf)
 		dp_part_node(buf, desc, part);
@@ -1019,7 +1035,7 @@ struct efi_device_path *efi_dp_from_file(struct blk_desc *desc, int part,
 
 	dpsize += fpsize;
 
-	start = buf = dp_alloc(dpsize + sizeof(END));
+	start = buf = efi_alloc(dpsize + sizeof(END));
 	if (!buf)
 		return NULL;
 
@@ -1047,7 +1063,7 @@ struct efi_device_path *efi_dp_from_uart(void)
 	struct efi_device_path_uart *uart;
 	size_t dpsize = sizeof(ROOT) + sizeof(*uart) + sizeof(END);
 
-	buf = dp_alloc(dpsize);
+	buf = efi_alloc(dpsize);
 	if (!buf)
 		return NULL;
 	pos = buf;
@@ -1073,7 +1089,7 @@ struct efi_device_path *efi_dp_from_eth(void)
 
 	dpsize += dp_size(eth_get_dev());
 
-	start = buf = dp_alloc(dpsize + sizeof(END));
+	start = buf = efi_alloc(dpsize + sizeof(END));
 	if (!buf)
 		return NULL;
 
@@ -1093,7 +1109,7 @@ struct efi_device_path *efi_dp_from_mem(uint32_t memory_type,
 	struct efi_device_path_memory *mdp;
 	void *buf, *start;
 
-	start = buf = dp_alloc(sizeof(*mdp) + sizeof(END));
+	start = buf = efi_alloc(sizeof(*mdp) + sizeof(END));
 	if (!buf)
 		return NULL;
 

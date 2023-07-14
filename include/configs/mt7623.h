@@ -32,8 +32,6 @@
 	"fdt_addr_r=" FDT_HIGH "\0"			\
 	"fdtfile=" CONFIG_DEFAULT_FDT_FILE "\0"
 
-/* Ethernet */
-
 #ifdef CONFIG_DISTRO_DEFAULTS
 
 #define BOOT_TARGET_DEVICES(func)	\

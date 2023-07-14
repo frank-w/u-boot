@@ -49,6 +49,7 @@ enum bootmenu_key {
 	BKEY_UP,
 	BKEY_DOWN,
 	BKEY_SELECT,
+	BKEY_CHOICE,
 	BKEY_QUIT,
 	BKEY_PLUS,
 	BKEY_MINUS,

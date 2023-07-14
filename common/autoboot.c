@@ -463,8 +463,12 @@ const char *bootdelay_process(void)
 
 	debug("### main_loop entered: bootdelay=%d\n\n", bootdelay);
 
-	if (IS_ENABLED(CONFIG_AUTOBOOT_MENU_SHOW))
-		bootdelay = menu_show(bootdelay);
+	if (IS_ENABLED(CONFIG_AUTOBOOT_MENU_SHOW)) {
+		if (IS_ENABLED(CONFIG_AUTOBOOT_MENU_MTK_SHOW))
+			run_command("mtkautoboot", 0);
+		else
+			bootdelay = menu_show(bootdelay);
+	}
 	bootretry_init_cmd_timeout();
 
 #ifdef CONFIG_POST

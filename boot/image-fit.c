@@ -43,6 +43,24 @@ DECLARE_GLOBAL_DATA_PTR;
 #include <u-boot/sha256.h>
 #include <u-boot/sha512.h>
 
+#ifndef USE_HOSTCC
+__weak
+#endif
+int mtk_ar_verify_fw_ar_ver(const void *fit, int conf_noffset,
+			    uint32_t *fw_ar_ver)
+{
+	return 0;
+}
+
+#ifndef USE_HOSTCC
+__weak
+#endif
+int mtk_secure_data_proc_data(const void *fit, const char *conf_name,
+			      int conf_noffset)
+{
+	return 0;
+}
+
 /*****************************************************************************/
 /* New uImage format routines */
 /*****************************************************************************/
@@ -1881,6 +1899,12 @@ int fit_conf_get_node(const void *fit, const char *conf_uname)
 	return noffset;
 }
 
+int fit_conf_get_fw_ar_ver(const void *fit, int conf_noffset, ulong *fw_ar_ver)
+{
+	return fit_image_get_address(fit, conf_noffset,
+				     FIT_FW_AR_VER_PROP, fw_ar_ver);
+}
+
 int fit_conf_get_prop_node_count(const void *fit, int noffset,
 		const char *prop_name)
 {
@@ -2126,6 +2150,10 @@ int fit_image_load(struct bootm_headers *images, ulong addr,
 				return -EACCES;
 			}
 			puts("OK\n");
+			if (mtk_ar_verify_fw_ar_ver(fit, cfg_noffset,
+						    &images->fw_ar_ver)) {
+				return -EACCES;
+			}
 		}
 
 		bootstage_mark(BOOTSTAGE_ID_FIT_CONFIG);
@@ -2146,6 +2174,13 @@ int fit_image_load(struct bootm_headers *images, ulong addr,
 	if (ret) {
 		bootstage_error(bootstage_id + BOOTSTAGE_SUB_HASH);
 		return ret;
+	}
+
+	if (!strncmp(prop_name, FIT_FDT_PROP, strlen(FIT_FDT_PROP))) {
+		if (mtk_secure_data_proc_data(fit, fit_base_uname_config,
+					      cfg_noffset)) {
+			return -EACCES;
+		}
 	}
 
 	bootstage_mark(bootstage_id + BOOTSTAGE_SUB_CHECK_ARCH);

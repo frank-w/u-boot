@@ -174,6 +174,8 @@ int bootdev_find_in_blk(struct udevice *dev, struct udevice *blk,
 	} else {
 		ret = fs_set_blk_dev_with_part(desc, bflow->part);
 		bflow->state = BOOTFLOWST_PART;
+		if (ret)
+			return log_msg_ret("fs", ret);
 
 		/* Use an #ifdef due to info.sys_ind */
 #ifdef CONFIG_DOS_PARTITION
@@ -181,8 +183,7 @@ int bootdev_find_in_blk(struct udevice *dev, struct udevice *blk,
 			  blk->name, bflow->part, info.sys_ind,
 			  ret ? -1 : fs_get_type());
 #endif
-		if (ret)
-			return log_msg_ret("fs", ret);
+		bflow->blk = blk;
 		bflow->state = BOOTFLOWST_FS;
 	}
 
@@ -364,7 +365,8 @@ int bootdev_unbind_dev(struct udevice *parent)
  * @seqp: Returns the sequence number, or -1 if none
  * @method_flagsp: If non-NULL, returns any flags implied by the label
  * (enum bootflow_meth_flags_t), 0 if none
- * Returns: sequence number on success, else -ve error code
+ * Returns: sequence number on success, -EPFNOSUPPORT is the uclass is not
+ * known, other -ve error code on other error
  */
 static int label_to_uclass(const char *label, int *seqp, int *method_flagsp)
 {
@@ -394,8 +396,7 @@ static int label_to_uclass(const char *label, int *seqp, int *method_flagsp)
 			id = UCLASS_ETH;
 			method_flags |= BOOTFLOW_METHF_DHCP_ONLY;
 		} else {
-			log_warning("Unknown uclass '%s' in label\n", label);
-			return -EINVAL;
+			return -EPFNOSUPPORT;
 		}
 	}
 	if (id == UCLASS_USB)
@@ -458,7 +459,6 @@ int bootdev_find_by_label(const char *label, struct udevice **devp,
 		}
 		log_debug("- no device in %s\n", media->name);
 	}
-	log_warning("Unknown seq %d for label '%s'\n", seq, label);
 
 	return -ENOENT;
 }
@@ -577,9 +577,28 @@ int bootdev_next_label(struct bootflow_iter *iter, struct udevice **devp,
 
 	log_debug("next\n");
 	for (dev = NULL; !dev && iter->labels[++iter->cur_label];) {
-		log_debug("Scanning: %s\n", iter->labels[iter->cur_label]);
-		bootdev_hunt_and_find_by_label(iter->labels[iter->cur_label],
-					       &dev, method_flagsp);
+		const char *label = iter->labels[iter->cur_label];
+		int ret;
+
+		log_debug("Scanning: %s\n", label);
+		ret = bootdev_hunt_and_find_by_label(label, &dev,
+						     method_flagsp);
+		if (iter->flags & BOOTFLOWIF_SHOW) {
+			if (ret == -EPFNOSUPPORT) {
+				log_warning("Unknown uclass '%s' in label\n",
+					    label);
+			} else if (ret == -ENOENT) {
+				/*
+				 * looking for, e.g. 'scsi0' should find
+				 * something if SCSI is present
+				 */
+				if (!trailing_strtol(label)) {
+					log_warning("No bootdevs for '%s'\n",
+						    label);
+				}
+			}
+		}
+
 	}
 
 	if (!dev)
@@ -629,11 +648,11 @@ int bootdev_next_prio(struct bootflow_iter *iter, struct udevice **devp)
 			if (++iter->cur_prio == BOOTDEVP_COUNT)
 				return log_msg_ret("fin", -ENODEV);
 
-			if (iter->flags & BOOTFLOWF_HUNT) {
+			if (iter->flags & BOOTFLOWIF_HUNT) {
 				/* hunt to find new bootdevs */
 				ret = bootdev_hunt_prio(iter->cur_prio,
 							iter->flags &
-							BOOTFLOWF_SHOW);
+							BOOTFLOWIF_SHOW);
 				log_debug("- hunt ret %d\n", ret);
 				if (ret)
 					return log_msg_ret("hun", ret);
@@ -657,7 +676,7 @@ int bootdev_setup_iter(struct bootflow_iter *iter, const char *label,
 		       struct udevice **devp, int *method_flagsp)
 {
 	struct udevice *bootstd, *dev = NULL;
-	bool show = iter->flags & BOOTFLOWF_SHOW;
+	bool show = iter->flags & BOOTFLOWIF_SHOW;
 	int method_flags;
 	int ret;
 
@@ -668,7 +687,7 @@ int bootdev_setup_iter(struct bootflow_iter *iter, const char *label,
 	}
 
 	/* hunt for any pre-scan devices */
-	if (iter->flags & BOOTFLOWF_HUNT) {
+	if (iter->flags & BOOTFLOWIF_HUNT) {
 		ret = bootdev_hunt_prio(BOOTDEVP_1_PRE_SCAN, show);
 		if (ret)
 			return log_msg_ret("pre", ret);
@@ -676,7 +695,7 @@ int bootdev_setup_iter(struct bootflow_iter *iter, const char *label,
 
 	/* Handle scanning a single device */
 	if (IS_ENABLED(CONFIG_BOOTSTD_FULL) && label) {
-		if (iter->flags & BOOTFLOWF_HUNT) {
+		if (iter->flags & BOOTFLOWIF_HUNT) {
 			ret = bootdev_hunt(label, show);
 			if (ret)
 				return log_msg_ret("hun", ret);
@@ -687,11 +706,11 @@ int bootdev_setup_iter(struct bootflow_iter *iter, const char *label,
 
 		log_debug("method_flags: %x\n", method_flags);
 		if (method_flags & BOOTFLOW_METHF_SINGLE_UCLASS)
-			iter->flags |= BOOTFLOWF_SINGLE_UCLASS;
+			iter->flags |= BOOTFLOWIF_SINGLE_UCLASS;
 		else if (method_flags & BOOTFLOW_METHF_SINGLE_DEV)
-			iter->flags |= BOOTFLOWF_SINGLE_DEV;
+			iter->flags |= BOOTFLOWIF_SINGLE_DEV;
 		else
-			iter->flags |= BOOTFLOWF_SINGLE_MEDIA;
+			iter->flags |= BOOTFLOWIF_SINGLE_MEDIA;
 		log_debug("Selected label: %s, flags %x\n", label, iter->flags);
 	} else {
 		bool ok;

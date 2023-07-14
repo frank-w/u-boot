@@ -57,6 +57,7 @@ struct image_tool_params {
 	int eflag;
 	int fflag;
 	int iflag;
+	int Iflag;
 	int lflag;
 	int pflag;
 	int vflag;
@@ -84,6 +85,8 @@ struct image_tool_params {
 	/* Algorithm name to use for hashing/signing or NULL to use the one
 	 * specified in the its */
 	const char *algo_name;
+	const char *required;	/* Required to add to signature node */
+	const char *algo;	/* Algo to add to signature node */
 	int require_keys;	/* 1 to mark signing keys as 'required' */
 	int file_size;		/* Total size of output file */
 	int orig_file_size;	/* Original size for file before padding */
@@ -132,7 +135,7 @@ struct image_type_params {
 	 */
 	int (*verify_header) (unsigned char *, int, struct image_tool_params *);
 	/* Prints image information abstracting from image header */
-	void (*print_header) (const void *);
+	void (*print_header) (const void *, struct image_tool_params *);
 	/*
 	 * The header or image contents need to be set as per image type to
 	 * be generated using this callback function.

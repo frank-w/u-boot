@@ -62,7 +62,7 @@ config ENV_IS_NOWHERE
 		     !ENV_IS_IN_MMC && !ENV_IS_IN_NAND && \
 		     !ENV_IS_IN_NVRAM && !ENV_IS_IN_ONENAND && \
 		     !ENV_IS_IN_REMOTE && !ENV_IS_IN_SPI_FLASH && \
-		     !ENV_IS_IN_UBI
+		     !ENV_IS_IN_UBI && !ENV_IS_IN_NMBM && !ENV_IS_IN_MTD
 	help
 	  Define this if you don't want to or can't have an environment stored
 	  on a storage medium. In this case the environment will still exist
@@ -251,6 +251,27 @@ config ENV_IS_IN_MMC
 	  offset: "u-boot,mmc-env-offset", "u-boot,mmc-env-offset-redundant".
 	  CONFIG_ENV_OFFSET and CONFIG_ENV_OFFSET_REDUND are not used.
 
+config ENV_IS_IN_MTD
+	bool "Environment in a MTD device"
+	depends on !CHAIN_OF_TRUST
+	depends on MTD
+	help
+	  Define this if you have a MTD device which you want to use for
+	  the environment.
+
+	  - CONFIG_ENV_MTD_NAME:
+	  - CONFIG_ENV_OFFSET:
+	  - CONFIG_ENV_SIZE:
+
+	  These three #defines specify the MTD device where the environment
+	  is stored, offset and size of the environment area within the MTD
+	  device. CONFIG_ENV_OFFSET must be aligned to an erase block boundary.
+
+	  - CONFIG_ENV_SIZE_REDUND:
+
+	  This #define specify the maximum size allowed for read/write/erase
+	  with skipped bad blocks starting from ENV_OFFSET.
+
 config ENV_IS_IN_NAND
 	bool "Environment in a NAND device"
 	depends on !CHAIN_OF_TRUST
@@ -280,6 +301,21 @@ config ENV_IS_IN_NAND
 	  "nand env.oob" command can be used to record this offset.
 	  Currently, CONFIG_ENV_OFFSET_REDUND is not supported when
 	  using CONFIG_ENV_OFFSET_OOB.
+
+config ENV_IS_IN_NMBM
+	bool "Environment in a NMBM upper MTD layer"
+	depends on !CHAIN_OF_TRUST
+	depends on NMBM_MTD
+	help
+	  Define this if you have a NMBM upper MTD which you want to use for
+	  the environment.
+
+	  - CONFIG_ENV_OFFSET:
+	  - CONFIG_ENV_SIZE:
+
+	  These two #defines specify the offset and size of the environment
+	  area within the first NAND device.  CONFIG_ENV_OFFSET must be
+	  aligned to an erase block boundary.
 
 config ENV_RANGE
 	hex "Length of the region in which the environment can be written"
@@ -558,10 +594,16 @@ config ENV_ADDR_REDUND
 	  Offset from the start of the device (or partition) of the redundant
 	  environment location.
 
+config ENV_MTD_NAME
+	string "Name of the MTD device storing the environment"
+	depends on ENV_IS_IN_MTD
+	help
+	  Name of the MTD device that stores the environment
+
 config ENV_OFFSET
 	hex "Environment offset"
 	depends on ENV_IS_IN_EEPROM || ENV_IS_IN_MMC || ENV_IS_IN_NAND || \
-		    ENV_IS_IN_SPI_FLASH
+		    ENV_IS_IN_SPI_FLASH || ENV_IS_IN_NMBM || ENV_IS_IN_MTD
 	default 0x3f8000 if ARCH_ROCKCHIP && ENV_IS_IN_MMC
 	default 0x140000 if ARCH_ROCKCHIP && ENV_IS_IN_SPI_FLASH
 	default 0xF0000 if ARCH_SUNXI
@@ -609,6 +651,12 @@ config ENV_SECT_SIZE
 	help
 	  Size of the sector containing the environment.
 
+config ENV_SIZE_REDUND
+	hex "Redundant environment size"
+	depends on ENV_IS_IN_MTD
+	help
+	  The maximum size allowed for read/write/erase with skipped bad blocks.
+
 config ENV_UBI_PART
 	string "UBI partition name"
 	depends on ENV_IS_IN_UBI
@@ -626,6 +674,12 @@ config ENV_UBI_VOLUME_REDUND
 	depends on ENV_IS_IN_UBI && SYS_REDUNDAND_ENVIRONMENT
 	help
 	  Name of the redundant volume that you want to store the environment in.
+
+config ENV_UBI_VOLUME_CREATE
+	bool "Create UBI volume if not exist"
+	depends on ENV_IS_IN_UBI
+	help
+	  Create the UBI volume if it does not exist.
 
 config ENV_UBI_VID_OFFSET
 	int "ubi environment VID offset"
@@ -859,6 +913,16 @@ config TPL_ENV_IS_IN_FLASH
 	  Similar to ENV_IS_IN_FLASH, used for TPL environment.
 
 endif
+
+if VPL_ENV_SUPPORT
+
+config VPL_ENV_IS_NOWHERE
+	bool "VPL Environment is not stored"
+	default y if ENV_IS_NOWHERE
+	help
+	  Similar to ENV_IS_NOWHERE, used for VPL environment.
+
+endif  # VPL_ENV_SUPPORT
 
 config USE_BOOTFILE
 	bool "Add a 'bootfile' environment variable"

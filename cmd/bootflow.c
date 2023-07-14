@@ -135,13 +135,13 @@ static int do_bootflow_scan(struct cmd_tbl *cmdtp, int flag, int argc,
 
 	flags = 0;
 	if (list)
-		flags |= BOOTFLOWF_SHOW;
+		flags |= BOOTFLOWIF_SHOW;
 	if (all)
-		flags |= BOOTFLOWF_ALL;
+		flags |= BOOTFLOWIF_ALL;
 	if (no_global)
-		flags |= BOOTFLOWF_SKIP_GLOBAL;
+		flags |= BOOTFLOWIF_SKIP_GLOBAL;
 	if (!no_hunter)
-		flags |= BOOTFLOWF_HUNT;
+		flags |= BOOTFLOWIF_HUNT;
 
 	/*
 	 * If we have a device, just scan for bootflows attached to that device
@@ -180,6 +180,9 @@ static int do_bootflow_scan(struct cmd_tbl *cmdtp, int flag, int argc,
 	bootflow_iter_uninit(&iter);
 	if (list)
 		show_footer(i, num_valid);
+
+	if (IS_ENABLED(CONFIG_CMD_BOOTFLOW_FULL) && !num_valid && !list)
+		printf("No bootflows found; try again with -l\n");
 
 	return 0;
 }

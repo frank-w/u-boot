@@ -9,13 +9,14 @@
 #include <cli.h>
 #include <malloc.h>
 #include <errno.h>
+#include <linux/ctype.h>
 #include <linux/delay.h>
 #include <linux/list.h>
 #include <watchdog.h>
 
 #include "menu.h"
 
-#define ansi 0
+#define ansi 1
 
 /*
  * Internally, each item in a menu is represented by a struct menu_item.
@@ -48,6 +49,33 @@ struct menu {
 	struct list_head items;
 	int item_cnt;
 };
+
+const char choice_chars[] = {
+	'1', '2', '3', '4', '5', '6', '7', '8', '9',
+	'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+	'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+	'u', 'v', 'w', 'x', 'y', 'z'
+};
+
+int find_choice(char choice)
+{
+	int i;
+
+	for (i = 0; i < ARRAY_SIZE(choice_chars); i++)
+		if (tolower(choice) == choice_chars[i])
+			return i;
+
+	return -1;
+}
+
+int get_choice_char(int index, char *result)
+{
+	if (index < ARRAY_SIZE(choice_chars))
+		*result = choice_chars[index];
+	else
+		return -1;
+	return 0;
+}
 
 /*
  * An iterator function for menu items. callback will be called for each item
@@ -432,6 +460,7 @@ enum bootmenu_key bootmenu_autoboot_loop(struct bootmenu_data *menu,
 {
 	enum bootmenu_key key = BKEY_NONE;
 	int i, c;
+	int choice;
 
 	while (menu->delay > 0) {
 		if (ansi)
@@ -448,6 +477,18 @@ enum bootmenu_key bootmenu_autoboot_loop(struct bootmenu_data *menu,
 
 			menu->delay = -1;
 			c = getchar();
+
+			choice = find_choice(c);
+			if ((choice >= 0 &&
+			     choice < menu->count - 1)) {
+				cch->choice = choice;
+				key = BKEY_CHOICE;
+				break;
+			} else if (c == '0') {
+				cch->choice = menu->count - 1;
+				key = BKEY_CHOICE;
+				break;
+			}
 
 			ichar = cli_ch_process(cch, c);
 
@@ -528,6 +569,7 @@ enum bootmenu_key bootmenu_loop(struct bootmenu_data *menu,
 {
 	enum bootmenu_key key;
 	int c;
+	int choice;
 
 	c = cli_ch_process(cch, 0);
 	if (!c) {
@@ -538,6 +580,18 @@ enum bootmenu_key bootmenu_loop(struct bootmenu_data *menu,
 		}
 		if (!c) {
 			c = getchar();
+
+			choice = find_choice(c);
+			if ((choice >= 0 &&
+			     choice < menu->count - 1)) {
+				cch->choice = choice;
+				return BKEY_CHOICE;
+
+			} else if (c == '0') {
+				cch->choice = menu->count - 1;
+				return BKEY_CHOICE;
+			}
+
 			c = cli_ch_process(cch, c);
 		}
 	}

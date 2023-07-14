@@ -1,0 +1,246 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (c) 2022 MediaTek Inc.
+ * Author: Sam Shih <sam.shih@mediatek.com>
+ */
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/interrupt-controller/arm-gic.h>
+#include <dt-bindings/clock/mt7986-clk.h>
+#include <dt-bindings/reset/mt7629-reset.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	compatible = "mediatek,mt7988-fpga";
+	interrupt-parent = <&gic>;
+	#address-cells = <2>;
+	#size-cells = <2>;
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		cpu0: cpu@0 {
+			device_type = "cpu";
+			compatible = "arm,cortex-a53";
+			reg = <0x0>;
+			mediatek,hwver = <&hwver>;
+		};
+		cpu1: cpu@1 {
+			device_type = "cpu";
+			compatible = "arm,cortex-a53";
+			reg = <0x1>;
+			mediatek,hwver = <&hwver>;
+		};
+		cpu2: cpu@2 {
+			device_type = "cpu";
+			compatible = "arm,cortex-a53";
+			reg = <0x2>;
+			mediatek,hwver = <&hwver>;
+		};
+		cpu3: cpu@3 {
+			device_type = "cpu";
+			compatible = "arm,cortex-a53";
+			reg = <0x3>;
+			mediatek,hwver = <&hwver>;
+		};
+	};
+
+	system_clk: dummy12m {
+		compatible = "fixed-clock";
+		clock-frequency = <12000000>;
+		#clock-cells = <0>;
+		/* must need this line, or uart uanable to get system_clk */
+		u-boot,dm-pre-reloc;
+	};
+
+	hwver: hwver {
+		compatible = "mediatek,hwver", "syscon";
+		reg = <0x8000000 0x1000>;
+	};
+
+	timer {
+		compatible = "arm,armv8-timer";
+		interrupt-parent = <&gic>;
+		clock-frequency = <12000000>;
+		interrupts = <GIC_PPI 13 IRQ_TYPE_LEVEL_LOW>,
+			     <GIC_PPI 14 IRQ_TYPE_LEVEL_LOW>,
+			     <GIC_PPI 11 IRQ_TYPE_LEVEL_LOW>,
+			     <GIC_PPI 10 IRQ_TYPE_LEVEL_LOW>;
+		arm,cpu-registers-not-fw-configured;
+	};
+
+	gic: interrupt-controller@c000000 {
+		compatible = "arm,gic-v3";
+		#interrupt-cells = <3>;
+		interrupt-parent = <&gic>;
+		interrupt-controller;
+		reg = <0 0x0c000000 0 0x40000>,  /* GICD */
+		      <0 0x0c080000 0 0x200000>; /* GICR */
+
+		interrupts = <GIC_PPI 9 IRQ_TYPE_LEVEL_HIGH>;
+	};
+
+	infracfg_ao: infracfg_ao@10001000 {
+		compatible = "mediatek,mt7988-infracfg_ao", "syscon";
+		reg = <0 0x10001000 0 0x1000>;
+		clock-parent = <&infracfg>;
+		#clock-cells = <1>;
+	};
+
+	apmixedsys: apmixedsys@1001e000 {
+		compatible = "mediatek,mt7988-fixed-plls",
+			     "syscon";
+		reg = <0 0x1001e000 0 0x1000>;
+		#clock-cells = <1>;
+	};
+
+	topckgen: topckgen@1001b000 {
+		compatible = "mediatek,mt7988-topckgen", "syscon";
+		reg = <0 0x1001b000 0 0x1000>;
+		clock-parent = <&apmixedsys>;
+		#clock-cells = <1>;
+	};
+
+	pinctrl: pinctrl@1001f000 {
+		compatible = "mediatek,mt7988-pinctrl";
+		reg = <0 0x1001f000 0 0x1000>,
+		      <0 0x11c10000 0 0x1000>,
+		      <0 0x11d00000 0 0x1000>,
+		      <0 0x11d20000 0 0x1000>,
+		      <0 0x11e00000 0 0x1000>,
+		      <0 0x11f00000 0 0x1000>,
+		      <0 0x1000b000 0 0x1000>;
+		reg-names = "gpio_base", "iocfg_tr_base", "iocfg_br_base",
+			    "iocfg_rb_base", "iocfg_lb_base", "iocfg_tl_base",
+			    "eint";
+		gpio: gpio-controller {
+			gpio-controller;
+			#gpio-cells = <2>;
+		};
+	};
+
+	sgmiisys0: syscon@10060000 {
+		compatible = "mediatek,mt7988-sgmiisys_0", "syscon";
+		reg = <0 0x10060000 0 0x1000>;
+		clock-parent = <&topckgen>;
+		#clock-cells = <1>;
+	};
+
+	sgmiisys1: syscon@10070000 {
+		compatible = "mediatek,mt7988-sgmiisys_1", "syscon";
+		reg = <0 0x10070000 0 0x1000>;
+		clock-parent = <&topckgen>;
+		#clock-cells = <1>;
+	};
+
+	infracfg: infracfg@10209000 {
+		compatible = "mediatek,mt7988-infracfg", "syscon";
+		reg = <0 0x10209000 0 0x1000>;
+		clock-parent = <&topckgen>;
+		#clock-cells = <1>;
+	};
+
+	uart0: serial@11000000 {
+		compatible = "mediatek,hsuart";
+		reg = <0 0x11000000 0 0x100>;
+		interrupts = <GIC_SPI 123 IRQ_TYPE_LEVEL_HIGH>;
+		clocks = <&system_clk>;
+		status = "disabled";
+		u-boot,dm-pre-reloc;
+	};
+
+	uart1: serial@11000100 {
+		compatible = "mediatek,hsuart";
+		reg = <0 0x11000100 0 0x100>;
+		interrupts = <GIC_SPI 124 IRQ_TYPE_LEVEL_HIGH>;
+		clocks = <&system_clk>;
+		status = "disabled";
+		u-boot,dm-pre-reloc;
+	};
+
+	uart2: serial@11000200 {
+		compatible = "mediatek,hsuart";
+		reg = <0 0x11000200 0 0x100>;
+		interrupts = <GIC_SPI 125 IRQ_TYPE_LEVEL_HIGH>;
+		clocks = <&system_clk>;
+		status = "disabled";
+		u-boot,dm-pre-reloc;
+	};
+
+	snand: snand@11001000 {
+		compatible = "mediatek,mt7988-snand",
+			     "mediatek,mt7986-snand";
+		reg = <0 0x11001000 0 0x1000>,
+		      <0 0x11002000 0 0x1000>;
+		reg-names = "nfi", "ecc";
+		clocks = <&system_clk>,
+			 <&system_clk>,
+			 <&system_clk>;
+		clock-names = "nfi_clk", "pad_clk", "ecc_clk";
+		status = "disabled";
+	};
+
+	spi0: spi@1100a000 {
+		compatible = "mediatek,ipm-spi";
+		reg = <0 0x11007000 0 0x100>;
+		clocks = <&system_clk>,
+			 <&system_clk>;
+		clock-names = "sel-clk", "spi-clk";
+		interrupts = <GIC_SPI 140 IRQ_TYPE_LEVEL_HIGH>;
+		status = "disabled";
+	};
+
+	spi1: spi@1100b000 {
+		compatible = "mediatek,ipm-spi";
+		reg = <0 0x11008000 0 0x100>;
+		interrupts = <GIC_SPI 141 IRQ_TYPE_LEVEL_HIGH>;
+		status = "disabled";
+	};
+
+	spi2: spi@11009000 {
+		compatible = "mediatek,ipm-spi";
+		reg = <0 0x11009000 0 0x100>;
+		clocks = <&system_clk>,
+			 <&system_clk>;
+		clock-names = "sel-clk", "spi-clk";
+		interrupts = <GIC_SPI 142 IRQ_TYPE_LEVEL_HIGH>;
+		status = "disabled";
+	};
+
+	mmc0: mmc@11230000 {
+		compatible = "mediatek,mt7988-mmc",
+			     "mediatek,mt7986-mmc";
+		reg = <0 0x11230000 0 0x1000>;
+		interrupts = <GIC_SPI 143 IRQ_TYPE_LEVEL_HIGH>;
+		clocks = <&system_clk>,
+			 <&system_clk>,
+			 <&system_clk>;
+		clock-names = "source", "hclk", "source_cg";
+		status = "disabled";
+	};
+
+	ethdma: syscon@15000000 {
+		compatible = "mediatek,mt7988-ethdma", "syscon";
+		reg = <0 0x15000000 0 0x20000>;
+		clock-parent = <&topckgen>;
+		#clock-cells = <1>;
+		#reset-cells = <1>;
+	};
+
+	ethwarp: syscon@15031000 {
+		compatible = "mediatek,mt7988-ethwarp", "syscon";
+		reg = <0 0x15031000 0 0x1000>;
+		clock-parent = <&topckgen>;
+		#clock-cells = <1>;
+	};
+
+	eth: ethernet@15100000 {
+		compatible = "mediatek,mt7988-eth", "syscon";
+		reg = <0 0x15100000 0 0x20000>;
+		mediatek,ethsys = <&ethdma>;
+		resets = <&ethdma ETHSYS_FE_RST>;
+		reset-names = "fe";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		status = "disabled";
+	};
+};

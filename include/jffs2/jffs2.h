@@ -68,12 +68,9 @@
 #define JFFS2_COMPR_COPY	0x04
 #define JFFS2_COMPR_DYNRUBIN	0x05
 #define JFFS2_COMPR_ZLIB	0x06
-#if defined(CONFIG_JFFS2_LZO)
 #define JFFS2_COMPR_LZO		0x07
-#define JFFS2_NUM_COMPR		8
-#else
-#define JFFS2_NUM_COMPR		7
-#endif
+#define JFFS2_COMPR_LZMA	0x08
+#define JFFS2_NUM_COMPR		9
 
 /* Compatibility flags. */
 #define JFFS2_COMPAT_MASK 0xc000      /* What do to if an unknown nodetype is found */
@@ -92,6 +89,8 @@
 #define JFFS2_NODETYPE_CLEANMARKER (JFFS2_FEATURE_RWCOMPAT_DELETE | JFFS2_NODE_ACCURATE | 3)
 #define JFFS2_NODETYPE_PADDING (JFFS2_FEATURE_RWCOMPAT_DELETE | JFFS2_NODE_ACCURATE | 4)
 #define JFFS2_NODETYPE_SUMMARY (JFFS2_FEATURE_RWCOMPAT_DELETE | JFFS2_NODE_ACCURATE | 6)
+#define JFFS2_NODETYPE_XATTR (JFFS2_FEATURE_INCOMPAT | JFFS2_NODE_ACCURATE | 8)
+#define JFFS2_NODETYPE_XREF (JFFS2_FEATURE_INCOMPAT | JFFS2_NODE_ACCURATE | 9)
 
 /* Maybe later... */
 /*#define JFFS2_NODETYPE_CHECKPOINT (JFFS2_FEATURE_RWCOMPAT_DELETE | JFFS2_NODE_ACCURATE | 3) */
@@ -227,6 +226,10 @@ long zlib_decompress(unsigned char *data_in, unsigned char *cpage_out,
 		__u32 srclen, __u32 destlen);
 #if defined(CONFIG_JFFS2_LZO)
 int lzo_decompress(unsigned char *data_in, unsigned char *cpage_out,
+		u32 srclen, u32 destlen);
+#endif
+#if defined(CONFIG_JFFS2_LZMA)
+int lzma_decompress(unsigned char *data_in, unsigned char *cpage_out,
 		u32 srclen, u32 destlen);
 #endif
 

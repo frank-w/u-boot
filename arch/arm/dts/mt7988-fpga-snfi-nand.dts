@@ -1,0 +1,54 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (c) 2021 MediaTek Inc.
+ * Author: Sam Shih <sam.shih@mediatek.com>
+ */
+
+/dts-v1/;
+#include "mt7988-fpga.dtsi"
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	model = "mt7988-fpga";
+	compatible = "mediatek,mt7988-fpga";
+	chosen {
+		stdout-path = &uart0;
+	};
+
+	memory@40000000 {
+		device_type = "memory";
+		reg = <0 0x40000000 0 0x10000000>;
+	};
+};
+
+&pinctrl {
+	snfi_pins: spi0-snfi-pins {
+		mux {
+			function = "flash";
+			groups = "snfi";
+		};
+	};
+};
+
+&uart0 {
+	status = "okay";
+};
+
+&eth {
+	status = "okay";
+	mediatek,gmac-id = <0>;
+	phy-mode = "rgmii";
+	phy-handle = <&phy0>;
+
+	phy0: ethernet-phy@0 {
+		reg = <1>;
+	};
+};
+
+&snand {
+	pinctrl-names = "default";
+	pinctrl-0 = <&snfi_pins>;
+	status = "okay";
+	quad-spi;
+};
+

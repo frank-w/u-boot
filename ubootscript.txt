@@ -1,0 +1,58 @@
+mkimage -A arm64 -T script -C none -n 'Demo Script File' -d printenv.scr printenv.img
+
+fatload mmc 1:2 $loadaddr extlinux/printenv.img                              
+81 bytes read in 4 ms (19.5 KiB/s)                                              
+=> echo $loadaddr                                                               
+0xc00800                                                                        
+=> source $loadaddr                                                             
+## Executing script at 00c00800                                                 
+arch=arm                                                                        
+baudrate=1500000                                                                
+board=evb_rk3568                                                                
+board_name=evb_rk3568                                                           
+boot_a_script=load ${devtype} ${devnum}:${distro_bootpart} ${scriptaddr} ${pref}
+boot_efi_binary=load ${devtype} ${devnum}:${distro_bootpart} ${kernel_addr_r} ei
+boot_efi_bootmgr=if fdt addr ${fdt_addr_r}; then bootefi bootmgr ${fdt_addr_r};i
+boot_extlinux=sysboot ${devtype} ${devnum}:${distro_bootpart} any ${scriptaddr}}
+boot_prefixes=/ /boot/                                                          
+boot_script_dhcp=boot.scr.uimg                                                  
+boot_scripts=boot.scr.uimg boot.scr                                             
+boot_syslinux_conf=extlinux/extlinux.conf                                       
+boot_targets=mmc1 mmc0 pxe dhcp                                                 
+bootcmd=run distro_bootcmd                                                      
+bootcmd_dhcp=devtype=dhcp; if dhcp ${scriptaddr} ${boot_script_dhcp}; then sour;
+bootcmd_mmc0=devnum=0; run mmc_boot                                             
+bootcmd_mmc1=devnum=1; run mmc_boot                                             
+bootcmd_pxe=dhcp; if pxe get; then pxe boot; fi                                 
+bootdelay=2                                                                     
+cpu=armv8                                                                       
+distro_bootcmd=for target in ${boot_targets}; do run bootcmd_${target}; done    
+efi_dtb_prefixes=/ /dtb/ /dtb/current/                                          
+fdt_addr_r=0x0a100000                                                           
+fdtcontroladdr=7df36a50                                                         
+fdtfile=rockchip/rk3568-evb.dtb                                                 
+fileaddr=c00800                                                                 
+filesize=51                                                                     
+kernel_addr_r=0x02080000                                                        
+kernel_comp_addr_r=0x0c000000                                                   
+kernel_comp_size=0x03000000                                                     
+load_efi_dtb=load ${devtype} ${devnum}:${distro_bootpart} ${fdt_addr_r} ${prefi}
+loadaddr=0xc00800                                                               
+mmc_boot=if mmc dev ${devnum}; then devtype=mmc; run scan_dev_for_boot_part; fi 
+partitions=uuid_disk=${uuid_gpt_disk};name=loader1,start=32K,size=4000K,uuid=${;
+pxefile_addr_r=0x00e00000                                                       
+ramdisk_addr_r=0x0a200000                                                       
+scan_dev_for_boot=echo Scanning ${devtype} ${devnum}:${distro_bootpart}...; for;
+scan_dev_for_boot_part=part list ${devtype} ${devnum} -bootable devplist; env et
+scan_dev_for_efi=setenv efi_fdtfile ${fdtfile}; for prefix in ${efi_dtb_prefixee
+scan_dev_for_extlinux=if test -e ${devtype} ${devnum}:${distro_bootpart} ${prefi
+scan_dev_for_scripts=for script in ${boot_scripts}; do if test -e ${devtype} ${e
+scriptaddr=0x00c00000                                                           
+soc=rk3568                                                                      
+stderr=serial@fe660000                                                          
+stdin=serial@fe660000                                                           
+stdout=serial@fe660000                                                          
+vendor=rockchip                                                                 
+                                                                                
+Environment size: 3865/126972 bytes                                             
+=> 

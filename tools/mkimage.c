@@ -117,9 +117,10 @@ static void usage(const char *msg)
 		"          -t => update the timestamp in the FIT\n");
 #ifdef CONFIG_FIT_SIGNATURE
 	fprintf(stderr,
-		"Signing / verified boot options: [-k keydir] [-K dtb] [ -c <comment>] [-p addr] [-r] [-N engine]\n"
+		"Signing / verified boot options: [-k keydir] [-K dtb] [-I <keyname> [required [algo]]] [ -c <comment>] [-p addr] [-r] [-N engine]\n"
 		"          -k => set directory containing private keys\n"
 		"          -K => write public keys to this .dtb file\n"
+		"          -I => not signing only writing public key to dtb\n"
 		"          -g => set key name hint\n"
 		"          -G => use this signing key (in lieu of -k)\n"
 		"          -c => add comment in signature node\n"
@@ -159,7 +160,7 @@ static int add_content(int type, const char *fname)
 }
 
 static const char optstring[] =
-	"a:A:b:B:c:C:d:D:e:Ef:Fg:G:i:k:K:ln:N:o:O:p:qrR:stT:vVx";
+	"a:A:b:B:c:C:d:D:e:Ef:Fg:G:i:I:k:K:ln:N:o:O:p:qrR:stT:vVx";
 
 static const struct option longopts[] = {
 	{ "load-address", required_argument, NULL, 'a' },
@@ -293,6 +294,11 @@ static void process_args(int argc, char **argv)
 		case 'i':
 			params.fit_ramdisk = optarg;
 			break;
+		case 'I':
+			params.Iflag = 1;
+			params.keyname = optarg;
+			params.type = IH_TYPE_FLATDT;
+			break;
 		case 'k':
 			params.keydir = optarg;
 			break;
@@ -401,8 +407,19 @@ static void process_args(int argc, char **argv)
 		params.type = type;
 	}
 
-	if (!params.imagefile)
-		usage("Missing output filename");
+	if (params.Iflag) {
+		if (optind < argc)
+			params.required = argv[optind++];
+
+		if (optind < argc)
+			params.algo= argv[optind++];
+
+		if (!params.keydir || !params.keydest)
+			usage("Missing keydir or dtb");
+	} else {
+		if (!params.imagefile)
+			usage("Missing output filename");
+	}
 }
 
 static void verify_image(const struct image_type_params *tparams)
@@ -521,6 +538,22 @@ int main(int argc, char **argv)
 			usage("Bad parameters for FIT image type");
 	}
 
+	/* add public key to FDT */
+	if (params.Iflag) {
+		if (tparams->fflag_handle)
+			retval = tparams->fflag_handle(&params);
+
+		if (retval != EXIT_SUCCESS) {
+			fprintf(stderr, "%s: add public key FAIL (%d)\n",
+				params.cmdname, retval);
+			exit (retval);
+		} else {
+			printf ("%s: add public key SUCCESS\n",
+				params.cmdname);
+			exit (EXIT_SUCCESS);
+		}
+	}
+
 	if (params.lflag || params.fflag) {
 		ifd = open (params.imagefile, O_RDONLY|O_BINARY);
 	} else {
@@ -599,7 +632,12 @@ int main(int argc, char **argv)
 		exit (retval);
 	}
 
-	if ((params.type != IH_TYPE_MULTI) && (params.type != IH_TYPE_SCRIPT)) {
+	if (!params.skipcpy && params.type != IH_TYPE_MULTI && params.type != IH_TYPE_SCRIPT) {
+		if (!params.datafile) {
+			fprintf(stderr, "%s: Option -d with image data file was not specified\n",
+				params.cmdname);
+			exit(EXIT_FAILURE);
+		}
 		dfd = open(params.datafile, O_RDONLY | O_BINARY);
 		if (dfd < 0) {
 			fprintf(stderr, "%s: Can't open %s: %s\n",
@@ -785,7 +823,7 @@ int main(int argc, char **argv)
 
 	/* Print the image information by processing image header */
 	if (tparams->print_header)
-		tparams->print_header (ptr);
+		tparams->print_header (ptr, &params);
 	else {
 		fprintf (stderr, "%s: Can't print header for %s\n",
 			params.cmdname, tparams->name);
@@ -860,7 +898,9 @@ copy_file (int ifd, const char *datafile, int pad)
 		exit (EXIT_FAILURE);
 	}
 
-	if (params.xflag) {
+	if (params.xflag &&
+	    (((params.type > IH_TYPE_INVALID) && (params.type < IH_TYPE_FLATDT)) ||
+	     (params.type == IH_TYPE_KERNEL_NOLOAD) || (params.type == IH_TYPE_FIRMWARE_IVT))) {
 		unsigned char *p = NULL;
 		/*
 		 * XIP: do not append the struct legacy_img_hdr at the

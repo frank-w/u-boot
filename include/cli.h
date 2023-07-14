@@ -22,6 +22,8 @@ struct cli_ch_state {
 	char esc_save[8];
 	int emit_upto;
 	bool emitting;
+	/* mediatek bootmenu choice feature */
+	char choice;
 };
 
 /**

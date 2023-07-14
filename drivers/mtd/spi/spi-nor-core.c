@@ -672,6 +672,7 @@ static int set_4byte(struct spi_nor *nor, const struct flash_info *info,
 	case SNOR_MFR_ISSI:
 	case SNOR_MFR_MACRONIX:
 	case SNOR_MFR_WINBOND:
+	case SNOR_MFR_EON:
 		if (need_wren)
 			write_enable(nor);
 
@@ -2818,6 +2819,100 @@ static int spi_nor_init_params(struct spi_nor *nor,
 	return 0;
 }
 
+static int spi_nor_read_uuid(struct spi_nor *nor)
+{
+	u8 read_opcode, addr_width, read_dummy;
+	loff_t addr;
+	u8 *uuid;
+	u8 uuid_len;
+	int shift = 0;
+	int ret;
+	int i;
+	struct spi_mem_op op;
+
+	read_opcode = nor->read_opcode;
+	addr_width = nor->addr_width;
+	read_dummy = nor->read_dummy;
+
+	switch (JEDEC_MFR(nor->info)) {
+	case SNOR_MFR_WINBOND:
+		uuid_len = 8;
+		nor->read_opcode = 0x4b;
+		nor->addr_width = 0;
+		addr = 0x0;
+		nor->read_dummy = 4;
+		break;
+	case SNOR_MFR_GIGADEVICE:
+		uuid_len = 16;
+		nor->read_opcode = 0x4b;
+		nor->addr_width = 3;
+		addr = 0x0;
+		nor->read_dummy = 1;
+		break;
+	case CFI_MFR_ST:
+	case SNOR_MFR_MICRON:
+		uuid_len = 17;
+		shift = 3;
+		nor->read_opcode = 0x9f;
+		nor->addr_width = 0;
+		addr = 0x0;
+		nor->read_dummy = 0;
+		break;
+	case SNOR_MFR_EON:
+		uuid_len = 12;
+		nor->read_opcode = 0x5a;
+		nor->addr_width = 3;
+		addr = 0x80;
+		nor->read_dummy = 1;
+		break;
+	/* Automotive only in SPANSION's NOR devices */
+	case SNOR_MFR_SPANSION:
+		uuid_len = 11;
+		shift = 386;
+		nor->read_opcode = 0x9f;
+		nor->addr_width = 0;
+		addr = 0x0;
+		nor->read_dummy = 0;
+		break;
+	default:
+		printf("UUID not supported on this device.\n");
+		return -ENOTSUPP;
+	}
+
+	uuid = kmalloc((uuid_len + shift) * sizeof(*uuid), GFP_KERNEL);
+	if (!uuid) {
+		ret = -ENOMEM;
+		goto read_err;
+	}
+	memset(uuid, 0x0, (uuid_len + shift) * sizeof(*uuid));
+
+	op = (struct spi_mem_op)SPI_MEM_OP(SPI_MEM_OP_CMD(nor->read_opcode, 0),
+					   SPI_MEM_OP_ADDR(nor->addr_width, addr, 0),
+					   SPI_MEM_OP_DUMMY(nor->read_dummy, 0),
+					   SPI_MEM_OP_DATA_IN(uuid_len+shift, NULL, 0));
+
+	spi_nor_setup_op(nor, &op, nor->reg_proto);
+
+	ret = spi_nor_read_write_reg(nor, &op, uuid);
+	if (ret < 0) {
+		dev_dbg(nor->dev, "error %d reading %x\n", ret, nor->read_opcode);
+		goto read_err;
+	}
+
+	printf("UUID: 0x");
+	for(i = 0; i<uuid_len; i++)
+		printf("%02x", uuid[i+shift]);
+	puts("\n");
+
+read_err:
+	nor->read_opcode = read_opcode;
+	nor->addr_width = addr_width;
+	nor->read_dummy = read_dummy;
+	kfree(uuid);
+
+	return ret;
+}
+
 static int spi_nor_hwcaps2cmd(u32 hwcaps, const int table[][2], size_t size)
 {
 	size_t i;
@@ -3930,6 +4025,7 @@ int spi_nor_scan(struct spi_nor *nor)
 	nor->write = spi_nor_write_data;
 	nor->read_reg = spi_nor_read_reg;
 	nor->write_reg = spi_nor_write_reg;
+	nor->read_uuid = spi_nor_read_uuid;
 
 	nor->setup = spi_nor_default_setup;
 

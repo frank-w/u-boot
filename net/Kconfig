@@ -252,6 +252,19 @@ config IPV6
 	  ip6addr, serverip6. If a u-boot command is capable to parse an IPv6
 	  address and find it, it will force using IPv6 in the network stack.
 
+config MTK_TCP
+	bool
+	default n
+	help
+	  Enable mediatek tcp framework that allows some customized features.
+
+config MTK_HTTPD
+	bool
+	default n
+	depends on MTK_TCP
+	help
+	  Enable mediatek httpd framework that allows some customized features.
+
 endif   # if NET
 
 config SYS_RX_ETH_BUFFER

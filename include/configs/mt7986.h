@@ -9,11 +9,10 @@
 #ifndef __MT7986_H
 #define __MT7986_H
 
-/* Uboot definition */
-#define CFG_SYS_UBOOT_BASE		CONFIG_TEXT_BASE
+#include <linux/sizes.h>
 
-/* SPL -> Uboot */
-#define CFG_SYS_UBOOT_START		CONFIG_TEXT_BASE
+#define CONFIG_SYS_NONCACHED_MEMORY	SZ_1M
+#define CONFIG_SYS_MMC_ENV_DEV		0
 
 /* DRAM */
 #define CFG_SYS_SDRAM_BASE		0x40000000

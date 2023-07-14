@@ -122,6 +122,7 @@
 #endif
 #include <net/tcp.h>
 #include <net/wget.h>
+#include <net/mtk_tcp.h>
 
 /** BOOTP EXTENTIONS **/
 
@@ -574,6 +575,11 @@ restart:
 			ncsi_probe_packages();
 			break;
 #endif
+#if defined(CONFIG_MTK_TCP)
+		case TCP:
+			tcp_start();
+			break;
+#endif
 		default:
 			break;
 		}
@@ -622,6 +628,13 @@ restart:
 		 *	errors that may have happened.
 		 */
 		eth_rx();
+
+#if defined(CONFIG_MTK_TCP)
+		/*
+		 *	TCP periodic check
+		 */
+		tcp_periodic_check();
+#endif
 
 		/*
 		 *	Abort if ctrl-c was pressed.
@@ -1353,6 +1366,9 @@ void net_process_received_packet(uchar *in_packet, int len)
 				   "TCP PH (to=%pI4, from=%pI4, len=%d)\n",
 				   &dst_ip, &src_ip, len);
 
+#if defined(CONFIG_MTK_TCP)
+			receive_tcp((struct ip_hdr *) ip, len, et);
+#endif
 			rxhand_tcp_f((union tcp_build_pkt *)ip, len);
 			return;
 #endif
@@ -1493,6 +1509,7 @@ common:
 	case NETCONS:
 	case FASTBOOT:
 	case TFTPSRV:
+	case TCP:
 		if (IS_ENABLED(CONFIG_IPV6) && use_ip6) {
 			if (!memcmp(&net_link_local_ip6, &net_null_addr_ip6,
 				    sizeof(struct in6_addr))) {

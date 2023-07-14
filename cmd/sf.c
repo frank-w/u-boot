@@ -407,6 +407,14 @@ static int do_spi_protect(int argc, char *const argv[])
 	return ret == 0 ? 0 : 1;
 }
 
+static int do_spi_flash_read_uuid(void)
+{
+	int ret = 0;
+	ret = flash->read_uuid(flash);
+
+	return ret == 0 ? 0 : 1;
+}
+
 enum {
 	STAGE_ERASE,
 	STAGE_CHECK,
@@ -601,6 +609,8 @@ static int do_spi_flash(struct cmd_tbl *cmdtp, int flag, int argc,
 		ret = do_spi_flash_erase(argc, argv);
 	else if (strcmp(cmd, "protect") == 0)
 		ret = do_spi_protect(argc, argv);
+	else if (strcmp(cmd, "uuid") == 0)
+		ret = do_spi_flash_read_uuid();
 	else if (IS_ENABLED(CONFIG_CMD_SF_TEST) && !strcmp(cmd, "test"))
 		ret = do_spi_flash_test(argc, argv);
 	else
@@ -626,7 +636,8 @@ static const char long_help[] =
 	"					  at `addr' to flash at `offset'\n"
 	"					  or to start of mtd `partition'\n"
 	"sf protect lock/unlock sector len	- protect/unprotect 'len' bytes starting\n"
-	"					  at address 'sector'"
+	"					  at address 'sector'\n"
+	"sf uuid					- read uuid from flash"
 #ifdef CONFIG_CMD_SF_TEST
 	"\nsf test offset len		- run a very basic destructive test"
 #endif

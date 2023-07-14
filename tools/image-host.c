@@ -1328,6 +1328,37 @@ int fit_add_verification_data(const char *keydir, const char *keyfile,
 	return 0;
 }
 
+int fit_add_public_key_info(const char *keydir, const char *keyname,
+			    void *keydest, const char *required,
+			    const char *algo, const char *cmdname)
+{
+	struct image_sign_info info;
+	int ret = 0;
+
+	memset(&info, '\0', sizeof(info));
+	info.keydir = keydir;
+	info.keyname = keyname;
+	info.name = strdup(algo);
+	info.checksum = image_get_checksum_algo(algo);
+	info.crypto = image_get_crypto_algo(algo);
+	info.require_keys = required;
+
+	if (!info.checksum || !info.crypto) {
+		fprintf(stderr, "%s: unsupported signature algorithm (%s)\n",
+		        cmdname, algo);
+		return -1;
+	}
+
+	ret = info.crypto->add_verify_data(&info, keydest);
+	if (ret >= 0)
+		ret = 0;
+	else if (ret != -ENOSPC)
+		fprintf(stderr, "%s: %s: failed to add public key info (%d)\n",
+			cmdname, __func__, ret);
+
+	return ret;
+}
+
 #ifdef CONFIG_FIT_SIGNATURE
 int fit_check_sign(const void *fit, const void *key,
 		   const char *fit_uname_config)

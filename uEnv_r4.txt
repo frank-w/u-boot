@@ -34,8 +34,7 @@ loadenv=if run checkenv;then run loadenvfile;fi
 resetenv=env default -a;printenv;
 
 loadkernel=fatload $device $partition $kaddr ${kernel}
-buildargs=setenv bootargs "board=${board} earlycon=uart8250,mmio32,0x11002000 ${bootopts} root=${root}"
-#console=${console}
+buildargs=setenv bootargs "board=${board} console=${console} root=${root} ${bootopts}
 
 useusb=if usb info; then usb reset;else usb start;fi; setenv device usb;setenv partition 0:1;ls ${device} ${partition}
 

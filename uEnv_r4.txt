@@ -45,13 +45,8 @@ checkrd=if printenv initrd;then if fatload ${device} ${partition} ${rdaddr} ${in
 newboot=run checkrd; run setbootconf; run buildargs;if printenv fit;then setenv kernel ${fit};if run loadkernel; then bootm ${kaddr}${bootconf}; fi;fi;
 bootnetfit=run checkrd; run setbootconf;run buildargs;if tftp $kaddr ${bootfile}; then bootm ${kaddr}${bootconf};fi
 
-loadnor=sf read ${rdaddr} 0x180000 0xa80000;sf read ${kaddr} 0xc00000 0x1400000;
-bootnor=run loadnor;run useinitrd;run setbootconf; run buildargs; bootm ${kaddr}${bootconf};
-
 checkmmc=if mmc partconf 0; then echo "emmc available";mmcdev="emmc";else echo "sd available";mmcdev="sd";fi
-checkspi=if sf probe; then echo "NOR available";spidev="nor";else echo "NAND available";spidev="nand";fi
-
-setbootconf=run checkmmc checkspi;echo $mmcdev $spidev;setenv bootconf "#conf-$mmcdev-$spidev"
+setbootconf=run checkmmc;echo $mmcdev;setenv bootconf "#conf-$mmcdev"
 
 wrspimnand=if printenv bl2file;then if fatload $device $partition $loadaddr $bl2file;then mtd erase spi-nand0 0x0 0x100000;mtd write spi-nand0 $loadaddr 0x0 0x100000;else echo "loading bl2 $bl2file failed";fi;else echo "bl2file not defined";fi;if printenv fipfile;then if fatload $device $partition $loadaddr $fipfile;then mtd erase spi-nand0 0x380000 0x200000;mtd write spi-nand0 $loadaddr 0x380000 0x200000;else echo "loading fip $fipfile failed";fi;else echo "fipfile not defined";fi
 wremmc=if printenv bl2file;then mmc partconf 0 1 1 1;if fatload $device $partition $loadaddr $bl2file;then mmc erase 0x0 0x400;mmc write ${loadaddr} 0x0 0x400;else echo "loading bl2 $bl2file failed";fi;else echo "bl2file not defined";fi;mmc partconf 0 1 1 0;if printenv fipfile;then if fatload $device $partition $loadaddr $fipfile;then mmc erase 0x3400 0x1000;mmc write ${loadaddr} 0x3400 0x1000;else echo "loading fip $fipfile failed";fi;else echo "fipfile not defined";fi

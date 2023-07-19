@@ -78,6 +78,19 @@ case $1 in
 			;;
 		esac
 		;;
+	"backup")
+		DEV=/dev/sdb
+		read -e -i "$DEV" -p "Please enter target device: " DEV
+		case $board in
+			"bpi-r64")
+				sudo dd if=${DEV} of=${board}_bl2fip.img bs=512 count=6144
+			;;
+			"bpi-r3"|"bpi-r4")
+				sudo dd of=${board}_bl2.img if=${DEV}1
+				sudo dd of=${board}_fip.bin if=${DEV}4
+			;;
+		esac
+		;;
 	"createimg")
 		if [[ "$device" != "sdmmc" ]];then echo "$1 not supported for $device";exit 1;fi
 		IMGDIR=.

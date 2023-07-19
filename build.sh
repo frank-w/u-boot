@@ -91,6 +91,27 @@ case $board in
 		FILE_SOC=include/configs/mt7986.h
 		UBOOT_FILE=u-boot.bin
 	;;
+	"bpi-r4")
+		export ARCH=arm64
+		export CROSS_COMPILE=aarch64-linux-gnu-
+
+		if [[ "$device" =~ (emmc|spi-nand|spi-nor) ]];then
+			dev=emmc
+		else
+			dev=$device
+		fi
+		#FILE_DEFCFG=mt7986a_bpir3_${dev}_defconfig
+		FILE_DEFCFG=mt7988a_bpir4_sd_defconfig
+
+		#DTS=mt7988a-${dev}-rfb
+		DTS=mt7988-sd-rfb
+		FILE_DTS=arch/arm/dts/${DTS}.dts
+		FILE_DTSI=arch/arm/dts/mt7988.dtsi
+
+		FILE_BOARD=board/mediatek/mt7988/mt7988_rfb.c
+		FILE_SOC=include/configs/mt7988.h
+		UBOOT_FILE=u-boot.bin
+	;;
 	*)
 		echo "unsupported"
 		exit 1;

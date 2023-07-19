@@ -57,3 +57,11 @@ venv/
 # MediaTek related
 .vscode/
 Kconfiglib/__pycache__/
+
+#FWU
+*.su
+*.o
+*.cmd
+*.bin
+*.img
+u-boot*

@@ -38,7 +38,7 @@ buildargs=setenv bootargs "board=${board} console=${console} root=${root} ${boot
 
 useusb=if usb info; then usb reset;else usb start;fi; setenv device usb;setenv partition 0:1;ls ${device} ${partition}
 
-useinitrd=setenv root "/dev/ram0 rw";setenv bootopts "${bootopts} initrd=${rdaddr},20M";
+useinitrd=setenv root "/dev/ram0 rw";setenv bootopts "${bootopts} initrd=${rdaddr},100M";
 checkrd=if printenv initrd;then if fatload ${device} ${partition} ${rdaddr} ${initrd};then run useinitrd;fi;fi
 
 newboot=run checkrd; run setbootconf; run buildargs;if printenv fit;then setenv kernel ${fit};if run loadkernel; then bootm ${kaddr}${bootconf}; fi;fi;

@@ -28,6 +28,9 @@ then
 fi
 
 ENV_START=0
+
+FILE_UENV=/media/$USER/BPI-BOOT/uEnv.txt
+
 case $board in
 	"bpi-r2")
 		FILE_DTS=arch/arm/dts/mt7623n-bananapi-bpi-r2.dts
@@ -35,6 +38,7 @@ case $board in
 		FILE_DEFCFG=mt7623n_bpir2_defconfig
 		FILE_BOARD=board/mediatek/mt7623/mt7623_rfb.c
 		FILE_SOC=include/configs/mt7623.h
+		FILE_UENV=/media/$USER/BPI-BOOT/bananapi/$board/linux/uEnv.txt
 
 		#start-values in kB
 		UBOOT_START=320
@@ -47,6 +51,7 @@ case $board in
 		FILE_DTSI=arch/arm/dts/mt7622.dtsi
 		FILE_BOARD=board/mediatek/mt7622/mt7622_rfb.c
 		FILE_SOC=include/configs/mt7622.h
+		FILE_UENV=/media/$USER/BPI-BOOT/bananapi/$board/linux/uEnv.txt
 
 		#~40kb bl31+~640kb uboot =~ 682kb fip @0x160000 <0x300000
 		UBOOT_START=1064 #1024k + 40k
@@ -117,7 +122,6 @@ case $board in
 		exit 1;
 	;;
 esac
-FILE_UENV=/media/$USER/BPI-BOOT/bananapi/$board/linux/uEnv.txt
 
 if [[ $ENV_START -ne 0 ]];then
 	MAXSIZE=$(( ($ENV_START - $UBOOT_START) *1024 -1 ))

@@ -319,6 +319,11 @@ config ETH_SANDBOX_RAW
 	  network traffic to be tested from within sandbox. See
 	  doc/arch/index.rst for more details.
 
+config ETH_DUMMY
+	bool "Dummy PHY reset-gpios driver"
+	depends on DM_ETH
+	select DM_ETH_PHY
+
 config ETH_DESIGNWARE
 	bool "Synopsys Designware Ethernet MAC"
 	select PHYLIB

@@ -97,7 +97,11 @@ void emi_mpu_init(void)
 
 	/* TZRAM protect address(192KB) */
 	region_info.start = TZRAM_BASE;
+#ifdef NEED_BL32
 	region_info.end = (TZRAM_BASE + TZRAM_SIZE + TZRAM2_SIZE) - 1;
+#else
+	region_info.end = (TZRAM_BASE + TZRAM_SIZE) - 1;
+#endif
 	region_info.region = 0;
 	SET_ACCESS_PERMISSION(region_info.apc, 1,
 			      FORBID, FORBID, FORBID, FORBID,

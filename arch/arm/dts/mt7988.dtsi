@@ -179,11 +179,6 @@
 		interrupts = <GIC_SPI 172 IRQ_TYPE_LEVEL_HIGH>;
 		phys = <&tphyu2port0 PHY_TYPE_USB2>,
 		       <&tphyu3port0 PHY_TYPE_USB3>;
-/*		clocks = <&infracfg_ao CK_INFRA_USB_SYS_CK_P1>,
-			 <&infracfg_ao CK_INFRA_USB_XHCI_CK_P1>,
-			 <&infracfg_ao CK_INFRA_USB_CK_P1>,
-			 <&infracfg_ao CK_INFRA_66M_USB_HCK_CK_P1>,
-			 <&infracfg_ao CK_INFRA_133M_USB_HCK_CK_P1>;*/
 		clocks = <&dummy_clk>,
 			 <&dummy_clk>,
 			 <&dummy_clk>,
@@ -209,7 +204,6 @@
 
 		tphyu2port0: usb-phy@11c50000 {
 			reg = <0 0x11c50000 0 0x700>;
-			//clocks = <&infracfg_ao CK_INFRA_USB_UTMI_CK_P1>;
 			clocks = <&dummy_clk>;
 			clock-names = "ref";
 			#phy-cells = <1>;
@@ -218,7 +212,6 @@
 
 		tphyu3port0: usb-phy@11c50700 {
 			reg = <0 0x11c50700 0 0x900>;
-			//clocks = <&infracfg_ao CK_INFRA_USB_PIPE_CK_P1>;
 			clocks = <&dummy_clk>;
 			clock-names = "ref";
 			#phy-cells = <1>;

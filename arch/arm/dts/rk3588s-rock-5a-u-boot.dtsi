@@ -4,10 +4,6 @@
  */
 
 #include "rk3588s-u-boot.dtsi"
-#include <dt-bindings/pinctrl/rockchip.h>
-#include <dt-bindings/input/input.h>
-#include <dt-bindings/gpio/gpio.h>
-#include <dt-bindings/usb/pd.h>
 
 / {
 	aliases {
@@ -19,16 +15,26 @@
 	};
 };
 
-&sdmmc {
-	bus-width = <4>;
+&combphy0_ps {
 	status = "okay";
+};
+
+&pcie2x1l2 {
+	reset-gpios = <&gpio3 RK_PD1 GPIO_ACTIVE_HIGH>;
+	pinctrl-0 = <&pcie2_2_rst>;
+	status = "okay";
+};
+
+&pinctrl {
+	pcie2 {
+		pcie2_2_rst: pcie2-2-rst {
+			rockchip,pins = <3 RK_PD1 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
 };
 
 &sdhci {
 	cap-mmc-highspeed;
 	mmc-ddr-1_8v;
 	mmc-hs200-1_8v;
-	pinctrl-names = "default";
-	pinctrl-0 = <&emmc_bus8 &emmc_clk &emmc_cmd &emmc_data_strobe &emmc_rstnout>;
 };
-

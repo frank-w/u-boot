@@ -737,13 +737,9 @@ static int eqos_start(struct udevice *dev)
 	int ret, i;
 	ulong rate;
 	u32 val, tx_fifo_sz, rx_fifo_sz, tqs, rqs, pbl;
-	ulong last_rx_desc;
 	ulong desc_pad;
 
 	debug("%s(dev=%p):\n", __func__, dev);
-
-	eqos->tx_desc_idx = 0;
-	eqos->rx_desc_idx = 0;
 
 	ret = eqos->config->ops->eqos_start_resets(dev);
 	if (ret < 0) {
@@ -1062,15 +1058,13 @@ static int eqos_start(struct udevice *dev)
 	setbits_le32(&eqos->mac_regs->configuration,
 		     EQOS_MAC_CONFIGURATION_TE | EQOS_MAC_CONFIGURATION_RE);
 
-	/* TX tail pointer not written until we need to TX a packet */
-	/*
-	 * Point RX tail pointer at last descriptor. Ideally, we'd point at the
-	 * first descriptor, implying all descriptors were available. However,
-	 * that's not distinguishable from none of the descriptors being
-	 * available.
-	 */
-	last_rx_desc = (ulong)eqos_get_desc(eqos, EQOS_DESCRIPTORS_RX - 1, true);
-	writel(last_rx_desc, &eqos->dma_regs->ch0_rxdesc_tail_pointer);
+	/* Point tail pointers at first descriptor. */
+	eqos->tx_desc_idx = 0;
+	writel((ulong)eqos_get_desc(eqos, eqos->tx_desc_idx, false),
+	       &eqos->dma_regs->ch0_txdesc_tail_pointer);
+	eqos->rx_desc_idx = 0;
+	writel((ulong)eqos_get_desc(eqos, eqos->rx_desc_idx, true),
+	       &eqos->dma_regs->ch0_rxdesc_tail_pointer);
 
 	eqos->started = true;
 
@@ -1189,7 +1183,7 @@ static int eqos_recv(struct udevice *dev, int flags, uchar **packetp)
 
 	rx_desc = eqos_get_desc(eqos, eqos->rx_desc_idx, true);
 	eqos->config->ops->eqos_inval_desc(rx_desc);
-	if (rx_desc->des3 & EQOS_DESC3_OWN)
+	if (readl(&rx_desc->des3) & EQOS_DESC3_OWN)
 		return -EAGAIN;
 
 	debug("%s(dev=%p, flags=%x):\n", __func__, dev, flags);
@@ -1309,7 +1303,7 @@ static int eqos_probe_resources_core(struct udevice *dev)
 	debug("%s: rx_dma_buf=%p\n", __func__, eqos->rx_dma_buf);
 
 	eqos->config->ops->eqos_inval_buffer(eqos->rx_dma_buf,
-			EQOS_MAX_PACKET_SIZE * EQOS_DESCRIPTORS_RX);
+					     EQOS_RX_BUFFER_SIZE);
 
 	debug("%s: OK\n", __func__);
 	return 0;

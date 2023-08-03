@@ -53,6 +53,10 @@ jobs:
         run: |
           git fetch origin mtk-atf
 
+      - name: Fetch mtk-atf branch for R4
+        run: |
+          git fetch origin mtk-atf-r4
+
       - name: Build for BananaPi-R2
         run: |
           export PATH=/usr/lib/ccache:$PATH
@@ -144,6 +148,49 @@ jobs:
           bash build.sh rename
           rm build.conf
 
+      - name: Build for BananaPi-R4
+        run: |
+          sed -i 's/#\(board=bpi-r4\)/\1/' build.conf #change board to r4
+          bash build.sh importconfig
+          bash build.sh build
+          bash build.sh rename
+          git stash #stash build.conf
+
+          git checkout mtk-atf-r4
+          echo -e "board=bpi-r4\ndevice=sdmmc" > build.conf
+          bash build.sh build
+          bash build.sh rename
+          bash build.sh createimg non-interactive
+          rm build.conf
+
+          git checkout ${{ env.BRANCH }}
+          git stash pop #restore build.conf
+          sed -i 's/#\(device=emmc\)/\1/' build.conf #change device
+          bash build.sh importconfig
+          bash build.sh build
+          bash build.sh rename
+          git stash #stash build.conf
+
+          git checkout mtk-atf-r4
+          echo -e "board=bpi-r4\ndevice=emmc" > build.conf
+          bash build.sh build
+          bash build.sh rename
+          rm build.conf
+
+          git checkout ${{ env.BRANCH }}
+          git stash pop #restore build.conf
+          sed -i 's/#\(device=spi-nand\)/\1/' build.conf #change device
+          bash build.sh importconfig
+          bash build.sh build
+          bash build.sh rename
+          git stash #stash build.conf
+
+          git checkout mtk-atf-r4
+          echo -e "board=bpi-r4\ndevice=spim-nand" > build.conf
+          bash build.sh build
+          bash build.sh rename
+          rm build.conf
+
       - name: Upload binaries to release
         if: endsWith(github.ref,'-bpi') && contains(env.UBOOTVER,'-rc') == false
         uses: marvinpinto/action-automatic-releases@latest
@@ -156,6 +203,7 @@ jobs:
             u-boot-r2*.bin
             u-boot-r64*.bin
             u-boot-r3*.bin
+            u-boot-r4*.bin
             *_fip.bin
             *_bl2.img
             *.img.gz

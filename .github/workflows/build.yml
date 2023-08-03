@@ -154,6 +154,7 @@ jobs:
       - name: Build for BananaPi-R4
         run: |
           sed -i 's/#\(board=bpi-r4\)/\1/' build.conf #change board to r4
+          sed -i 's/\(device=.*\)$/#\1/' build.conf #change device back to sd
           bash build.sh importconfig
           bash build.sh build
           bash build.sh rename

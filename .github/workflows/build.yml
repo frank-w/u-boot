@@ -166,14 +166,10 @@ jobs:
 
           git checkout mtk-atf-r4
           echo -e "board=bpi-r4\ndevice=sdmmc" > build.conf
-          ls -lh u-boot*.bin
-          . build.conf
-          cp u-boot-r4_*sd.bin u-boot.bin
           bash build.sh build
           bash build.sh rename
           bash build.sh createimg non-interactive
           rm build.conf
-          git checkout u-boot.bin
 
           git checkout ${{ env.BRANCH }}
           git stash pop #restore build.conf
@@ -185,13 +181,9 @@ jobs:
 
           git checkout mtk-atf-r4
           echo -e "board=bpi-r4\ndevice=emmc" > build.conf
-          ls -lh u-boot*.bin
-          . build.conf
-          cp u-boot-r4_*${device}.bin u-boot.bin
           bash build.sh build
           bash build.sh rename
           rm build.conf
-          git checkout u-boot.bin
 
           git checkout ${{ env.BRANCH }}
           git stash pop #restore build.conf
@@ -203,9 +195,6 @@ jobs:
 
           git checkout mtk-atf-r4
           echo -e "board=bpi-r4\ndevice=spim-nand" > build.conf
-          ls -lh u-boot*.bin
-          . build.conf
-          cp u-boot-r4_*${device}.bin u-boot.bin
           bash build.sh build
           bash build.sh rename
           rm build.conf

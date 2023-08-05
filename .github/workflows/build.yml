@@ -168,7 +168,7 @@ jobs:
           echo -e "board=bpi-r4\ndevice=sdmmc" > build.conf
           ls -lh u-boot*.bin
           . build.conf
-          cp u-boot-r4-*sd.bin u-boot.bin
+          cp u-boot-r4_*sd.bin u-boot.bin
           bash build.sh build
           bash build.sh rename
           bash build.sh createimg non-interactive
@@ -187,7 +187,7 @@ jobs:
           echo -e "board=bpi-r4\ndevice=emmc" > build.conf
           ls -lh u-boot*.bin
           . build.conf
-          cp u-boot-r4-*${device}.bin u-boot.bin
+          cp u-boot-r4_*${device}.bin u-boot.bin
           bash build.sh build
           bash build.sh rename
           rm build.conf
@@ -205,7 +205,7 @@ jobs:
           echo -e "board=bpi-r4\ndevice=spim-nand" > build.conf
           ls -lh u-boot*.bin
           . build.conf
-          cp u-boot-r4-*${device}.bin u-boot.bin
+          cp u-boot-r4_*${device}.bin u-boot.bin
           bash build.sh build
           bash build.sh rename
           rm build.conf

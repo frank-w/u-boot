@@ -61,9 +61,9 @@ case $board in
 		UBOOT_FILE=u-boot.bin
 	;;
 	"bpi-r2pro")
-		FILE_DTS=arch/arm/dts/rk3568-evb.dts
+		FILE_DTS=arch/arm/dts/rk3568-bpi-r2pro.dts
 		FILE_DTSI=arch/arm/dts/rk3568.dtsi
-		FILE_DEFCFG=evb-rk3568_defconfig
+		FILE_DEFCFG=bpi-r2pro-rk3568_defconfig
 		FILE_BOARD=board/rockchip/evb_rk3568/evb_rk3568.c
 		FILE_SOC=include/configs/rk3568_bpi-r2-pro.h
 

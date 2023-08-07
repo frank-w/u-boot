@@ -182,7 +182,8 @@ dtb-$(CONFIG_ROCKCHIP_RK3568) += \
 	rk3568-nanopi-r5s.dtb \
 	rk3568-odroid-m1.dtb \
 	rk3568-radxa-e25.dtb \
-	rk3568-rock-3a.dtb
+	rk3568-rock-3a.dtb \
+	rk3568-bpi-r2pro.dtb
 
 dtb-$(CONFIG_ROCKCHIP_RK3588) += \
 	rk3588-edgeble-neu6a-io.dtb \

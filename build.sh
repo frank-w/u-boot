@@ -31,6 +31,22 @@ ENV_START=0
 
 FILE_UENV=/media/$USER/BPI-BOOT/uEnv.txt
 
+function edit()
+{
+        file=$1
+        if [[ -z "$EDITOR" ]];then EDITOR=/usr/bin/editor;fi #use alternatives setting
+        if [[ -e "$file" ]];then
+                if [[ -w "$file" ]];then
+                        $EDITOR "$file"
+                else
+                        echo "file $file not writable by user using sudo..."
+                        sudo $EDITOR "$file"
+                fi
+        else
+                echo "file $file not found"
+        fi
+}
+
 case $board in
 	"bpi-r2")
 		FILE_DTS=arch/arm/dts/mt7623n-bananapi-bpi-r2.dts
@@ -189,7 +205,7 @@ case $1 in
 	;;
 	"defconfig")
 		if [[ -n "$FILE_DEFCFG" ]];then
-			nano configs/$FILE_DEFCFG;
+			edit configs/$FILE_DEFCFG;
 		fi
 	;;
 	"install")
@@ -230,20 +246,20 @@ case $1 in
 	;;
 	"uenv")
 		if [[ -n "$FILE_UENV" ]]; then
-			nano $FILE_UENV
+			edit $FILE_UENV
 		fi
 	;;
 	"board")
-		nano $FILE_BOARD
+		edit $FILE_BOARD
 	;;
 	"dts")
-		nano $FILE_DTS
+		edit $FILE_DTS
 	;;
 	"dtsi")
-		nano $FILE_DTSI
+		edit $FILE_DTSI
 	;;
 	"soc")
-		nano $FILE_SOC
+		edit $FILE_SOC
 	;;
 	"upload")
 		upload

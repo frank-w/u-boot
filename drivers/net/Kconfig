@@ -903,6 +903,15 @@ config MEDIATEK_ETH
 	  This Driver support MediaTek Ethernet GMAC
 	  Say Y to enable support for the MediaTek Ethernet GMAC.
 
+config MEDIATEK_SWITCH
+	bool "MediaTek Ethernet Switch Driver"
+	select PHYLIB
+	select DM_GPIO
+	select DM_RESET
+	help
+	  This Driver support MediaTek Switches MT753X
+	  Say Y to enable support for the MediaTek Ethernet Switch.
+
 config HIGMACV300_ETH
 	bool "HiSilicon Gigabit Ethernet Controller"
 	select DM_RESET

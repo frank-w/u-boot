@@ -1,3 +1,39 @@
+#ifndef _MTK_ETH_H_
+#define _MTK_ETH_H_
+
+enum mtk_switch {
+	SW_NONE,
+	SW_MT7530,
+	SW_MT7531,
+	SW_MT7988,
+};
+
+struct mtk_soc_data {
+	u32 caps;
+	u32 ana_rgc3;
+	u32 gdma_count;
+	u32 pdma_base;
+	u32 txd_size;
+	u32 rxd_size;
+};
+
+#define PCR_REG(p)			(0x2004 + (p) * 0x100)
+#define PORT_MATRIX_S			16
+#define PORT_MATRIX_M			0xff0000
+
+#define PVC_REG(p)			(0x2010 + (p) * 0x100)
+#define STAG_VPID_S			16
+#define STAG_VPID_M			0xffff0000
+#define VLAN_ATTR_S			6
+#define VLAN_ATTR_M			0xc0
+
+/* VLAN_ATTR: VLAN attributes */
+#define VLAN_ATTR_USER			0
+#define VLAN_ATTR_STACK			1
+#define VLAN_ATTR_TRANSLATION		2
+#define VLAN_ATTR_TRANSPARENT		3
+
+#define PMCR_REG(p)			(0x3000 + (p) * 0x100)
 #define MT753X_NUM_PHYS		5
 #define MT753X_NUM_PORTS	7
 #define MT753X_DFL_SMI_ADDR	31
@@ -51,6 +87,40 @@
 #define GSWTX_IPG_S			16
 #define GSWRX_IPG_M			0xF
 #define GSWRX_IPG_S			0
+
+/* MDIO_CMD: MDIO commands */
+#define MDIO_CMD_ADDR			0
+#define MDIO_CMD_WRITE			1
+#define MDIO_CMD_READ			2
+#define MDIO_CMD_READ_C45		3
+
+/* MDIO_ST: MDIO start field */
+#define MDIO_ST_C45			0
+#define MDIO_ST_C22			1
+
+#define GMAC_PORT_MCR(p)		(0x0100 + (p) * 0x100)
+#define MAC_RX_PKT_LEN_S		24
+#define MAC_RX_PKT_LEN_M		0x3000000
+#define IPG_CFG_S			18
+#define IPG_CFG_M			0xc0000
+#define MAC_MODE			BIT(16)
+#define FORCE_MODE			BIT(15)
+#define MAC_TX_EN			BIT(14)
+#define MAC_RX_EN			BIT(13)
+#define DEL_RXFIFO_CLR			BIT(12)
+#define BKOFF_EN			BIT(9)
+#define BACKPR_EN			BIT(8)
+#define FORCE_RX_FC			BIT(5)
+#define FORCE_TX_FC			BIT(4)
+#define FORCE_SPD_S			2
+#define FORCE_SPD_M			0x0c
+#define FORCE_DPX			BIT(1)
+#define FORCE_LINK			BIT(0)
+
+/* Values of IPG_CFG */
+#define IPG_96BIT			0
+#define IPG_96BIT_WITH_SHORT_IPG	1
+#define IPG_64BIT			2
 
 
 
@@ -281,3 +351,29 @@
 #define PHY_POWER_SAVING_M		0x300
 #define PHY_POWER_SAVING_TX		0x0
 
+/* SGMII subsystem config registers */
+#define SGMSYS_PCS_CONTROL_1		0x0
+#define SGMII_LINK_STATUS		BIT(18)
+#define SGMII_AN_ENABLE			BIT(12)
+#define SGMII_AN_RESTART		BIT(9)
+
+#define SGMSYS_SGMII_MODE		0x20
+#define SGMII_AN_MODE			0x31120103
+#define SGMII_FORCE_MODE		0x31120019
+
+#define SGMSYS_QPHY_PWR_STATE_CTRL	0xe8
+#define SGMII_PHYA_PWD			BIT(4)
+
+#define SGMSYS_QPHY_WRAP_CTRL		0xec
+#define SGMII_PN_SWAP_TX_RX		0x03
+
+#define SGMSYS_GEN2_SPEED		0x2028
+#define SGMSYS_GEN2_SPEED_V2		0x128
+#define SGMSYS_SPEED_2500		BIT(2)
+
+/* FORCE_SPD: Forced link speed */
+#define SPEED_10M			0
+#define SPEED_100M			1
+#define SPEED_1000M			2
+
+#endif

@@ -45,7 +45,7 @@ CONFIG_CMD_REGULATOR=y
 # CONFIG_SPL_DOS_PARTITION is not set
 CONFIG_SPL_OF_CONTROL=y
 CONFIG_OF_LIVE=y
-CONFIG_NET=n
+CONFIG_NET=y
 CONFIG_OF_SPL_REMOVE_PROPS="pinctrl-0 pinctrl-names clock-names interrupt-parent assigned-clocks assigned-clock-rates assigned-clock-parents"
 CONFIG_SPL_REGMAP=y
 CONFIG_SPL_SYSCON=y
@@ -111,3 +111,4 @@ CONFIG_DEFAULT_ENV_FILE="uEnv_r2pro.txt"
 CONFIG_CMD_ASKENV=y
 CONFIG_CMD_STRINGS=y
 CONFIG_CMD_SETEXPR=y
+CONFIG_MEDIATEK_SWITCH=y

@@ -89,7 +89,7 @@ static void mtk_gsw_write(struct mtk_switch_priv *priv, u32 reg, u32 val)
 }
 
 /* Direct MDIO clause 22/45 access via SoC */
-/*static int mtk_mii_rw(struct mtk_switch_priv *priv, u8 phy, u8 reg, u16 data,
+static int mtk_mii_rw(struct mtk_switch_priv *priv, u8 phy, u8 reg, u16 data,
 		      u32 cmd, u32 st)
 {
 	int ret;
@@ -103,7 +103,7 @@ static void mtk_gsw_write(struct mtk_switch_priv *priv, u32 reg, u32 val)
 	if (cmd == MDIO_CMD_WRITE || cmd == MDIO_CMD_ADDR)
 		val |= data & MDIO_RW_DATA_M;
 
-	mtk_gmac_write(priv, GMAC_PIAC_REG, val | PHY_ACS_ST);
+	//mtk_gmac_write(priv, GMAC_PIAC_REG, val | PHY_ACS_ST);
 
 	ret = wait_for_bit_le32(priv->gmac_base + GMAC_PIAC_REG,
 				PHY_ACS_ST, 0, 5000, 0);
@@ -113,24 +113,24 @@ static void mtk_gsw_write(struct mtk_switch_priv *priv, u32 reg, u32 val)
 	}
 
 	if (cmd == MDIO_CMD_READ || cmd == MDIO_CMD_READ_C45) {
-		val = mtk_gmac_read(priv, GMAC_PIAC_REG);
+		//val = mtk_gmac_read(priv, GMAC_PIAC_REG);
 		return val & MDIO_RW_DATA_M;
 	}
 
 	return 0;
-}*/
+}
 
 /* Direct MDIO clause 22 read via SoC */
-/*static int mtk_mii_read(struct mtk_switch_priv *priv, u8 phy, u8 reg)
+static int mtk_mii_read(struct mtk_switch_priv *priv, u8 phy, u8 reg)
 {
 	return mtk_mii_rw(priv, phy, reg, 0, MDIO_CMD_READ, MDIO_ST_C22);
-}*/
+}
 
 /* Direct MDIO clause 22 write via SoC */
-/*static int mtk_mii_write(struct mtk_switch_priv *priv, u8 phy, u8 reg, u16 data)
+static int mtk_mii_write(struct mtk_switch_priv *priv, u8 phy, u8 reg, u16 data)
 {
 	return mtk_mii_rw(priv, phy, reg, data, MDIO_CMD_WRITE, MDIO_ST_C22);
-}*/
+}
 
 /* Direct MDIO clause 45 read via SoC */
 /*static int mtk_mmd_read(struct mtk_switch_priv *priv, u8 addr, u8 devad, u16 reg)
@@ -932,7 +932,7 @@ static void mtk_switch_stop(struct udevice *dev)
 
 static int mtk_switch_probe(struct udevice *dev)
 {
-	struct switch_pdata *pdata = dev_get_plat(dev);
+	struct eth_pdata *pdata = dev_get_plat(dev);
 	struct mtk_switch_priv *priv = dev_get_priv(dev);
 	/* Initialize switch */
 	return mt753x_switch_init(priv);
@@ -963,7 +963,7 @@ static const struct eth_ops mtk_switch_ops = {
 
 static int mtk_switch_of_to_plat(struct udevice *dev)
 {
-	struct switch_pdata *pdata = dev_get_plat(dev);
+	struct eth_pdata *pdata = dev_get_plat(dev);
 	struct mtk_switch_priv *priv = dev_get_priv(dev);
 	struct ofnode_phandle_args args;
 	struct regmap *regmap;
@@ -1162,7 +1162,7 @@ U_BOOT_DRIVER(mtk_switch) = {
 	.id = UCLASS_ETH,
 	.of_match = mtk_switch_ids,
 	.of_to_plat = mtk_switch_of_to_plat,
-	.plat_auto	= sizeof(struct switch_pdata),
+	.plat_auto	= sizeof(struct eth_pdata),
 	.probe = mtk_switch_probe,
 	//.remove = mtk_switch_remove,
 	.ops = &mtk_switch_ops,

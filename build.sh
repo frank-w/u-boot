@@ -137,11 +137,11 @@ case $1 in
 				sudo sgdisk -o ${LDEV}
 				sudo sgdisk -a 1 -n 1:34:8191 -A 1:set:2 -t 1:8300 -c 1:"bl2"		${LDEV}
 				#sudo sgdisk --attributes=1:set:2 ${LDEV}
-				sudo sgdisk -a 1 -n 2:8192:9215		-t 2:8300 -c 2:"u-boot-env"	${LDEV}
-				sudo sgdisk -a 1 -n 3:9216:13311	-t 3:8300 -c 3:"factory"	${LDEV}
-				sudo sgdisk -a 1 -n 4:13312:17407	-t 4:8300 -c 4:"fip"		${LDEV}
-				sudo sgdisk -a 1024 -n 5:17408:${bootend} -t 5:8300 -c 5:"boot"		${LDEV}
-				sudo sgdisk -a 1024 -n 6:${rootstart}:${rootend} -t 6:8300 -c 6:"rootfs" ${LDEV}
+				sudo sgdisk -a 1 -n 2:8192:9215 -A 2:set:63	-t 2:8300 -c 2:"u-boot-env"	${LDEV}
+				sudo sgdisk -a 1 -n 3:9216:13311 -A 3:set:63	-t 3:8300 -c 3:"factory"	${LDEV}
+				sudo sgdisk -a 1 -n 4:13312:17407 -A 4:set:63	-t 4:8300 -c 4:"fip"		${LDEV}
+				sudo sgdisk -a 1024 -n 5:17408:${bootend}	-t 5:8300 -c 5:"boot"		${LDEV}
+				sudo sgdisk -a 1024 -n 6:${rootstart}:${rootend} -t 6:8300 -c 6:"rootfs"	${LDEV}
 
 				#sudo dd if=gpt_${device}_100m6g.img of=$LDEV conv=notrunc,fsync #1> /dev/null 2>&1
 				#try to repair MBR/GPT

@@ -25,7 +25,7 @@ lstftp=if tftp ${loadaddr} ${serverip}:r3-itbfiles.lst;then setexpr listend ${lo
 askkernel=askenv kernelinput "enter kernel-name:";
 askbootnetfit=run lstftp askkernel;if printenv kernelinput; then setenv bootfile "${kernelinput}"; run bootnetfit;fi
 
-bootnetfit=run buildargs;if tftp $kaddr ${bootfile}; then bootm $kaddr;fi
+bootnetfit=run buildargs;run setbootconf;if tftp $kaddr ${bootfile}; then bootm ${kaddr}${bootconf};;fi
 bootfile=bpi-r3.itb
 
 checkenv=test -e ${device} ${partition} ${bootenv}

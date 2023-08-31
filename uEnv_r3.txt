@@ -16,6 +16,8 @@ root=/dev/mmcblk0p6 rootfstype=ext4 rootwait
 console=ttyS0,115200n1 earlycon=uart8250,mmio32,0x11002000
 bootopts=debug=7
 
+sata_en=0
+
 #netboot
 ipaddr=192.168.0.19
 netmask=255.255.255.0
@@ -51,7 +53,8 @@ bootnor=run loadnor;run useinitrd;run setbootconf; run buildargs; bootm ${kaddr}
 checkmmc=if mmc partconf 0; then echo "emmc available";mmcdev="emmc";else echo "sd available";mmcdev="sd";fi
 checkspi=if sf probe; then echo "NOR available";spidev="nor";else echo "NAND available";spidev="nand";fi
 
-setbootconf=run checkmmc checkspi;echo $mmcdev $spidev;setenv bootconf "#conf-$mmcdev-$spidev"
+checksata=satacfg=;if test -n "$sata_en";then satacfg="#sata"; fi;
+setbootconf=run checkmmc checkspi checksata;echo $mmcdev $spidev;setenv bootconf "#conf-$mmcdev-$spidev$satacfg"
 
 wrspimnor=if printenv bl2file;then if fatload $device $partition $loadaddr $bl2file;then sf erase 0 0x40000;sf write ${loadaddr} 0 0x40000;else echo "loading bl2 $bl2file failed";fi;else echo "bl2file not defined";fi;if printenv fipfile;then if fatload $device $partition $loadaddr $fipfile;then sf erase 0x100000 0x80000;sf write ${loadaddr} 0x100000 0x80000;else echo "loading fip $fipfile failed";fi;else echo "fipfile not defined";fi
 wrspimnand=if printenv bl2file;then if fatload $device $partition $loadaddr $bl2file;then mtd erase spi-nand0 0x0 0x100000;mtd write spi-nand0 $loadaddr 0x0 0x100000;else echo "loading bl2 $bl2file failed";fi;else echo "bl2file not defined";fi;if printenv fipfile;then if fatload $device $partition $loadaddr $fipfile;then mtd erase spi-nand0 0x380000 0x200000;mtd write spi-nand0 $loadaddr 0x380000 0x200000;else echo "loading fip $fipfile failed";fi;else echo "fipfile not defined";fi

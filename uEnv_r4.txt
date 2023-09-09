@@ -17,6 +17,7 @@ console=ttyS0,115200n1 earlycon=uart8250,mmio32,0x11000000
 bootopts=debug=7 mem=3G
 
 wifi_en=0
+sata_en=0
 
 #netboot
 ipaddr=192.168.0.19
@@ -47,7 +48,9 @@ newboot=run checkrd; run setbootconf; run buildargs;if printenv fit;then setenv 
 bootnetfit=run checkrd; run setbootconf;run buildargs;if tftp $kaddr ${bootfile}; then bootm ${kaddr}${bootconf};fi
 
 checkmmc=if mmc partconf 0; then echo "emmc available";mmcdev="emmc";else echo "sd available";mmcdev="sd";fi
-setbootconf=run checkmmc;echo $mmcdev;wificfg=;if test -n "$wifi_en";then wificfg="-wifi"; fi;setenv bootconf "#conf-$mmcdev$wificfg"
+checksata=if test -n "$sata_en" && test $sata_en -eq 1;then setenv satacfg "#sata"; fi
+checkwifi=if test -n "$wifi_en" && test $wifi_en -eq 1;then setenv wificfg "#wifi"; fi
+setbootconf=run checkmmc checksata checkwifi;setenv bootconf "#conf-$mmcdev$wificfg$satacfg";printenv bootconf
 
 wrspimnand=if printenv bl2file;then if fatload $device $partition $loadaddr $bl2file;then mtd erase spi-nand0 0x0 0x100000;mtd write spi-nand0 $loadaddr 0x0 0x100000;else echo "loading bl2 $bl2file failed";fi;else echo "bl2file not defined";fi;if printenv fipfile;then if fatload $device $partition $loadaddr $fipfile;then mtd erase spi-nand0 0x580000 0x200000;mtd write spi-nand0 $loadaddr 0x580000 0x200000;else echo "loading fip $fipfile failed";fi;else echo "fipfile not defined";fi
 wremmc=if printenv bl2file;then mmc partconf 0 1 1 1;if fatload $device $partition $loadaddr $bl2file;then mmc erase 0x0 0x400;mmc write ${loadaddr} 0x0 0x400;else echo "loading bl2 $bl2file failed";fi;else echo "bl2file not defined";fi;mmc partconf 0 1 1 0;if printenv fipfile;then if fatload $device $partition $loadaddr $fipfile;then mmc erase 0x3400 0x1000;mmc write ${loadaddr} 0x3400 0x1000;else echo "loading fip $fipfile failed";fi;else echo "fipfile not defined";fi

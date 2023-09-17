@@ -14,6 +14,9 @@ kernel_comp_size=0x03000000
 ramdisk_addr_r=0x0a200000
 distro_bootcmd=bootflow scan -lb
 
+ipaddr=192.168.0.19
+serverip=192.168.0.10
+
 #console=earlyprintk console=ttyS0,115200
 root=/dev/mmcblk0p3 rootfstype=ext4 rootwait
 bootopts=net.ifnames=0
@@ -22,8 +25,8 @@ bootopts=net.ifnames=0
 buildargs=setenv bootargs "board=${board} ${console} root=${root} ${bootopts} ${graphic}"
 
 checkenv=test -e ${device} ${partition} ${bootenv}
-importenv=env import -t ${scriptaddr} ${filesize}
-loadbootenv=if fatload ${device} ${partition} ${scriptaddr} ${bootenv};then run importenv;else echo "fatload (${bootenv}) failed";fi
+importenv=env import -t ${loadaddr} ${filesize}
+loadbootenv=if fatload ${device} ${partition} ${loadaddr} ${bootenv};then run importenv;else echo "fatload (${bootenv}) failed";fi
 resetenv=env default -a;printenv;
 
 checksd=fatinfo ${device} 1:2
@@ -39,6 +42,7 @@ reloadmenu=run selectmmc;if run checkenv; then run loadbootenv; else echo file n
 
 #bootmenu
 bootmenu_0=1. Boot from SD/EMMC.=run newboot
+bootmenu_1=2. Standard Boot.=run distro_bootcmd
 bootmenu_default=0
 
 #automatic reload from sd/emmc

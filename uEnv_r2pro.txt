@@ -14,6 +14,9 @@ kernel_comp_size=0x03000000
 ramdisk_addr_r=0x0a200000
 distro_bootcmd=bootflow scan -lb
 
+ipaddr=192.168.0.19
+serverip=192.168.0.10
+
 #console=earlyprintk console=ttyS0,115200
 root=/dev/mmcblk0p3 rootfstype=ext4 rootwait
 bootopts=net.ifnames=0

@@ -4,3 +4,14 @@
  */
 
 #include "rk356x-u-boot.dtsi"
+
+&gmac0 {
+	status = "disabled";
+};
+
+/delete-node/ &{/ethernet@fe2a0000/mdio/switch@0};
+
+&usb_host0_ohci {
+	status = "disabled";
+};
+

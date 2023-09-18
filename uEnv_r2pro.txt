@@ -42,6 +42,7 @@ reloadmenu=run selectmmc;if run checkenv; then run loadbootenv; else echo file n
 
 #bootmenu
 bootmenu_0=1. Boot from SD/EMMC.=run newboot
+bootmenu_1=2. Standard Boot.=run distro_bootcmd
 bootmenu_default=0
 
 #automatic reload from sd/emmc

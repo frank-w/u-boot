@@ -25,8 +25,8 @@ bootopts=net.ifnames=0
 buildargs=setenv bootargs "board=${board} ${console} root=${root} ${bootopts} ${graphic}"
 
 checkenv=test -e ${device} ${partition} ${bootenv}
-importenv=env import -t ${scriptaddr} ${filesize}
-loadbootenv=if fatload ${device} ${partition} ${scriptaddr} ${bootenv};then run importenv;else echo "fatload (${bootenv}) failed";fi
+importenv=env import -t ${loadaddr} ${filesize}
+loadbootenv=if fatload ${device} ${partition} ${loadaddr} ${bootenv};then run importenv;else echo "fatload (${bootenv}) failed";fi
 resetenv=env default -a;printenv;
 
 checksd=fatinfo ${device} 1:2

@@ -230,6 +230,18 @@ case $1 in
 			echo "bpi-r64/bpi-r3 with new ATF needs uboot packed into fip!"
 		fi
 	;;
+	"backup")
+		DEV=/dev/sdb
+		read -e -i "$DEV" -p "Please enter target device: " DEV
+		case $board in
+			"bpi-r2"|"bpi-r2pro")
+				sudo dd if=${DEV} of=${board}_boot.img bs=1M count=2
+			;;
+			*)
+				echo "unsupported board ${board} (bpi-r64/r3/r4 in mtk-atf branch)";
+			;;
+		esac
+	;;
 	"mount")
 		mount | grep "BPI-BOOT" > /dev/null
 		if [[ $? -ne 0 ]];then

@@ -49,13 +49,9 @@ jobs:
           key: ${{ runner.os }}-ccache
           restore-keys: ${{ runner.os }}-ccache
 
-      - name: Fetch mtk-atf branch for R64 + R3
+      - name: Fetch mtk-atf branch
         run: |
           git fetch origin mtk-atf
-
-      - name: Fetch mtk-atf branch for R4
-        run: |
-          git fetch origin mtk-atf-r4
 
       - name: Build for BananaPi-R2
         run: |
@@ -122,6 +118,7 @@ jobs:
           echo -e "board=bpi-r3\ndevice=emmc" > build.conf
           bash build.sh build
           bash build.sh rename
+          bash build.sh createimg non-interactive
           rm build.conf
 
           git checkout ${{ env.BRANCH }}
@@ -164,7 +161,7 @@ jobs:
           bash build.sh rename
           git stash #stash build.conf
 
-          git checkout mtk-atf-r4
+          git checkout mtk-atf
           echo -e "board=bpi-r4\ndevice=sdmmc" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -179,10 +176,11 @@ jobs:
           bash build.sh rename
           git stash #stash build.conf
 
-          git checkout mtk-atf-r4
+          git checkout mtk-atf
           echo -e "board=bpi-r4\ndevice=emmc" > build.conf
           bash build.sh build
           bash build.sh rename
+          bash build.sh createimg non-interactive
           rm build.conf
 
           git checkout ${{ env.BRANCH }}
@@ -193,7 +191,7 @@ jobs:
           bash build.sh rename
           git stash #stash build.conf
 
-          git checkout mtk-atf-r4
+          git checkout mtk-atf
           echo -e "board=bpi-r4\ndevice=spim-nand" > build.conf
           bash build.sh build
           bash build.sh rename

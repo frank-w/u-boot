@@ -92,10 +92,16 @@ case $1 in
 		esac
 		;;
 	"createimg")
-		if [[ "$device" != "sdmmc" ]];then echo "$1 not supported for $device";exit 1;fi
+		if ! [[ "$device" =~ (sd|e)mmc ]];then echo "$1 not supported for $device";exit 1;fi
+		if [[ "$board" == "bpi-r64" ]] && [[ "$device" != "sdmmc" ]];then
+			echo "$1 not supported for $device on $board";
+			exit 1;
+		fi
+
 		IMGDIR=.
 		IMGNAME=${board}_${device}
 		REALSIZE=7000
+		echo "create $IMGNAME.img"
 		dd if=/dev/zero of=$IMGDIR/$IMGNAME.img bs=1M count=$REALSIZE 1> /dev/null 2>&1
 		LDEV=`sudo losetup -f`
 		DEV=`echo $LDEV | cut -d "/" -f 3`     #mount image to loop device
@@ -135,7 +141,11 @@ case $1 in
 				rootstart=$(( ${bootend}+1 ))
 				rootend=$(( ${rootstart} + (${rootsize}*1024*2) ))
 				sudo sgdisk -o ${LDEV}
-				sudo sgdisk -a 1 -n 1:34:8191 -A 1:set:2 -t 1:8300 -c 1:"bl2"		${LDEV}
+				if [[ "$device" == "sdmmc" ]];then
+					sudo sgdisk -a 1 -n 1:34:8191 -A 1:set:2 -t 1:8300 -c 1:"bl2"		${LDEV}
+				else #emmc
+					sudo sgdisk -a 1 -n 1:0:33 -A 1:set:2 -t 1:8300 -c 1:"gpt"		${LDEV}
+				fi
 				#sudo sgdisk --attributes=1:set:2 ${LDEV}
 				sudo sgdisk -a 1 -n 2:8192:9215 -A 2:set:63	-t 2:8300 -c 2:"u-boot-env"	${LDEV}
 				sudo sgdisk -a 1 -n 3:9216:13311 -A 3:set:63	-t 3:8300 -c 3:"factory"	${LDEV}

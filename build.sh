@@ -162,7 +162,9 @@ case $1 in
 				sudo losetup -P $LDEV $IMGDIR/$IMGNAME.img 1> /dev/null #2>&1
 
 				#sudo partprobe $LDEV #1> /dev/null 2>&1
-				sudo dd if=build/${PLAT}/release/bl2.img of=${LDEV}p1 conv=notrunc,fsync #1> /dev/null 2>&1
+				if [[ "$device" == "sdmmc" ]];then
+					sudo dd if=build/${PLAT}/release/bl2.img of=${LDEV}p1 conv=notrunc,fsync #1> /dev/null 2>&1
+				fi
 				sudo dd if=build/${PLAT}/release/fip.bin of=${LDEV}p4 conv=notrunc,fsync #1> /dev/null 2>&1
 				sudo mkfs.vfat "${LDEV}p5" -n BPI-BOOT #1> /dev/null 2>&1
 				sudo mkfs.ext4 -O ^metadata_csum,^64bit "${LDEV}p6" -L BPI-ROOT #1> /dev/null 2>&1

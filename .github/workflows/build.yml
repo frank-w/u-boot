@@ -63,12 +63,11 @@ jobs:
 
       - name: Build for BananaPi-R64
         run: |
-          git checkout build.conf
-          sed -i 's/#\(board=bpi-r64\)/\1/' build.conf #change board to r64
+          echo -e "board=bpi-r64" > build.conf
           bash build.sh importconfig
           bash build.sh build
           bash build.sh rename
-          git stash #stash build.conf
+          git checkout build.conf
 
           git checkout mtk-atf
           echo -e "board=bpi-r64\ndevice=sdmmc" > build.conf
@@ -78,26 +77,23 @@ jobs:
           rm build.conf
 
           git checkout ${{ env.BRANCH }}
-          git stash pop #restore build.conf
 
       - name: Build for BananaPi-R2Pro
         run: |
-          git checkout build.conf
-          sed -i 's/#\(board=bpi-r2pro\)/\1/' build.conf #change board to r2pro
+          echo -e "board=bpi-r2pro" > build.conf
           bash build.sh importconfig
           bash build.sh build
           bash build.sh createimg
           bash build.sh rename
+          git checkout build.conf
 
       - name: Build for BananaPi-R3
         run: |
-          git checkout build.conf
-          sed -i 's/\(device=.*\)$/#\1/' build.conf #change device back to sd
-          sed -i 's/#\(board=bpi-r3\)/\1/' build.conf #change board to r3
+          echo -e "board=bpi-r3" > build.conf
           bash build.sh importconfig
           bash build.sh build
           bash build.sh rename
-          git stash #stash build.conf
+          git checkout build.conf
 
           git checkout mtk-atf
           echo -e "board=bpi-r3\ndevice=sdmmc" > build.conf
@@ -107,12 +103,11 @@ jobs:
           rm build.conf
 
           git checkout ${{ env.BRANCH }}
-          git stash pop #restore build.conf
-          sed -i 's/#\(device=emmc\)/\1/' build.conf #change device
+          echo -e "board=bpi-r3\ndevice=emmc" > build.conf
           bash build.sh importconfig
           bash build.sh build
           bash build.sh rename
-          git stash #stash build.conf
+          git checkout build.conf
 
           git checkout mtk-atf
           echo -e "board=bpi-r3\ndevice=emmc" > build.conf
@@ -122,12 +117,11 @@ jobs:
           rm build.conf
 
           git checkout ${{ env.BRANCH }}
-          git stash pop #restore build.conf
-          sed -i 's/#\(device=spi-nand\)/\1/' build.conf #change device
+          echo -e "board=bpi-r3\ndevice=spi-nand" > build.conf
           bash build.sh importconfig
           bash build.sh build
           bash build.sh rename
-          git stash #stash build.conf
+          git checkout build.conf
 
           git checkout mtk-atf
           echo -e "board=bpi-r3\ndevice=spim-nand" > build.conf
@@ -136,12 +130,11 @@ jobs:
           rm build.conf
 
           git checkout ${{ env.BRANCH }}
-          git stash pop #restore build.conf
-          sed -i 's/#\(device=spi-nor\)/\1/' build.conf #change device
+          echo -e "board=bpi-r3\ndevice=spi-nor" > build.conf
           bash build.sh importconfig
           bash build.sh build
           bash build.sh rename
-          git stash #stash build.conf
+          git checkout build.conf
 
           git checkout mtk-atf
           echo -e "board=bpi-r3\ndevice=nor" > build.conf
@@ -150,16 +143,14 @@ jobs:
           rm build.conf
 
           git checkout ${{ env.BRANCH }}
-          git stash pop #restore build.conf
 
       - name: Build for BananaPi-R4
         run: |
-          git checkout build.conf
-          sed -i 's/#\(board=bpi-r4\)/\1/' build.conf #change board to r4
+          echo -e "board=bpi-r4" > build.conf
           bash build.sh importconfig
           bash build.sh build
           bash build.sh rename
-          git stash #stash build.conf
+          git checkout build.conf
 
           git checkout mtk-atf
           echo -e "board=bpi-r4\ndevice=sdmmc" > build.conf
@@ -169,12 +160,11 @@ jobs:
           rm build.conf
 
           git checkout ${{ env.BRANCH }}
-          git stash pop #restore build.conf
-          sed -i 's/#\(device=emmc\)/\1/' build.conf #change device
+          echo -e "board=bpi-r4\ndevice=emmc" > build.conf
           bash build.sh importconfig
           bash build.sh build
           bash build.sh rename
-          git stash #stash build.conf
+          git checkout build.conf
 
           git checkout mtk-atf
           echo -e "board=bpi-r4\ndevice=emmc" > build.conf
@@ -184,12 +174,11 @@ jobs:
           rm build.conf
 
           git checkout ${{ env.BRANCH }}
-          git stash pop #restore build.conf
-          sed -i 's/#\(device=spi-nand\)/\1/' build.conf #change device
+          echo -e "board=bpi-r4\ndevice=spi-nand" > build.conf
           bash build.sh importconfig
           bash build.sh build
           bash build.sh rename
-          git stash #stash build.conf
+          git checkout build.conf
 
           git checkout mtk-atf
           echo -e "board=bpi-r4\ndevice=spim-nand" > build.conf

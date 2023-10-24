@@ -87,7 +87,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf
 
-      - name: Build for BananaPi-R3
+      - name: Build for BananaPi-R3 (SD)
         run: |
           echo -e "board=bpi-r3" > build.conf
           bash build.sh importconfig
@@ -102,6 +102,8 @@ jobs:
           bash build.sh createimg non-interactive
           rm build.conf
 
+      - name: Build for BananaPi-R3 (EMMC)
+        run: |
           git checkout ${{ env.BRANCH }}
           echo -e "board=bpi-r3\ndevice=emmc" > build.conf
           bash build.sh importconfig
@@ -116,6 +118,8 @@ jobs:
           bash build.sh createimg non-interactive
           rm build.conf
 
+      - name: Build for BananaPi-R3 (NAND)
+        run: |
           git checkout ${{ env.BRANCH }}
           echo -e "board=bpi-r3\ndevice=spi-nand" > build.conf
           bash build.sh importconfig
@@ -129,6 +133,8 @@ jobs:
           bash build.sh rename
           rm build.conf
 
+      - name: Build for BananaPi-R3 (NOR)
+        run: |
           git checkout ${{ env.BRANCH }}
           echo -e "board=bpi-r3\ndevice=spi-nor" > build.conf
           bash build.sh importconfig
@@ -142,10 +148,9 @@ jobs:
           bash build.sh rename
           rm build.conf
 
-          git checkout ${{ env.BRANCH }}
-
-      - name: Build for BananaPi-R4
+      - name: Build for BananaPi-R4 (SD)
         run: |
+          git checkout ${{ env.BRANCH }}
           echo -e "board=bpi-r4" > build.conf
           bash build.sh importconfig
           bash build.sh build
@@ -159,6 +164,8 @@ jobs:
           bash build.sh createimg non-interactive
           rm build.conf
 
+      - name: Build for BananaPi-R4 (EMMC)
+        run: |
           git checkout ${{ env.BRANCH }}
           echo -e "board=bpi-r4\ndevice=emmc" > build.conf
           bash build.sh importconfig
@@ -173,6 +180,8 @@ jobs:
           bash build.sh createimg non-interactive
           rm build.conf
 
+      - name: Build for BananaPi-R4 (NAND)
+        run: |
           git checkout ${{ env.BRANCH }}
           echo -e "board=bpi-r4\ndevice=spi-nand" > build.conf
           bash build.sh importconfig

@@ -196,14 +196,18 @@ static int verify_partition_gpt(uintptr_t image_handle)
 	int result, i;
 
 	for (i = 0; i < list.entry_count; i++) {
+		printf("verify GPT\n");
 		result = load_gpt_entry(image_handle, &entry);
 		assert(result == 0);
+		printf("verify GPT before parse\n");
 		result = parse_gpt_entry(&entry, &list.list[i]);
 		if (result != 0) {
+			printf("verify GPT -  break on result != 0\n");
 			break;
 		}
 	}
 	if (i == 0) {
+		printf("verify GPT - return einval\n");
 		return -EINVAL;
 	}
 	/*
@@ -241,10 +245,13 @@ int load_partition_table(unsigned int image_id)
 		return result;
 	}
 	if (mbr_entry.type == PARTITION_TYPE_GPT) {
+		printf("init GPT\n");
 		result = load_gpt_header(image_handle);
 		assert(result == 0);
+		printf("init GPT before io_seek\n");
 		result = io_seek(image_handle, IO_SEEK_SET, GPT_ENTRY_OFFSET);
 		assert(result == 0);
+		printf("init GPT before verify\n");
 		result = verify_partition_gpt(image_handle);
 	} else {
 		result = load_mbr_entries(image_handle);
@@ -261,6 +268,7 @@ const partition_entry_t *get_partition_entry(const char *name)
 	for (i = 0; i < list.entry_count; i++) {
 		printf("Partition '%s' found, check for %s\n",list.list[i].name,name);
 		if (strcmp(name, list.list[i].name) == 0) {
+			printf("Partition '%s' match %s ;)\n",list.list[i].name,name);
 			return &list.list[i];
 		}
 	}

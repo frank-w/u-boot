@@ -259,6 +259,7 @@ const partition_entry_t *get_partition_entry(const char *name)
 	int i;
 
 	for (i = 0; i < list.entry_count; i++) {
+		printf("Partition '%s' found, check for %s\n",list.list[i].name,name);
 		if (strcmp(name, list.list[i].name) == 0) {
 			return &list.list[i];
 		}

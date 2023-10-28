@@ -141,11 +141,7 @@ case $1 in
 				rootstart=$(( ${bootend}+1 ))
 				rootend=$(( ${rootstart} + (${rootsize}*1024*2) ))
 				sudo sgdisk -o ${LDEV}
-				if [[ "$device" == "sdmmc" ]];then
-					sudo sgdisk -a 1 -n 1:34:8191 -A 1:set:2 -t 1:8300 -c 1:"bl2"		${LDEV}
-				else #emmc
-					sudo sgdisk -a 1 -n 1:0:33 -A 1:set:2 -t 1:8300 -c 1:"gpt"		${LDEV}
-				fi
+				sudo sgdisk -a 1 -n 1:34:8191 -A 1:set:2 -t 1:8300 -c 1:"bl2"		${LDEV}
 				#sudo sgdisk --attributes=1:set:2 ${LDEV}
 				sudo sgdisk -a 1 -n 2:8192:9215 -A 2:set:63	-t 2:8300 -c 2:"u-boot-env"	${LDEV}
 				sudo sgdisk -a 1 -n 3:9216:13311 -A 3:set:63	-t 3:8300 -c 3:"factory"	${LDEV}

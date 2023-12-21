@@ -375,5 +375,51 @@
 			#phy-cells = <1>;
 			status = "okay";
 		};
+
+		pcie_port: pcie-phy@11c00000 {
+			reg = <0x11c00000 0x20000>;
+			clocks = <&dummy_clk>;
+			clock-names = "ref";
+			#phy-cells = <1>;
+			status = "okay";
+		};
+	};
+
+	pcie: pcie@11280000 {
+		compatible = "mediatek,mt7986-pcie",
+			     "mediatek,mt8192-pcie";
+		device_type = "pci";
+		reg = <0x11280000 0x4000>;
+		reg-names = "pcie-mac";
+		#address-cells = <3>;
+		#size-cells = <2>;
+
+		clocks = <&infracfg_ao CK_INFRA_IPCIE_PIPE_CK>,
+			 <&infracfg_ao CK_INFRA_IPCIE_CK>,
+			 <&infracfg_ao CK_INFRA_IPCIER_CK>,
+			 <&infracfg_ao CK_INFRA_IPCIEB_CK>;
+		clock-names = "pl_250m", "tl_26m", "peri_26m", "top_133m";
+
+		bus-range = <0x00 0xff>;
+		ranges = <0x82000000 0 0x20000000 0x20000000 0 0x10000000>;
+
+		interrupts = <GIC_SPI 168 IRQ_TYPE_LEVEL_HIGH>;
+		#interrupt-cells = <2>;
+		interrupt-map-mask = <0 0 0 7>;
+		interrupt-map = <0 0 0 1 &pcie_intc 0>, /* INTA */
+				<0 0 0 2 &pcie_intc 1>, /* INTB */
+				<0 0 0 3 &pcie_intc 2>, /* INTC */
+				<0 0 0 4 &pcie_intc 3>; /* INTD */
+
+		phy-names = "pcie-phy";
+		phys = <&pcie_port PHY_TYPE_PCIE>;
+
+		status = "okay";
+
+		pcie_intc: legacy-interrupt-controller {
+			interrupt-controller;
+			#address-cells = <0>;
+			#interrupt-cells = <1>;
+		};
 	};
 };

@@ -100,7 +100,7 @@ case $1 in
 
 		IMGDIR=.
 		IMGNAME=${board}_${device}
-		REALSIZE=7000
+		REALSIZE=7456
 		echo "create $IMGNAME.img"
 		dd if=/dev/zero of=$IMGDIR/$IMGNAME.img bs=1M count=$REALSIZE 1> /dev/null 2>&1
 		LDEV=`sudo losetup -f`
@@ -108,7 +108,7 @@ case $1 in
 		echo "run losetup to assign image $IMGNAME.img to loopdev $LDEV ($DEV)"
 		sudo losetup $LDEV $IMGDIR/$IMGNAME.img 1> /dev/null #2>&1
 		bootsize=100
-		rootsize=6144
+		rootsize=6600
 		if [[ "$2" != "non-interactive" ]];then
 			read -p "size of boot? (MiB): " -ei $bootsize bootsize
 			read -p "size of root? (MiB): " -ei $rootsize rootsize

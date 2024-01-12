@@ -93,7 +93,7 @@ case $board in
 		export CROSS_COMPILE=aarch64-linux-gnu-
 		UBOOT_FILE=u-boot-rockchip.bin
 	;;
-	"bpi-r3")
+	"bpi-r3"|"bpi-r3mini")
 		export ARCH=arm64
 		export CROSS_COMPILE=aarch64-linux-gnu-
 
@@ -105,6 +105,11 @@ case $board in
 		FILE_DEFCFG=mt7986a_bpir3_${dev}_defconfig
 
 		DTS=mt7986a-bpi-r3-${dev}
+		if [[ "$board" == "bpi-r3mini" ]];
+		then
+			FILE_DEFCFG=mt7986a_bpir3mini_emmc_defconfig
+			DTS=mt7986a-bpi-r3-mini
+		fi
 		FILE_DTS=arch/arm/dts/${DTS}.dts
 		FILE_DTSI=arch/arm/dts/mt7986.dtsi
 

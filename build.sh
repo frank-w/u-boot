@@ -104,7 +104,7 @@ case $board in
 		fi
 		FILE_DEFCFG=mt7986a_bpir3_${dev}_defconfig
 
-		DTS=mt7986a-${dev}-rfb
+		DTS=mt7986a-bpi-r3-${dev}
 		FILE_DTS=arch/arm/dts/${DTS}.dts
 		FILE_DTSI=arch/arm/dts/mt7986.dtsi
 

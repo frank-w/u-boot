@@ -42,6 +42,12 @@ static void dump_entries(int num)
 #define dump_entries(num)	((void)num)
 #endif
 
+#pragma weak plat_patch_mbr_header
+
+void plat_patch_mbr_header(void *mbr)
+{
+}
+
 /*
  * Load the first sector that carries MBR header.
  * The MBR boot signature should be always valid whether it's MBR or GPT.
@@ -65,6 +71,8 @@ static int load_mbr_header(uintptr_t image_handle, mbr_entry_t *mbr_entry)
 		VERBOSE("Failed to read data (%i)\n", result);
 		return result;
 	}
+
+	plat_patch_mbr_header(mbr_sector);
 
 	/* Check MBR boot signature. */
 	if ((mbr_sector[LEGACY_PARTITION_BLOCK_SIZE - 2] != MBR_SIGNATURE_FIRST) ||

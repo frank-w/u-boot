@@ -53,3 +53,7 @@ node_modules/
 env/
 .venv/
 venv/
+
+# MediaTek related
+.vscode/
+Kconfiglib/__pycache__/

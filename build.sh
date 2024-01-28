@@ -195,12 +195,16 @@ case $1 in
 	"importconfig")
 		if [[ -n "$FILE_DEFCFG" ]];then
 			echo "importing $FILE_DEFCFG"
-			if [[ "$board" == "bpi-r3" ]];then
+			if [[ "$board" =~ bpi-r3(mini)? ]]; then
 				rm configs/${FILE_DEFCFG}.bak 2>/dev/null
 				if [[ "$device" =~ "spi" ]];then
 					sed -i.bak '/^CONFIG_ENV_IS_IN_MMC/d' configs/$FILE_DEFCFG
 				fi
-				sed -i.bak 's/\(bootdevice=\).*/\1'${device}'/' uEnv_r3.txt
+				cp uEnv_r3.txt{,.bak}
+				sed -i 's/\(bootdevice=\).*/\1'${device}'/' uEnv_r3.txt
+				if [[ "$board" == "bpi-r3mini" ]];then
+					sed -i 's/\(setbootconf=\).*/\1setenv bootconf "#conf-emmc-mini"/' uEnv_r3.txt
+				fi
 			fi
 			make $FILE_DEFCFG
 			if [[ -e configs/${FILE_DEFCFG}.bak ]];then

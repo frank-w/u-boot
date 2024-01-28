@@ -416,6 +416,10 @@ static int en8811h_load_firmware(struct phy_device *phydev)
 static int en8811h_config(struct phy_device *phydev)
 {
     ofnode node = phy_get_ofnode(phydev);
+    if (phydev->dev)
+        printf("%s devname: %s\n", __func__,phydev->dev->name); //en8811h_config devname: ethernet@15100000
+    //if (node.np)
+    //    printf("%s nodename: %s\n", __func__, node.np->name); //causes crash
     int ret = 0;
     int reg_value, pid1 = 0, pid2 = 0;
     u32 pbus_value, retry;
@@ -471,10 +475,21 @@ static int en8811h_config(struct phy_device *phydev)
     /* Serdes polarity */
     pbus_value = air_buckpbus_reg_read(phydev, 0xca0f8);
     pbus_value &= 0xfffffffc;
+
+    //node is currently ethernet-node not the phy-node
+    struct ofnode_phandle_args node_args;
+    ret = ofnode_parse_phandle_with_args(node, "phy-handle",
+					 NULL, 0, 0, &node_args);
+    if (ret) {
+		printf("can't parse phy-handle (%d)\n", ret);
+    } else node = node_args.node;
+
     pbus_value |= ofnode_read_bool(node, "airoha,rx-pol-reverse") ?
             EN8811H_RX_POLARITY_REVERSE : EN8811H_RX_POLARITY_NORMAL;
+
     pbus_value |= ofnode_read_bool(node, "airoha,tx-pol-reverse") ?
             EN8811H_TX_POLARITY_REVERSE : EN8811H_TX_POLARITY_NORMAL;
+    printf("Tx, Rx Polarity(0xca0f8) to be written: %08x\n", pbus_value);
     ret = air_buckpbus_reg_write(phydev, 0xca0f8, pbus_value);
     if (ret < 0)
         return ret;

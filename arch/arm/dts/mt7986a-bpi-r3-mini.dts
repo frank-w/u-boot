@@ -88,6 +88,17 @@
 		reset-assert-us = <10000>;
 		reset-deassert-us = <20000>;
 	};
+
+	/*phy15: eth-phy@15 {
+		compatible = "ethernet-phy-id03a2.a411";
+		reg = <15>;
+
+		airoha,rx-pol-reverse;
+
+		reset-gpios = <&gpio 47 GPIO_ACTIVE_LOW>;
+		reset-assert-us = <10000>;
+		reset-deassert-us = <20000>;
+	};*/
 };
 
 &mmc0 {

@@ -67,12 +67,34 @@
 		regulator-boot-on;
 		regulator-always-on;
 	};
+
+	en8811_a: regulator-phy1 {
+		compatible = "regulator-fixed";
+		regulator-name = "phy1";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&gpio 16 GPIO_ACTIVE_LOW>;
+		enable-active-low;
+		regulator-boot-on;
+		regulator-always-on;
+	};
+
+	/*en8811_b: regulator-phy2 {
+		compatible = "regulator-fixed";
+		regulator-name = "phy2";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&gpio 17 GPIO_ACTIVE_LOW>;
+		enable-active-low;
+		regulator-boot-on;
+		regulator-always-on;
+	};*/
 };
 
 &eth {
 	status = "okay";
 	pinctrl-names = "default";
-	pinctrl-0 = <&mdio_pins>, <&en8811_pwr_a>;
+	pinctrl-0 = <&mdio_pins>;//, <&en8811_pwr_a>;
 
 	mediatek,gmac-id = <0>;
 	phy-mode = "2500base-x";
@@ -115,7 +137,7 @@
 };
 
 &pinctrl {
-	en8811_pwr_a: en8811-pwr-a {
+	/*en8811_pwr_a: en8811-pwr-a {
 		pins = "GPIO_11";
 		drive-strength = <MTK_DRIVE_8mA>;
 		bias-pull-down = <MTK_PUPD_SET_R1R0_11>;
@@ -127,7 +149,7 @@
 		drive-strength = <MTK_DRIVE_8mA>;
 		bias-pull-down = <MTK_PUPD_SET_R1R0_11>;
 		output-low;
-	};
+	};*/
 
 	mdio_pins: mdio-pins {
 		mux {

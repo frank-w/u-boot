@@ -126,7 +126,7 @@ case $1 in
 				sudo sgdisk -a 1024 -n 4:${bootstart}:${bootend} -t 4:0700 -c 4:"kernel" ${LDEV}
 				sudo sgdisk -a 1024 -n 5:${rootstart}:${rootend} -t 5:8300 -c 5:"root" ${LDEV}
 				#r64 needs special MBR
-				sudo dd of=${LDEV} if=r64_header_sdmmc.bin
+				sudo dd of=${LDEV} if=r64_header_sdmmc.bin || exit 1
 				sudo dd of=${LDEV} if=build/${PLAT}/release/bl2.img bs=512 seek=1024
 				sudo dd of=${LDEV} if=build/${PLAT}/release/fip.bin bs=512 seek=2048
 				#re-read part table

@@ -74,6 +74,11 @@ jobs:
           bash build.sh build
           bash build.sh rename
           bash build.sh createimg non-interactive
+
+          echo -e "board=bpi-r64\ndevice=emmc" > build.conf
+          bash build.sh build
+          bash build.sh rename
+
           rm build.conf
 
           git checkout ${{ env.BRANCH }}

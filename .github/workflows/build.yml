@@ -78,6 +78,7 @@ jobs:
           echo -e "board=bpi-r64\ndevice=emmc" > build.conf
           bash build.sh build
           bash build.sh rename
+          bash build.sh createimg non-interactive
 
           rm build.conf
 

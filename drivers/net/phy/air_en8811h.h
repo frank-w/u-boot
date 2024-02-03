@@ -165,5 +165,8 @@ enum {
     AIR_LED_MODE_LAST
 };
 
+struct en8811h_priv {
+	int firmware_version;
+};
 #endif /* End of __EN8811H_MD32_H */
 

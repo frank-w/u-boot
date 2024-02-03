@@ -542,6 +542,7 @@ static int en8811h_restart_host(struct phy_device *phydev)
 static int en8811h_startup(struct phy_device *phydev)
 {
     ofnode node = phy_get_ofnode(phydev);
+    struct en8811h_priv *priv = phydev->priv;
     int ret = 0, lpagb = 0, lpa = 0, common_adv_gb = 0, common_adv = 0, advgb = 0, adv = 0, reg = 0, an = AUTONEG_DISABLE, bmcr = 0, reg_value;
     int old_link = phydev->link;
     u32 pbus_value = 0, retry;
@@ -551,16 +552,18 @@ static int en8811h_startup(struct phy_device *phydev)
     eth_phy_reset(phydev->dev, 0);
     mdelay(1);
 
-    ret=en8811h_restart_host(phydev);
-    if (ret) {
-        printf("EN8811H restart host fail.\n");
-        return ret;
-    }
-
-    ret = en8811h_load_firmware(phydev);
-    if (ret) {
-        printf("EN8811H load firmware fail.\n");
-        return ret;
+    if (!priv->firmware_version) {
+	ret = en8811h_load_firmware(phydev);
+	if (ret) {
+		printf("EN8811H load firmware fail.\n");
+		return ret;
+	}
+    } else {
+	ret=en8811h_restart_host(phydev);
+	if (ret) {
+		printf("EN8811H restart host fail.\n");
+		return ret;
+	}
     }
     retry = MAX_RETRY;
     do {
@@ -608,6 +611,7 @@ static int en8811h_startup(struct phy_device *phydev)
     printf("Tx, Rx Polarity(0xca0f8): %08x\n", pbus_value);
     pbus_value = air_buckpbus_reg_read(phydev, 0x3b3c);
     printf("MD32 FW Version(0x3b3c) : %08x\n", pbus_value);
+    if (!priv->firmware_version) {priv->firmware_version=pbus_value;}
 #if defined(AIR_LED_SUPPORT)
     ret = en8811h_led_init(phydev);
     if (ret < 0) {
@@ -727,12 +731,26 @@ static int en8811h_startup(struct phy_device *phydev)
     return ret;
 }
 
+static int en8811h_probe(struct phy_device *phydev)
+{
+	struct en8811h_priv *priv;
+
+	priv=malloc(sizeof(*priv));
+	if (!priv)
+		return -ENOMEM;
+	memset(priv,0,sizeof(*priv));
+
+	phydev->priv = priv;
+
+	return 0;
+}
 #if AIR_UBOOT_REVISION > 0x202303
 U_BOOT_PHY_DRIVER(en8811h) = {
     .name = "Airoha EN8811H",
     .uid = EN8811H_PHY_ID,
     .mask = 0x0ffffff0,
     .config = &en8811h_config,
+    .probe = &en8811h_probe,
     .startup = &en8811h_startup,
     .shutdown = &genphy_shutdown,
 };
@@ -742,6 +760,7 @@ static struct phy_driver AIR_EN8811H_driver = {
     .uid = EN8811H_PHY_ID,
     .mask = 0x0ffffff0,
     .config = &en8811h_config,
+    .startup = &en8811h_startup,
     .startup = &en8811h_startup,
     .shutdown = &genphy_shutdown,
 };

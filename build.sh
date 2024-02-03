@@ -93,10 +93,6 @@ case $1 in
 		;;
 	"createimg")
 		if ! [[ "$device" =~ (sd|e)mmc ]];then echo "$1 not supported for $device";exit 1;fi
-		if [[ "$board" == "bpi-r64" ]] && [[ "$device" != "sdmmc" ]];then
-			echo "$1 not supported for $device on $board";
-			exit 1;
-		fi
 
 		IMGDIR=.
 		IMGNAME=${board}_${device}

@@ -407,8 +407,9 @@ static int en8811h_load_firmware(struct phy_device *phydev)
         }
 
 #if CONFIG_PHY_AIROHA_FW_BUILTIN
-	memcpy(firmware_buf,EthMD32_dm,EN8811H_MD32_DM_SIZE);
-	memcpy((void *)(firmware_buf+EN8811H_MD32_DM_SIZE),EthMD32_pm,EthMD32_pm_size);
+	firmware_buf=EthMD32_dm;
+	//memcpy(firmware_buf,EthMD32_dm,EN8811H_MD32_DM_SIZE+EN8811H_MD32_DSP_SIZE);
+	//memcpy((void *)(firmware_buf+EN8811H_MD32_DM_SIZE),EthMD32_pm,EthMD32_pm_size);
 #elif CONFIG_PHY_AIROHA_FW_IN_UBI
         ret = ubi_volume_read("en8811h-fw", firmware_buf, EN8811H_MD32_DM_SIZE + EN8811H_MD32_DSP_SIZE);
         if (ret) {

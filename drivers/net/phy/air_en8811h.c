@@ -30,6 +30,10 @@
 #include <mtd.h>
 #endif
 
+#if CONFIG_PHY_AIROHA_FW_BUILTIN
+#include "air_en8811h_fw.h"
+#endif
+
 #if AIR_UBOOT_REVISION > 0x202004
 #include <linux/delay.h>
 #endif
@@ -402,7 +406,10 @@ static int en8811h_load_firmware(struct phy_device *phydev)
             return -ENOMEM;
         }
 
-#ifdef CONFIG_PHY_AIROHA_FW_IN_UBI
+#if CONFIG_PHY_AIROHA_FW_BUILTIN
+	memcpy(firmware_buf,EthMD32_dm,EN8811H_MD32_DM_SIZE);
+	memcpy((void *)(firmware_buf+EN8811H_MD32_DM_SIZE),EthMD32_pm,EthMD32_pm_size);
+#elif CONFIG_PHY_AIROHA_FW_IN_UBI
         ret = ubi_volume_read("en8811h-fw", firmware_buf, EN8811H_MD32_DM_SIZE + EN8811H_MD32_DSP_SIZE);
         if (ret) {
             printf("[Airoha] read firmware from UBI failed.\n");

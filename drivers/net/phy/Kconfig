@@ -100,6 +100,9 @@ config PHY_AIROHA_FW_IN_UBI
 config PHY_AIROHA_FW_IN_MTD
 	bool "Airoha firmware in MTD partition on raw flash"
 
+config PHY_AIROHA_FW_BUILTIN
+	bool "Airoha firmware builtin in uboot binary"
+
 endchoice
 
 menuconfig PHY_AQUANTIA

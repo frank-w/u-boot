@@ -461,14 +461,15 @@ static int en8811h_load_firmware(struct phy_device *phydev)
 #endif
     }
 
-    ret = air_buckpbus_reg_write(phydev, 0x0f0018, 0x0);
+    ret = air_buckpbus_reg_write(phydev, EN8811H_FW_CTRL_1, EN8811H_FW_CTRL_1_START);
     if (ret < 0)
         return ret;
-    pbus_value = air_buckpbus_reg_read(phydev, 0x800000);
-    pbus_value |= BIT(11);
-    ret = air_buckpbus_reg_write(phydev, 0x800000, pbus_value);
+    pbus_value = air_buckpbus_reg_read(phydev, EN8811H_FW_CTRL_2);
+    pbus_value |= EN8811H_FW_CTRL_2_LOADING;
+    ret = air_buckpbus_reg_write(phydev, EN8811H_FW_CTRL_2, pbus_value);
     if (ret < 0)
         return ret;
+
     /* Download DM */
     ret = MDIOWriteBuf(phydev, 0x00000000, EN8811H_MD32_DM_SIZE, firmware_buf);
     if (ret < 0) {
@@ -481,14 +482,15 @@ static int en8811h_load_firmware(struct phy_device *phydev)
         printf("[Airoha] MDIOWriteBuf 0x00100000 fail.\n");
         return ret;
     }
-    pbus_value = air_buckpbus_reg_read(phydev, 0x800000);
-    pbus_value &= ~BIT(11);
-    ret = air_buckpbus_reg_write(phydev, 0x800000, pbus_value);
+    pbus_value = air_buckpbus_reg_read(phydev, EN8811H_FW_CTRL_2);
+    pbus_value &= ~EN8811H_FW_CTRL_2_LOADING;
+    ret = air_buckpbus_reg_write(phydev, EN8811H_FW_CTRL_2, pbus_value);
     if (ret < 0)
         return ret;
-    ret = air_buckpbus_reg_write(phydev, 0x0f0018, 0x01);
+    ret = air_buckpbus_reg_write(phydev, EN8811H_FW_CTRL_1, EN8811H_FW_CTRL_1_FINISH);
     if (ret < 0)
         return ret;
+
     return 0;
 }
 
@@ -524,6 +526,19 @@ static int en8811h_get_autonego(struct phy_device *phydev, int *an)
     return 0;
 }
 
+static int en8811h_restart_host(struct phy_device *phydev)
+{
+	int ret;
+
+	ret = air_buckpbus_reg_write(phydev, EN8811H_FW_CTRL_1,
+				     EN8811H_FW_CTRL_1_START);
+	if (ret < 0)
+		return ret;
+
+	return air_buckpbus_reg_write(phydev, EN8811H_FW_CTRL_1,
+				     EN8811H_FW_CTRL_1_FINISH);
+}
+
 static int en8811h_startup(struct phy_device *phydev)
 {
     ofnode node = phy_get_ofnode(phydev);
@@ -535,6 +550,12 @@ static int en8811h_startup(struct phy_device *phydev)
     mdelay(10);
     eth_phy_reset(phydev->dev, 0);
     mdelay(1);
+
+    ret=en8811h_restart_host(phydev);
+    if (ret) {
+        printf("EN8811H restart host fail.\n");
+        return ret;
+    }
 
     ret = en8811h_load_firmware(phydev);
     if (ret) {

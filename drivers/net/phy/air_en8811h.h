@@ -48,6 +48,12 @@
 
 #define EN8811H_DRIVER_VERSION  "v1.0.4"
 
+#define	EN8811H_FW_CTRL_1		0x0f0018
+#define	EN8811H_FW_CTRL_1_START		0x0
+#define	EN8811H_FW_CTRL_1_FINISH	0x1
+#define	EN8811H_FW_CTRL_2		0x800000
+#define	EN8811H_FW_CTRL_2_LOADING	BIT(11)
+
 /************************************************************
  * For reference only
  * LED0 Link 2500/Blink 2500 TxRx (GPIO5)    <-> BASE_T_LED0,

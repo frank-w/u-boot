@@ -8,6 +8,11 @@
 #include "mt7986a-bpi-r3-sd.dts"
 #include <dt-bindings/gpio/gpio.h>
 / {
+	compatible = "mediatek,mt7986", "mediatek,mt7986-rfb",
+		          "mediatek,mt7986-emmc-rfb";
+	bl2_verify {
+		bl2_compatible = "emmc";
+	};
 	reg_1p8v: regulator-1p8v {
 		compatible = "regulator-fixed";
 		regulator-name = "fixed-1.8V";

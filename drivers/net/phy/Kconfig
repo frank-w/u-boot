@@ -83,6 +83,34 @@ config PHY_ADIN
 	help
 		Add support for configuring RGMII on Analog Devices ADIN PHYs.
 
+menuconfig PHY_AIROHA
+	bool "Airoha Ethernet PHYs support"
+
+config PHY_AIROHA_EN8811H
+	bool "Airoha Ethernet EN8811H support"
+	depends on PHY_AIROHA
+	help
+		AIROHA EN8811H supported.
+
+choice
+	prompt "Location of the Airoha PHY firmware"
+	default PHY_AIROHA_FW_IN_UBI
+	depends on PHY_AIROHA_EN8811H
+
+config PHY_AIROHA_FW_IN_MMC
+	bool "Airoha firmware in MMC boot1 partition"
+
+config PHY_AIROHA_FW_IN_UBI
+	bool "Airoha firmware in UBI volume en8811h-fw on NAND flash"
+
+config PHY_AIROHA_FW_IN_MTD
+	bool "Airoha firmware in MTD partition on raw flash"
+
+config PHY_AIROHA_FW_BUILTIN
+	bool "Airoha firmware builtin in uboot binary"
+
+endchoice
+
 menuconfig PHY_AQUANTIA
 	bool "Aquantia Ethernet PHYs support"
 	select PHY_GIGE

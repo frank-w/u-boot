@@ -29,7 +29,7 @@ esac
 
 case $board in
 	"bpi-r64") PLAT="mt7622";makeflags="DDR3_FLYBY=1";;
-	"bpi-r3") PLAT="mt7986";makeflags="DRAM_USE_DDR4=1";FIP_COMPRESS=1;;
+	"bpi-r3"|"bpi-r3mini") PLAT="mt7986";makeflags="DRAM_USE_DDR4=1";FIP_COMPRESS=1;;
 	"bpi-r4") PLAT="mt7988";makeflags="DRAM_USE_COMB=1";FIP_COMPRESS=1;;
 esac
 
@@ -135,7 +135,7 @@ case $1 in
 				sudo mkfs.vfat "${LDEV}p4" -n BPI-BOOT #1> /dev/null 2>&1
 				sudo mkfs.ext4 -O ^metadata_csum,^64bit "${LDEV}p5" -L BPI-ROOT #1> /dev/null 2>&1
 			;;
-			"bpi-r3"|"bpi-r4")
+			"bpi-r3"|"bpi-r3mini"|"bpi-r4")
 				bootstart=17408
 				bootend=$(( ${bootstart}+(${bootsize}*1024*2)-1 ))
 				rootstart=$(( ${bootend}+1 ))

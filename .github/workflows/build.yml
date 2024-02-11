@@ -154,6 +154,22 @@ jobs:
           bash build.sh rename
           rm build.conf
 
+      - name: Build for BananaPi-R3Mini (EMMC)
+        run: |
+          git checkout ${{ env.BRANCH }}
+          echo -e "board=bpi-r3mini\ndevice=emmc" > build.conf
+          bash build.sh importconfig
+          bash build.sh build
+          bash build.sh rename
+          git checkout build.conf
+
+          git checkout mtk-atf
+          echo -e "board=bpi-r3mini\ndevice=emmc" > build.conf
+          bash build.sh build
+          bash build.sh rename
+          bash build.sh createimg non-interactive
+          rm build.conf
+
       - name: Build for BananaPi-R4 (SD)
         run: |
           git checkout ${{ env.BRANCH }}

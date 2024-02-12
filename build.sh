@@ -293,7 +293,9 @@ case $1 in
 
 	"createimg")
 		IMGDIR=.
-		IMGNAME=${board}
+		if [[ "$device" != "emmc" ]];then device="sdmmc";
+		else echo "emmc not supported";exit 1;fi
+		IMGNAME=${board}_${device}
 		REALSIZE=7000
 		dd if=/dev/zero of=$IMGDIR/$IMGNAME.img bs=1M count=$REALSIZE 1> /dev/null #2>&1
 		LDEV=`losetup -f`

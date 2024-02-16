@@ -279,16 +279,16 @@ static int mtk_pcie_power_on(struct udevice *dev)
 	bool skipphy=false;
 	int err;
 
-	printf("%s:%d dev:%p start",__func__,__LINE__,dev);
+	printf("%s:%d start\n",__func__,__LINE__);
 	pcie->base = dev_remap_addr_name(dev, "pcie-mac");
-	printf("%s:%d dev:%p base:%p",__func__,__LINE__,dev,pcie->base);
+	printf("%s:%d dev:%p\n",__func__,__LINE__,pcie->base);
 	if (!pcie->base)
 		return -ENOENT;
 
 	pcie->priv = dev;
 
 	err = generic_phy_get_by_name(dev, "pcie-phy", &pcie->phy);
-	printf("%s:%d dev:%p err:%d",__func__,__LINE__,dev,err);
+	printf("%s:%d dev:%p err:%d\n",__func__,__LINE__,pcie->base,err);
 	if (err) {
 		if (err==-ENODATA)
 			skipphy=true;
@@ -297,64 +297,64 @@ static int mtk_pcie_power_on(struct udevice *dev)
 	}
 
 	err = clk_get_by_name(dev, "pl_250m", &pcie->pl_250m_ck);
-	printf("%s:%d dev:%p err:%d",__func__,__LINE__,dev,err);
+	printf("%s:%d dev:%p err:%d\n",__func__,__LINE__,pcie->base,err);
 	if (err)
 		return err;
 
 	err = clk_get_by_name(dev, "tl_26m", &pcie->tl_26m_ck);
-	printf("%s:%d dev:%p err:%d",__func__,__LINE__,dev,err);
+	printf("%s:%d dev:%p err:%d\n",__func__,__LINE__,pcie->base,err);
 	if (err)
 		return err;
 
 	err = clk_get_by_name(dev, "peri_26m", &pcie->peri_26m_ck);
-	printf("%s:%d dev:%p err:%d",__func__,__LINE__,dev,err);
+	printf("%s:%d dev:%p err:%d\n",__func__,__LINE__,pcie->base,err);
 	if (err)
 		return err;
 
 	err = clk_get_by_name(dev, "top_133m", &pcie->top_133m_ck);
-	printf("%s:%d dev:%p err:%d",__func__,__LINE__,dev,err);
+	printf("%s:%d dev:%p err:%d\n",__func__,__LINE__,pcie->base,err);
 	if (err)
 		return err;
 
 	if (!skipphy)
 	{
 		err = generic_phy_init(&pcie->phy);
-		printf("%s:%d dev:%p err:%d",__func__,__LINE__,dev,err);
+		printf("%s:%d dev:%p err:%d\n",__func__,__LINE__,pcie->base,err);
 		if (err)
 			return err;
 
 		err = generic_phy_power_on(&pcie->phy);
-		printf("%s:%d dev:%p err:%d",__func__,__LINE__,dev,err);
+		printf("%s:%d dev:%p err:%d\n",__func__,__LINE__,pcie->base,err);
 		if (err)
 			goto err_phy_on;
 	}
 
 	err = clk_enable(&pcie->pl_250m_ck);
-	printf("%s:%d dev:%p err:%d",__func__,__LINE__,dev,err);
+	printf("%s:%d dev:%p err:%d\n",__func__,__LINE__,pcie->base,err);
 	if (err)
 		goto err_clk_pl_250m;
 
 	err = clk_enable(&pcie->tl_26m_ck);
-	printf("%s:%d dev:%p err:%d",__func__,__LINE__,dev,err);
+	printf("%s:%d dev:%p err:%d\n",__func__,__LINE__,pcie->base,err);
 	if (err)
 		goto err_clk_tl_26m;
 
 	err = clk_enable(&pcie->peri_26m_ck);
-	printf("%s:%d dev:%p err:%d",__func__,__LINE__,dev,err);
+	printf("%s:%d dev:%p err:%d\n",__func__,__LINE__,pcie->base,err);
 	if (err)
 		goto err_clk_peri_26m;
 
 	err = clk_enable(&pcie->top_133m_ck);
-	printf("%s:%d dev:%p err:%d",__func__,__LINE__,dev,err);
+	printf("%s:%d dev:%p err:%d\n",__func__,__LINE__,pcie->base,err);
 	if (err)
 		goto err_clk_top_133m;
 
 	err = mtk_pcie_startup_port(dev);
-	printf("%s:%d dev:%p err:%d",__func__,__LINE__,dev,err);
+	printf("%s:%d dev:%p err:%d\n",__func__,__LINE__,pcie->base,err);
 	if (err)
 		goto err_startup;
 
-	printf("%s:%d done for dev:%p",__func__,__LINE__,dev);
+	printf("%s:%d done for dev:%p\n",__func__,__LINE__,pcie->base);
 	return 0;
 
 err_startup:

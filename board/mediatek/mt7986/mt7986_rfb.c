@@ -27,19 +27,19 @@ void getBootDevice(void)
 
 	switch ((readl(0x1001f6f0) & 0x300) >> 8) {
 	case MT7986_BOOT_NOR:
-		media = "rootdisk-nor";
+		media = "nor";
 		break
 		;;
 	case MT7986_BOOT_SPIM_NAND:
-		media = "rootdisk-spim-nand";
+		media = "spim-nand";
 		break
 		;;
 	case MT7986_BOOT_EMMC:
-		media = "rootdisk-emmc";
+		media = "emmc";
 		break
 		;;
 	case MT7986_BOOT_SNFI_NAND:
-		media = "rootdisk-sd";
+		media = "sd";
 		break
 		;;
 	}
@@ -57,13 +57,15 @@ int ft_system_setup(void *blob, struct bd_info *bd)
 {
 	const u32 *media_handle_p;
 	int chosen, len, ret;
-	const char *media;
+	char media[20];
+	const char *bootdev;
 	u32 media_handle;
 
 #ifndef CONFIG_BOARD_LATE_INIT
 	getBootDevice();
 #endif
-	media=env_get("bootmedia");
+	bootdev=env_get("bootmedia");
+	sprintf(media,"rootdisk-%s",bootdev);
 
 	chosen = fdt_path_offset(blob, "/chosen");
 	if (chosen <= 0)

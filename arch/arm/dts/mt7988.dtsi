@@ -132,6 +132,38 @@
 			gpio-controller;
 			#gpio-cells = <2>;
 		};
+
+		pcie0_pins: pcie0-pins {
+			mux {
+				function = "pcie";
+				groups = "pcie_2l_0_pereset", "pcie_clk_req_n0_0",
+					 "pcie_wake_n0_0";
+			};
+		};
+
+		pcie1_pins: pcie1-pins {
+			mux {
+				function = "pcie";
+				groups = "pcie_2l_1_pereset", "pcie_clk_req_n1",
+					 "pcie_wake_n1_0";
+			};
+		};
+
+		pcie2_pins: pcie2-pins {
+			mux {
+				function = "pcie";
+				groups = "pcie_1l_0_pereset", "pcie_clk_req_n2_0",
+					 "pcie_wake_n2_0";
+			};
+		};
+
+		pcie3_pins: pcie3-pins {
+			mux {
+				function = "pcie";
+				groups = "pcie_1l_1_pereset", "pcie_clk_req_n3",
+					 "pcie_wake_n3_0";
+			};
+		};
 	};
 
 	sgmiisys0: syscon@10060000 {
@@ -218,8 +250,8 @@
 			      "top_133m";
 		//pinctrl-names = "default";
 		//pinctrl-0 = <&pcie2_pins>;
-		//status = "disabled";
-		status = "okay";
+		status = "disabled";
+		//status = "okay";
 
 		phys = <&xphyu3port0 PHY_TYPE_PCIE>;
 		phy-names = "pcie-phy";
@@ -259,8 +291,8 @@
 			 <&infracfg_ao CK_INFRA_133M_PCIE_CK_P3>;
 		clock-names = "pl_250m", "tl_26m", "peri_26m",
 			      "top_133m";
-		//pinctrl-names = "default";
-		//pinctrl-0 = <&pcie3_pins>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pcie3_pins>;
 		//status = "disabled";
 		status = "okay";
 

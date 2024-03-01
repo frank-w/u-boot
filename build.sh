@@ -41,6 +41,9 @@ else
 fi
 
 makeflags="PLAT=${PLAT} BOOT_DEVICE=$device $makeflags"
+if [[ "$device" == "ram" ]];then
+	makeflags="$makeflags RAM_BOOT_UART_DL=1"
+fi
 
 case $1 in
 	#"importconfig")
@@ -172,7 +175,11 @@ case $1 in
 	;;
 	"rename")
 		set -x
-		cp build/${PLAT}/release/bl2.img ${board}_${device}_bl2.img
+		if [[ "$device" == "ram" ]];then
+			cp build/${PLAT}/release/bl2.bin ${board}_${device}_bl2.bin
+		else
+			cp build/${PLAT}/release/bl2.img ${board}_${device}_bl2.img
+		fi
 		cp build/${PLAT}/release/fip.bin ${board}_${device}_fip.bin
 		set +x
 	;;

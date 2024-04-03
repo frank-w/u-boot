@@ -320,8 +320,8 @@ static int en8811h_load_firmware(struct phy_device *phydev)
 		}
 
 #if CONFIG_PHY_AIROHA_FW_BUILTIN
-	firmware_buf=EthMD32_dm;
-	//memcpy(firmware_buf,EthMD32_dm,EN8811H_MD32_DM_SIZE+EN8811H_MD32_DSP_SIZE);
+	//firmware_buf=EthMD32_dm;
+	memcpy(firmware_buf,EthMD32_dm,EN8811H_MD32_DM_SIZE+EN8811H_MD32_DSP_SIZE);
 	//memcpy((void *)(firmware_buf+EN8811H_MD32_DM_SIZE),EthMD32_pm,EthMD32_pm_size);
 #elif CONFIG_PHY_AIROHA_FW_IN_UBI
 		ret = ubi_volume_read("en8811h-fw", firmware_buf, EN8811H_MD32_DM_SIZE + EN8811H_MD32_DSP_SIZE);
@@ -450,13 +450,18 @@ static int en8811h_restart_host(struct phy_device *phydev)
 				      EN8811H_FW_CTRL_1_FINISH);
 }
 
+static int en8811h_read_status(struct phy_device *phydev)
+{
+
+}
+
 static int en8811h_startup(struct phy_device *phydev)
 {
 	printf("EN8811H driver startup.\n");
 	ofnode node = phy_get_ofnode(phydev);
 	struct en8811h_priv *priv = phydev->priv;
 	int ret = 0, lpagb = 0, lpa = 0, common_adv_gb = 0, common_adv = 0, advgb = 0, adv = 0, reg = 0, an = AUTONEG_DISABLE, bmcr = 0, reg_value;
-	int old_link = phydev->link;
+	//int old_link = phydev->link; //0 or 1 see  https://elixir.bootlin.com/u-boot/v2024.04/source/drivers/net/phy/phy.c#L277
 	u32 pbus_value = 0, retry;
 
 	eth_phy_reset(phydev->dev, 1);
@@ -551,6 +556,8 @@ static int en8811h_startup(struct phy_device *phydev)
 	//   return 0;
 
 	printf("EN8811H no old link\n");
+
+	printf("EN8811H speed: %d duplex: %d pause: %d asym_pause: %d\n",phydev->speed, phydev->duplex,phydev->pause,phydev->asym_pause);
 	phydev->speed = SPEED_100;
 	phydev->duplex = DUPLEX_FULL;
 	phydev->pause = 0;
@@ -572,7 +579,7 @@ static int en8811h_startup(struct phy_device *phydev)
 	{
 		printf("EN8811H BMSR_LSTATUS\n");
 		pbus_value = air_buckpbus_reg_read(phydev, 0x109D4);
-		if (0x10 & pbus_value) {
+		if (pbus_value & 0x10) {
 			printf("EN8811H 2500FDX\n");
 			phydev->speed = SPEED_2500;
 			phydev->duplex = DUPLEX_FULL;
@@ -583,15 +590,14 @@ static int en8811h_startup(struct phy_device *phydev)
 			ret = en8811h_get_autonego(phydev, &an);
 			if ((AUTONEG_ENABLE == an) && (0 == ret))
 			{
-				printf("AN mode!\n");
-				printf("SPEED 1000/100!\n");
+				printf("AN mode...SPEED 1000/100!\n");
 				lpagb = phy_read(phydev, MDIO_DEVAD_NONE, MII_STAT1000);
 				if (lpagb < 0 )
 					return lpagb;
 				advgb = phy_read(phydev, MDIO_DEVAD_NONE, MII_CTRL1000);
-				if (adv < 0 )
-					return adv;
-				common_adv_gb = (lpagb & (advgb << 2));
+				if (advgb < 0 )
+					return advgb;
+				common_adv_gb = (lpagb | (advgb << 2));
 
 				lpa = phy_read(phydev, MDIO_DEVAD_NONE, MII_LPA);
 				if (lpa < 0 )
@@ -601,22 +607,26 @@ static int en8811h_startup(struct phy_device *phydev)
 					return adv;
 				common_adv = (lpa & adv);
 
+				printf("EN8811H speed detection (adv_gb: 0x%8x,adv: 0x%8x)...\n",common_adv_gb,common_adv);
 				phydev->speed = SPEED_10;
 				phydev->duplex = DUPLEX_HALF;
 				if (common_adv_gb & (LPA_1000FULL | LPA_1000HALF))
 				{
+					printf("EN8811H speed 1000...\n");
 					phydev->speed = SPEED_1000;
 					if (common_adv_gb & LPA_1000FULL)
 						phydev->duplex = DUPLEX_FULL;
 				}
 				else if (common_adv & (LPA_100FULL | LPA_100HALF))
 				{
+					printf("EN8811H speed 100...\n");
 					phydev->speed = SPEED_100;
 					if (common_adv & LPA_100FULL)
 						phydev->duplex = DUPLEX_FULL;
 				}
 				else
 				{
+					printf("EN8811H speed 10...\n");
 					if (common_adv & LPA_10FULL)
 						phydev->duplex = DUPLEX_FULL;
 				}

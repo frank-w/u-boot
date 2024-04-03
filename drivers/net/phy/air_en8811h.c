@@ -60,6 +60,9 @@ static const u16 led_dur = UNIT_LED_BLINK_DURATION << AIR_LED_BLK_DUR_64M;
 /*************************************************************
  *                       F U N C T I O N S
  **************************************************************/
+#define LOWORD(x) (x & 0xffff)
+#define HIWORD(x) ((x >> 16) & 0xffff)
+
 /* Use default PBUS_PHY_ID */
 /* EN8811H BUCK write function */
 static int air_buckpbus_reg_write(struct phy_device *phydev, unsigned long pbus_address, unsigned int pbus_data)
@@ -77,22 +80,22 @@ static int air_buckpbus_reg_write(struct phy_device *phydev, unsigned long pbus_
 		printf("phy_write, ret: %d\n", ret);
 		return ret;
 	}
-	ret = phy_write(phydev, MDIO_DEVAD_NONE, 0x11, (unsigned int)((pbus_address >> 16) & 0xffff));
+	ret = phy_write(phydev, MDIO_DEVAD_NONE, 0x11, (unsigned int)HIWORD(pbus_address));
 	if (ret < 0) {
 		printf("phy_write, ret: %d\n", ret);
 		return ret;
 	}
-	ret = phy_write(phydev, MDIO_DEVAD_NONE, 0x12, (unsigned int)(pbus_address & 0xffff));
+	ret = phy_write(phydev, MDIO_DEVAD_NONE, 0x12, (unsigned int)LOWORD(pbus_address));
 	if (ret < 0) {
 		printf("phy_write, ret: %d\n", ret);
 		return ret;
 	}
-	ret = phy_write(phydev, MDIO_DEVAD_NONE, 0x13, (unsigned int)((pbus_data >> 16) & 0xffff));
+	ret = phy_write(phydev, MDIO_DEVAD_NONE, 0x13, (unsigned int)HIWORD(pbus_data));
 	if (ret < 0) {
 		printf("phy_write, ret: %d\n", ret);
 		return ret;
 	}
-	ret = phy_write(phydev, MDIO_DEVAD_NONE, 0x14, (unsigned int)(pbus_data & 0xffff));
+	ret = phy_write(phydev, MDIO_DEVAD_NONE, 0x14, (unsigned int)LOWORD(pbus_data));
 	if (ret < 0) {
 		printf("phy_write, ret: %d\n", ret);
 		return ret;
@@ -116,12 +119,12 @@ static unsigned int air_buckpbus_reg_read(struct phy_device *phydev, unsigned lo
 		printf("phy_write, ret: %d\n", ret);
 		return PBUS_INVALID_DATA;
 	}
-	ret = phy_write(phydev, MDIO_DEVAD_NONE, 0x15, (unsigned int)((pbus_address >> 16) & 0xffff));
+	ret = phy_write(phydev, MDIO_DEVAD_NONE, 0x15, (unsigned int)HIWORD(pbus_address));
 	if (ret < 0) {
 		printf("phy_write, ret: %d\n", ret);
 		return PBUS_INVALID_DATA;
 	}
-	ret = phy_write(phydev, MDIO_DEVAD_NONE, 0x16, (unsigned int)(pbus_address & 0xffff));
+	ret = phy_write(phydev, MDIO_DEVAD_NONE, 0x16, (unsigned int)LOWORD(pbus_address));
 	if (ret < 0) {
 		printf("phy_write, ret: %d\n", ret);
 		return PBUS_INVALID_DATA;
@@ -155,12 +158,12 @@ static int MDIOWriteBuf(struct phy_device *phydev, unsigned long address, unsign
 		printf("phy_write, ret: %d\n", ret);
 		return ret;
 	}
-	ret = phy_write(phydev, MDIO_DEVAD_NONE, 0x11, (unsigned int)((address >> 16) & 0xffff));
+	ret = phy_write(phydev, MDIO_DEVAD_NONE, 0x11, (unsigned int)HIWORD(address));
 	if (ret < 0) {
 		printf("phy_write, ret: %d\n", ret);
 		return ret;
 	}
-	ret = phy_write(phydev, MDIO_DEVAD_NONE, 0x12, (unsigned int)(address & 0xffff));
+	ret = phy_write(phydev, MDIO_DEVAD_NONE, 0x12, (unsigned int)LOWORD(address));
 	if (ret < 0) {
 		printf("phy_write, ret: %d\n", ret);
 		return ret;

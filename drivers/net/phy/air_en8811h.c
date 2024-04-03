@@ -60,98 +60,7 @@ static const u16 led_dur = UNIT_LED_BLINK_DURATION << AIR_LED_BLK_DUR_64M;
 /*************************************************************
  *                       F U N C T I O N S
  **************************************************************/
-/* Airoha MII read function */
-static int air_mii_cl22_read(struct mii_dev *bus, int phy_addr, int phy_register)
-{
-	int read_data = bus->read(bus, phy_addr, MDIO_DEVAD_NONE, phy_register);
-
-	if (read_data < 0)
-		return -EIO;
-	return read_data;
-}
-
-/* Airoha MII write function */
-static int air_mii_cl22_write(struct mii_dev *bus, int phy_addr, int phy_register, int write_data)
-{
-	int ret = 0;
-
-	ret = bus->write(bus, phy_addr, MDIO_DEVAD_NONE, phy_register, write_data);
-	if (ret < 0) {
-		printf("bus->write, ret: %d\n", ret);
-		return ret;
-	}
-	return ret;
-}
-
-static int air_mii_cl45_read(struct phy_device *phydev, int devad, u16 reg)
-{
-	int ret = 0;
-	int data;
-
-	ret = phy_write(phydev, MDIO_DEVAD_NONE, MII_MMD_ACC_CTL_REG, devad);
-	if (ret < 0) {
-		printf("phy_write, ret: %d\n", ret);
-		return INVALID_DATA;
-	}
-	ret = phy_write(phydev, MDIO_DEVAD_NONE, MII_MMD_ADDR_DATA_REG, reg);
-	if (ret < 0) {
-		printf("phy_write, ret: %d\n", ret);
-		return INVALID_DATA;
-	}
-	ret = phy_write(phydev, MDIO_DEVAD_NONE, MII_MMD_ACC_CTL_REG, MMD_OP_MODE_DATA | devad);
-	if (ret < 0) {
-		printf("phy_write, ret: %d\n", ret);
-		return INVALID_DATA;
-	}
-	data = phy_read(phydev, MDIO_DEVAD_NONE, MII_MMD_ADDR_DATA_REG);
-	return data;
-}
-
-static int air_mii_cl45_write(struct phy_device *phydev, int devad, u16 reg, u16 write_data)
-{
-	int ret = 0;
-
-	ret = phy_write(phydev, MDIO_DEVAD_NONE, MII_MMD_ACC_CTL_REG, devad);
-	if (ret < 0) {
-		printf("phy_write, ret: %d\n", ret);
-		return ret;
-	}
-	ret = phy_write(phydev, MDIO_DEVAD_NONE, MII_MMD_ADDR_DATA_REG, reg);
-	if (ret < 0) {
-		printf("phy_write, ret: %d\n", ret);
-		return ret;
-	}
-	ret = phy_write(phydev, MDIO_DEVAD_NONE, MII_MMD_ACC_CTL_REG, MMD_OP_MODE_DATA | devad);
-	if (ret < 0) {
-		printf("phy_write, ret: %d\n", ret);
-		return ret;
-	}
-	ret = phy_write(phydev, MDIO_DEVAD_NONE, MII_MMD_ADDR_DATA_REG, write_data);
-	if (ret < 0) {
-		printf("phy_write, ret: %d\n", ret);
-		return ret;
-	}
-	return 0;
-}
 /* Use default PBUS_PHY_ID */
-/* EN8811H PBUS write function */
-static int air_pbus_reg_write(struct phy_device *phydev, unsigned long pbus_address, unsigned long pbus_data)
-{
-	int ret = 0;
-	struct mii_dev *mbus = phydev->bus;
-
-	ret = air_mii_cl22_write(mbus, ((phydev->addr) + 8), 0x1F, (unsigned int)(pbus_address >> 6));
-	if (ret < 0)
-		return ret;
-	ret = air_mii_cl22_write(mbus, ((phydev->addr) + 8), (unsigned int)((pbus_address >> 2) & 0xf), (unsigned int)(pbus_data & 0xFFFF));
-	if (ret < 0)
-		return ret;
-	ret = air_mii_cl22_write(mbus, ((phydev->addr) + 8), 0x10, (unsigned int)(pbus_data >> 16));
-	if (ret < 0)
-		return ret;
-	return 0;
-}
-
 /* EN8811H BUCK write function */
 static int air_buckpbus_reg_write(struct phy_device *phydev, unsigned long pbus_address, unsigned int pbus_data)
 {
@@ -290,10 +199,10 @@ static int airoha_led_set_usr_def(struct phy_device *phydev, u8 entity, int pola
 	else
 		on_evt &= ~LED_ON_POL;
 
-	ret = air_mii_cl45_write(phydev, 0x1f, LED_ON_CTRL(entity), on_evt | LED_ON_EN);
+	ret = phy_write_mmd(phydev, 0x1f, LED_ON_CTRL(entity), on_evt | LED_ON_EN);
 	if (ret < 0)
 		return ret;
-	ret = air_mii_cl45_write(phydev, 0x1f, LED_BLK_CTRL(entity), blk_evt);
+	ret = phy_write_mmd(phydev, 0x1f, LED_BLK_CTRL(entity), blk_evt);
 	if (ret < 0)
 		return ret;
 	return 0;
@@ -304,7 +213,7 @@ static int airoha_led_set_mode(struct phy_device *phydev, u8 mode)
 	u16 cl45_data;
 	int err = 0;
 
-	cl45_data = air_mii_cl45_read(phydev, 0x1f, LED_BCR);
+	cl45_data = phy_read_mmd(phydev, 0x1f, LED_BCR);
 	switch (mode) {
 	case AIR_LED_MODE_DISABLE:
 		cl45_data &= ~LED_BCR_EXT_CTRL;
@@ -319,7 +228,7 @@ static int airoha_led_set_mode(struct phy_device *phydev, u8 mode)
 		printf("LED mode%d is not supported!\n", mode);
 		return -EINVAL;
 	}
-	err = air_mii_cl45_write(phydev, 0x1f, LED_BCR, cl45_data);
+	err = phy_write_mmd(phydev, 0x1f, LED_BCR, cl45_data);
 	if (err < 0)
 		return err;
 	return 0;
@@ -330,13 +239,13 @@ static int airoha_led_set_state(struct phy_device *phydev, u8 entity, u8 state)
 	u16 cl45_data;
 	int err;
 
-	cl45_data = air_mii_cl45_read(phydev, 0x1f, LED_ON_CTRL(entity));
+	cl45_data = phy_read_mmd(phydev, 0x1f, LED_ON_CTRL(entity));
 	if (LED_ENABLE == state)
 		cl45_data |= LED_ON_EN;
 	else
 		cl45_data &= ~LED_ON_EN;
 
-	err = air_mii_cl45_write(phydev, 0x1f, LED_ON_CTRL(entity), cl45_data);
+	err = phy_write_mmd(phydev, 0x1f, LED_ON_CTRL(entity), cl45_data);
 	if (err < 0)
 		return err;
 	return 0;
@@ -349,11 +258,11 @@ static int en8811h_led_init(struct phy_device *phydev)
 	int ret, led_id;
 
 	cl45_data = UNIT_LED_BLINK_DURATION << AIR_LED_BLK_DUR_64M;
-	ret = air_mii_cl45_write(phydev, 0x1f, LED_BLK_DUR, cl45_data);
+	ret = phy_write_mmd(phydev, 0x1f, LED_BLK_DUR, cl45_data);
 	if (ret < 0)
 		return ret;
 	cl45_data >>= 1;
-	ret = air_mii_cl45_write(phydev, 0x1f, LED_ON_DUR, cl45_data);
+	ret = phy_write_mmd(phydev, 0x1f, LED_ON_DUR, cl45_data);
 	if (ret < 0)
 		return ret;
 
@@ -399,6 +308,7 @@ static int en8811h_load_firmware(struct phy_device *phydev)
 	u32 pbus_value;
 	int ret = 0;
 
+	//printf("EN8811H driver load_firmware.\n");
 	if (!firmware_buf) {
 		firmware_buf = malloc(EN8811H_MD32_DM_SIZE + EN8811H_MD32_DSP_SIZE);
 		if (!firmware_buf) {
@@ -496,13 +406,9 @@ static int en8811h_load_firmware(struct phy_device *phydev)
 
 static int en8811h_config(struct phy_device *phydev)
 {
-	int ret = 0;
 	int pid1 = 0, pid2 = 0;
 
-	ret = air_pbus_reg_write(phydev, 0xcf928 , 0x0);
-	if (ret < 0)
-		return ret;
-
+	printf("EN8811H driver config.\n");
 	pid1 = phy_read(phydev, MDIO_DEVAD_NONE, MII_PHYSID1);
 	pid2 = phy_read(phydev, MDIO_DEVAD_NONE, MII_PHYSID2);
 	if ((EN8811H_PHY_ID1 != pid1) || (EN8811H_PHY_ID2 != pid2)) {
@@ -541,6 +447,7 @@ static int en8811h_restart_host(struct phy_device *phydev)
 
 static int en8811h_startup(struct phy_device *phydev)
 {
+	//printf("EN8811H driver startup.\n");
 	ofnode node = phy_get_ofnode(phydev);
 	struct en8811h_priv *priv = phydev->priv;
 	int ret = 0, lpagb = 0, lpa = 0, common_adv_gb = 0, common_adv = 0, advgb = 0, adv = 0, reg = 0, an = AUTONEG_DISABLE, bmcr = 0, reg_value;
@@ -553,22 +460,22 @@ static int en8811h_startup(struct phy_device *phydev)
 	mdelay(1);
 
 	if (!priv->firmware_version) {
-	ret = en8811h_load_firmware(phydev);
-	if (ret) {
-		printf("EN8811H load firmware fail.\n");
-		return ret;
-	}
+		ret = en8811h_load_firmware(phydev);
+		if (ret) {
+			printf("EN8811H load firmware fail.\n");
+			return ret;
+		}
 	} else {
-	ret=en8811h_restart_host(phydev);
-	if (ret) {
-		printf("EN8811H restart host fail.\n");
-		return ret;
-	}
+		ret=en8811h_restart_host(phydev);
+		if (ret) {
+			printf("EN8811H restart host fail.\n");
+			return ret;
+		}
 	}
 	retry = MAX_RETRY;
 	do {
 		mdelay(300);
-		reg_value = air_mii_cl45_read(phydev, 0x1e, 0x8009);
+		reg_value = phy_read_mmd(phydev, 0x1e, 0x8009);
 		if (EN8811H_PHY_READY == reg_value) {
 			printf("EN8811H PHY ready!\n");
 			break;
@@ -583,17 +490,17 @@ static int en8811h_startup(struct phy_device *phydev)
 		return 0;
 	}
 	/* Mode selection*/
-	printf("EN8811H Mode 1 !\n");
-	ret = air_mii_cl45_write(phydev, 0x1e, 0x800c, 0x0);
+	//printf("EN8811H Mode 1 !\n");
+	ret = phy_write_mmd(phydev, 0x1e, 0x800c, 0x0);
 	if (ret < 0)
 		return ret;
-	ret = air_mii_cl45_write(phydev, 0x1e, 0x800d, 0x0);
+	ret = phy_write_mmd(phydev, 0x1e, 0x800d, 0x0);
 	if (ret < 0)
 		return ret;
-	ret = air_mii_cl45_write(phydev, 0x1e, 0x800e, 0x1101);
+	ret = phy_write_mmd(phydev, 0x1e, 0x800e, 0x1101);
 	if (ret < 0)
 		return ret;
-	ret = air_mii_cl45_write(phydev, 0x1e, 0x800f, 0x0002);
+	ret = phy_write_mmd(phydev, 0x1e, 0x800f, 0x0002);
 	if (ret < 0)
 		return ret;
 
@@ -618,7 +525,7 @@ static int en8811h_startup(struct phy_device *phydev)
 		printf("en8811h_led_init fail\n");
 	}
 #endif
-	printf("EN8811H initialize OK ! (%s)\n", EN8811H_DRIVER_VERSION);
+	printf("EN8811H initialize OK ! (drv ver: %s)\n", EN8811H_DRIVER_VERSION);
 
 	ret = genphy_update_link(phydev);
 	if (ret)
@@ -634,8 +541,8 @@ static int en8811h_startup(struct phy_device *phydev)
 		return ret;
 	}
 
-	if (old_link && phydev->link)
-	   return 0;
+	//if (old_link && phydev->link)
+	//   return 0;
 
 	phydev->speed = SPEED_100;
 	phydev->duplex = DUPLEX_FULL;
@@ -658,6 +565,7 @@ static int en8811h_startup(struct phy_device *phydev)
 	{
 		pbus_value = air_buckpbus_reg_read(phydev, 0x109D4);
 		if (0x10 & pbus_value) {
+			printf("SPEED 2500 FDX!\n");
 			phydev->speed = SPEED_2500;
 			phydev->duplex = DUPLEX_FULL;
 		}
@@ -666,8 +574,7 @@ static int en8811h_startup(struct phy_device *phydev)
 			ret = en8811h_get_autonego(phydev, &an);
 			if ((AUTONEG_ENABLE == an) && (0 == ret))
 			{
-				printf("AN mode!\n");
-				printf("SPEED 1000/100!\n");
+				printf("AN mode...SPEED 1000/100!\n");
 				lpagb = phy_read(phydev, MDIO_DEVAD_NONE, MII_STAT1000);
 				if (lpagb < 0 )
 					return lpagb;

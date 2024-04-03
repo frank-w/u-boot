@@ -574,14 +574,14 @@ static int en8811h_startup(struct phy_device *phydev)
 			ret = en8811h_get_autonego(phydev, &an);
 			if ((AUTONEG_ENABLE == an) && (0 == ret))
 			{
-				printf("AN mode...SPEED 1000/100!\n");
+				printf("AN mode...\n");
 				lpagb = phy_read(phydev, MDIO_DEVAD_NONE, MII_STAT1000);
 				if (lpagb < 0 )
 					return lpagb;
 				advgb = phy_read(phydev, MDIO_DEVAD_NONE, MII_CTRL1000);
-				if (adv < 0 )
-					return adv;
-				common_adv_gb = (lpagb & (advgb << 2));
+				if (advgb < 0 )
+					return advgb;
+				common_adv_gb = (lpagb | (advgb << 2));
 
 				lpa = phy_read(phydev, MDIO_DEVAD_NONE, MII_LPA);
 				if (lpa < 0 )
@@ -595,18 +595,21 @@ static int en8811h_startup(struct phy_device *phydev)
 				phydev->duplex = DUPLEX_HALF;
 				if (common_adv_gb & (LPA_1000FULL | LPA_1000HALF))
 				{
+					printf("AN mode...SPEED 1000!\n");
 					phydev->speed = SPEED_1000;
 					if (common_adv_gb & LPA_1000FULL)
 						phydev->duplex = DUPLEX_FULL;
 				}
 				else if (common_adv & (LPA_100FULL | LPA_100HALF))
 				{
+					printf("AN mode...SPEED 100!\n");
 					phydev->speed = SPEED_100;
 					if (common_adv & LPA_100FULL)
 						phydev->duplex = DUPLEX_FULL;
 				}
 				else
 				{
+					printf("AN mode...SPEED 10!\n");
 					if (common_adv & LPA_10FULL)
 						phydev->duplex = DUPLEX_FULL;
 				}

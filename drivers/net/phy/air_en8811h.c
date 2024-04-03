@@ -308,6 +308,7 @@ static int en8811h_load_firmware(struct phy_device *phydev)
 	u32 pbus_value;
 	int ret = 0;
 
+	printf("EN8811H driver load_firmware.\n");
 	if (!firmware_buf) {
 		firmware_buf = malloc(EN8811H_MD32_DM_SIZE + EN8811H_MD32_DSP_SIZE);
 		if (!firmware_buf) {
@@ -407,6 +408,7 @@ static int en8811h_config(struct phy_device *phydev)
 {
 	int pid1 = 0, pid2 = 0;
 
+	printf("EN8811H driver config.\n");
 	pid1 = phy_read(phydev, MDIO_DEVAD_NONE, MII_PHYSID1);
 	pid2 = phy_read(phydev, MDIO_DEVAD_NONE, MII_PHYSID2);
 	if ((EN8811H_PHY_ID1 != pid1) || (EN8811H_PHY_ID2 != pid2)) {
@@ -420,6 +422,7 @@ static int en8811h_config(struct phy_device *phydev)
 static int en8811h_get_autonego(struct phy_device *phydev, int *an)
 {
 	int reg;
+	printf("EN8811H driver get autoneg.\n");
 	reg = phy_read(phydev, MDIO_DEVAD_NONE, MII_BMCR);
 	if (reg < 0)
 		return -EINVAL;
@@ -432,6 +435,7 @@ static int en8811h_get_autonego(struct phy_device *phydev, int *an)
 
 static int en8811h_restart_host(struct phy_device *phydev)
 {
+	printf("EN8811H driver restart_host.\n");
 	int ret;
 
 	ret = air_buckpbus_reg_write(phydev, EN8811H_FW_CTRL_1,
@@ -445,6 +449,7 @@ static int en8811h_restart_host(struct phy_device *phydev)
 
 static int en8811h_startup(struct phy_device *phydev)
 {
+	printf("EN8811H driver startup.\n");
 	ofnode node = phy_get_ofnode(phydev);
 	struct en8811h_priv *priv = phydev->priv;
 	int ret = 0, lpagb = 0, lpa = 0, common_adv_gb = 0, common_adv = 0, advgb = 0, adv = 0, reg = 0, an = AUTONEG_DISABLE, bmcr = 0, reg_value;
@@ -538,9 +543,11 @@ static int en8811h_startup(struct phy_device *phydev)
 		return ret;
 	}
 
-	if (old_link && phydev->link)
-	   return 0;
+	printf("EN8811H check for old link\n");
+	//if (old_link && phydev->link)
+	//   return 0;
 
+	printf("EN8811H no old link\n");
 	phydev->speed = SPEED_100;
 	phydev->duplex = DUPLEX_FULL;
 	phydev->pause = 0;
@@ -560,13 +567,16 @@ static int en8811h_startup(struct phy_device *phydev)
 	}
 	if(reg & BMSR_LSTATUS)
 	{
+		printf("EN8811H BMSR_LSTATUS\n");
 		pbus_value = air_buckpbus_reg_read(phydev, 0x109D4);
 		if (0x10 & pbus_value) {
+			printf("EN8811H 2500FDX\n");
 			phydev->speed = SPEED_2500;
 			phydev->duplex = DUPLEX_FULL;
 		}
 		else
 		{
+			printf("EN8811H do get autoneg...\n");
 			ret = en8811h_get_autonego(phydev, &an);
 			if ((AUTONEG_ENABLE == an) && (0 == ret))
 			{
@@ -638,6 +648,7 @@ static int en8811h_probe(struct phy_device *phydev)
 {
 	struct en8811h_priv *priv;
 
+	printf("EN8811H driver probe.\n");
 	priv=malloc(sizeof(*priv));
 	if (!priv)
 		return -ENOMEM;

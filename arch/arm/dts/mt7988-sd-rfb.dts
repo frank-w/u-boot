@@ -132,3 +132,19 @@
 	vqmmc-supply = <&reg_3p3v>;
 	status = "okay";
 };
+
+&pcie0 {
+	status = "okay";
+};
+
+&pcie1 {
+	status = "okay";
+};
+
+&pcie2 {
+	//status = "okay";
+};
+
+&pcie3 {
+	status = "okay";
+};

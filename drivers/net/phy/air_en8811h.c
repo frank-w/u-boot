@@ -60,28 +60,6 @@ static const u16 led_dur = UNIT_LED_BLINK_DURATION << AIR_LED_BLK_DUR_64M;
 /*************************************************************
  *                       F U N C T I O N S
  **************************************************************/
-/* Airoha MII read function */
-static int air_mii_cl22_read(struct mii_dev *bus, int phy_addr, int phy_register)
-{
-	int read_data = bus->read(bus, phy_addr, MDIO_DEVAD_NONE, phy_register);
-
-	if (read_data < 0)
-		return -EIO;
-	return read_data;
-}
-
-/* Airoha MII write function */
-static int air_mii_cl22_write(struct mii_dev *bus, int phy_addr, int phy_register, int write_data)
-{
-	int ret = 0;
-
-	ret = bus->write(bus, phy_addr, MDIO_DEVAD_NONE, phy_register, write_data);
-	if (ret < 0) {
-		printf("bus->write, ret: %d\n", ret);
-		return ret;
-	}
-	return ret;
-}
 
 static int air_mii_cl45_read(struct phy_device *phydev, int devad, u16 reg)
 {
@@ -134,24 +112,6 @@ static int air_mii_cl45_write(struct phy_device *phydev, int devad, u16 reg, u16
 	return 0;
 }
 /* Use default PBUS_PHY_ID */
-/* EN8811H PBUS write function */
-static int air_pbus_reg_write(struct phy_device *phydev, unsigned long pbus_address, unsigned long pbus_data)
-{
-	int ret = 0;
-	struct mii_dev *mbus = phydev->bus;
-
-	ret = air_mii_cl22_write(mbus, ((phydev->addr) + 8), 0x1F, (unsigned int)(pbus_address >> 6));
-	if (ret < 0)
-		return ret;
-	ret = air_mii_cl22_write(mbus, ((phydev->addr) + 8), (unsigned int)((pbus_address >> 2) & 0xf), (unsigned int)(pbus_data & 0xFFFF));
-	if (ret < 0)
-		return ret;
-	ret = air_mii_cl22_write(mbus, ((phydev->addr) + 8), 0x10, (unsigned int)(pbus_data >> 16));
-	if (ret < 0)
-		return ret;
-	return 0;
-}
-
 /* EN8811H BUCK write function */
 static int air_buckpbus_reg_write(struct phy_device *phydev, unsigned long pbus_address, unsigned int pbus_data)
 {
@@ -496,12 +456,7 @@ static int en8811h_load_firmware(struct phy_device *phydev)
 
 static int en8811h_config(struct phy_device *phydev)
 {
-	int ret = 0;
 	int pid1 = 0, pid2 = 0;
-
-	ret = air_pbus_reg_write(phydev, 0xcf928 , 0x0);
-	if (ret < 0)
-		return ret;
 
 	pid1 = phy_read(phydev, MDIO_DEVAD_NONE, MII_PHYSID1);
 	pid2 = phy_read(phydev, MDIO_DEVAD_NONE, MII_PHYSID2);

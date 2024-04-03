@@ -80,6 +80,7 @@ struct mtk_pcie {
 	struct clk top_133m_ck;
 	struct reset_ctl reset_phy;
 	struct reset_ctl reset_mac;
+	bool use_dedicated_phy;
 	struct phy phy;
 };
 
@@ -284,9 +285,13 @@ static int mtk_pcie_power_on(struct udevice *dev)
 
 	pcie->priv = dev;
 
-	err = generic_phy_get_by_name(dev, "pcie-phy", &pcie->phy);
-	if (err)
-		return err;
+	pcie->use_dedicated_phy  = dev_read_bool(dev, "use-dedicated-phy");
+
+	if (!pcie->use_dedicated_phy) {
+		err = generic_phy_get_by_name(dev, "pcie-phy", &pcie->phy);
+		if (err)
+			return err;
+	}
 
 	err = clk_get_by_name(dev, "pl_250m", &pcie->pl_250m_ck);
 	if (err)
@@ -308,9 +313,11 @@ static int mtk_pcie_power_on(struct udevice *dev)
 	if (err)
 		return err;
 
-	err = generic_phy_power_on(&pcie->phy);
-	if (err)
-		goto err_phy_on;
+	if (!pcie->use_dedicated_phy) {
+		err = generic_phy_power_on(&pcie->phy);
+		if (err)
+			goto err_phy_on;
+	}
 
 	err = clk_enable(&pcie->pl_250m_ck);
 	if (err)

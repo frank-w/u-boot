@@ -558,6 +558,7 @@ static int en8811h_startup(struct phy_device *phydev)
 	printf("EN8811H no old link\n");
 
 	printf("EN8811H speed: %d duplex: %d pause: %d asym_pause: %d\n",phydev->speed, phydev->duplex,phydev->pause,phydev->asym_pause);
+	phydev->supported = ( SUPPORTED_1000baseT_Full | SUPPORTED_1000baseT_Half);
 	phydev->speed = SPEED_100;
 	phydev->duplex = DUPLEX_FULL;
 	phydev->pause = 0;
@@ -586,9 +587,16 @@ static int en8811h_startup(struct phy_device *phydev)
 		}
 		else
 		{
-			printf("EN8811H do get autoneg...\n");
-			ret = en8811h_get_autonego(phydev, &an);
-			if ((AUTONEG_ENABLE == an) && (0 == ret))
+			ret = en8811h_get_autonego(phydev, &phydev->autoneg);
+			if (ret) {
+				printf("EN8811H get AN fail.\n");
+				return ret;
+			}
+			ret = genphy_parse_link(phydev);
+			printf("EN8811H genphy_parse_link (ret:%d)...\n",ret);
+			printf("EN8811H (after genphy) speed: %d duplex: %d pause: %d asym_pause: %d\n",phydev->speed, phydev->duplex,phydev->pause,phydev->asym_pause);
+			//following should not be needed, but it is....
+			if ((phydev->autoneg == AUTONEG_ENABLE) && (ret == 0))
 			{
 				printf("AN mode...SPEED 1000/100!\n");
 				lpagb = phy_read(phydev, MDIO_DEVAD_NONE, MII_STAT1000);
@@ -597,7 +605,7 @@ static int en8811h_startup(struct phy_device *phydev)
 				advgb = phy_read(phydev, MDIO_DEVAD_NONE, MII_CTRL1000);
 				if (advgb < 0 )
 					return advgb;
-				common_adv_gb = (lpagb | (advgb << 2));
+				common_adv_gb = (lpagb & (advgb << 2));
 
 				lpa = phy_read(phydev, MDIO_DEVAD_NONE, MII_LPA);
 				if (lpa < 0 )
@@ -607,7 +615,7 @@ static int en8811h_startup(struct phy_device *phydev)
 					return adv;
 				common_adv = (lpa & adv);
 
-				printf("EN8811H speed detection (adv_gb: 0x%8x,adv: 0x%8x)...\n",common_adv_gb,common_adv);
+				printf("EN8811H speed detection (adv_gb: 0x%08x,adv: 0x%08x)...\n",common_adv_gb,common_adv);
 				phydev->speed = SPEED_10;
 				phydev->duplex = DUPLEX_HALF;
 				if (common_adv_gb & (LPA_1000FULL | LPA_1000HALF))
@@ -651,6 +659,7 @@ static int en8811h_startup(struct phy_device *phydev)
 				else
 					phydev->speed = SPEED_100;
 			}
+			printf("EN8811H (after original code) speed: %d duplex: %d pause: %d asym_pause: %d\n",phydev->speed, phydev->duplex,phydev->pause,phydev->asym_pause);
 		}
 	}
 

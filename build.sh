@@ -65,18 +65,21 @@ case $1 in
 	"install")
 		if [[ "$device" != "sdmmc" ]];then echo "$1 not supported for $device";exit 1;fi
 		DEV=/dev/sdb
+		SRCBL2=build/${PLAT}/release/bl2.img
+		SRCFIP=build/${PLAT}/release/fip.bin
+
 		read -e -i "$DEV" -p "Please enter target device: " DEV
 		case $board in
 			"bpi-r64")
 				set -x
-				sudo dd if=build/${PLAT}/release/bl2.img of=${DEV} bs=512 seek=1024 conv=notrunc,fsync #1> /dev/null 2>&1
-				sudo dd if=build/${PLAT}/release/fip.bin of=${DEV} bs=512 seek=2048 conv=notrunc,fsync #1> /dev/null 2>&1
+				sudo dd if=${SRCBL2} of=${DEV} bs=512 seek=1024 conv=notrunc,fsync #1> /dev/null 2>&1
+				sudo dd if=${SRCFIP} of=${DEV} bs=512 seek=2048 conv=notrunc,fsync #1> /dev/null 2>&1
 				set +x
 			;;
 			"bpi-r3"|"bpi-r4")
 				set -x
-				sudo dd if=build/${PLAT}/release/bl2.img of=${DEV}1 conv=notrunc,fsync #1> /dev/null 2>&1
-				sudo dd if=build/${PLAT}/release/fip.bin of=${DEV}4 conv=notrunc,fsync #1> /dev/null 2>&1
+				sudo dd if=${SRCBL2} of=${DEV}1 conv=notrunc,fsync #1> /dev/null 2>&1
+				sudo dd if=${SRCFIP} of=${DEV}4 conv=notrunc,fsync #1> /dev/null 2>&1
 				set +x
 			;;
 		esac

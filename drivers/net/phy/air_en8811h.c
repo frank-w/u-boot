@@ -317,8 +317,8 @@ static int en8811h_load_firmware(struct phy_device *phydev)
 		}
 
 #if CONFIG_PHY_AIROHA_FW_BUILTIN
-	firmware_buf=EthMD32_dm;
-	//memcpy(firmware_buf,EthMD32_dm,EN8811H_MD32_DM_SIZE+EN8811H_MD32_DSP_SIZE);
+	//firmware_buf=EthMD32_dm;
+	memcpy(firmware_buf,EthMD32_dm,EN8811H_MD32_DM_SIZE+EN8811H_MD32_DSP_SIZE);
 	//memcpy((void *)(firmware_buf+EN8811H_MD32_DM_SIZE),EthMD32_pm,EthMD32_pm_size);
 #elif CONFIG_PHY_AIROHA_FW_IN_UBI
 		ret = ubi_volume_read("en8811h-fw", firmware_buf, EN8811H_MD32_DM_SIZE + EN8811H_MD32_DSP_SIZE);
@@ -451,7 +451,7 @@ static int en8811h_startup(struct phy_device *phydev)
 	ofnode node = phy_get_ofnode(phydev);
 	struct en8811h_priv *priv = phydev->priv;
 	int ret = 0, lpagb = 0, lpa = 0, common_adv_gb = 0, common_adv = 0, advgb = 0, adv = 0, reg = 0, an = AUTONEG_DISABLE, bmcr = 0, reg_value;
-	int old_link = phydev->link;
+	//int old_link = phydev->link;
 	u32 pbus_value = 0, retry;
 
 	eth_phy_reset(phydev->dev, 1);
@@ -544,6 +544,7 @@ static int en8811h_startup(struct phy_device *phydev)
 	//if (old_link && phydev->link)
 	//   return 0;
 
+	phydev->supported = ( SUPPORTED_1000baseT_Full | SUPPORTED_1000baseT_Half);
 	phydev->speed = SPEED_100;
 	phydev->duplex = DUPLEX_FULL;
 	phydev->pause = 0;
@@ -581,7 +582,7 @@ static int en8811h_startup(struct phy_device *phydev)
 				advgb = phy_read(phydev, MDIO_DEVAD_NONE, MII_CTRL1000);
 				if (advgb < 0 )
 					return advgb;
-				common_adv_gb = (lpagb | (advgb << 2));
+				common_adv_gb = (lpagb & (advgb << 2));
 
 				lpa = phy_read(phydev, MDIO_DEVAD_NONE, MII_LPA);
 				if (lpa < 0 )

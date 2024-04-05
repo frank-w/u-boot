@@ -592,9 +592,9 @@ static int en8811h_startup(struct phy_device *phydev)
 				printf("EN8811H get AN fail.\n");
 				return ret;
 			}
-			ret = genphy_parse_link(phydev);
-			printf("EN8811H genphy_parse_link (ret:%d)...\n",ret);
-			printf("EN8811H (after genphy) speed: %d duplex: %d pause: %d asym_pause: %d\n",phydev->speed, phydev->duplex,phydev->pause,phydev->asym_pause);
+			//ret = genphy_parse_link(phydev);
+			//printf("EN8811H genphy_parse_link (ret:%d)...\n",ret);
+			//printf("EN8811H (after genphy) speed: %d duplex: %d pause: %d asym_pause: %d\n",phydev->speed, phydev->duplex,phydev->pause,phydev->asym_pause);
 			//following should not be needed, but it is....
 			if ((phydev->autoneg == AUTONEG_ENABLE) && (ret == 0))
 			{

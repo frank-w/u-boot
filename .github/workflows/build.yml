@@ -46,8 +46,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/ccache/
-          key: ${{ runner.os }}-ccache
-          restore-keys: ${{ runner.os }}-ccache
+          key: ${{ runner.os }}-ccache-uboot-${{ env.UBOOTVER }}
+          restore-keys: ${{ runner.os }}-ccache-uboot-${{ env.UBOOTVER }}
 
       - name: Fetch mtk-atf branch
         run: |

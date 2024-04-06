@@ -50,7 +50,7 @@ buildargs=setenv bootargs "board=${board} earlycon=uart8250,mmio32,0x11002000 ${
 #console=${console}
 
 useusb=if usb info; then usb reset;else usb start;fi; setenv device usb;setenv partition 0:1;ls ${device} ${partition}
-usenvme=pci enum; nvme scan;nvme info; if ls nvme $nvme_boot;then setenv device "nvme";setenv partition $nvme_boot;else echo "nvme partition not found";fi
+usenvme=pci enum; nvme scan;nvme info; if ls nvme $nvme_boot;then setenv device "nvme";setenv partition $nvme_boot;setenv root $nvme_root;else echo "nvme partition not found";fi
 
 useinitrd=setenv bootopts "${bootopts} initrd=${rdaddr},20M";
 checkrd=if printenv initrd;then if fatload ${device} ${partition} ${rdaddr} ${initrd};then run useinitrd;fi;fi

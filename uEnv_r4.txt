@@ -20,6 +20,11 @@ bootopts=debug=7 mem=3G
 wifi_en=0
 sata_en=0
 
+usb_part=0:1
+
+nvme_boot=0:1
+nvme_root=/dev/nvme0n1p2
+
 #netboot
 ipaddr=192.168.0.19
 netmask=255.255.255.0
@@ -28,6 +33,8 @@ serverip=192.168.0.10
 lstftp=if tftp ${loadaddr} ${serverip}:r4-itbfiles.lst;then setexpr listend ${loadaddr} + ${filesize};mw.b ${listend} 00 2;strings ${loadaddr};else echo "tftp download failed";fi
 askkernel=askenv kernelinput "enter kernel-name:";
 askbootnetfit=run lstftp askkernel;if printenv kernelinput; then setenv bootfile "${kernelinput}"; run bootnetfit;fi
+
+askbootnvme=run usenvme; if test "$device" = "nvme"; then run askkernel;if printenv kernelinput; then setenv fit $kernelinput;run newboot;fi;fi
 
 bootnetfit=run buildargs;if tftp $kaddr ${bootfile}; then bootm $kaddr;fi
 bootfile=bpi-r4.itb
@@ -40,8 +47,8 @@ resetenv=env default -a;printenv;
 loadkernel=fatload $device $partition $kaddr ${kernel}
 buildargs=setenv bootargs "board=${board} console=${console} root=${root} ${bootopts}
 
-useusb=if usb info; then usb reset;else usb start;fi; setenv device usb;setenv partition 0:1;ls ${device} ${partition}
-usenvme=pci enum; nvme scan;nvme info; if ls nvme 0:1;then setenv device nvme;setenv partition 0:1;else echo nvme partition not found;fi
+useusb=if usb info; then usb reset;else usb start;fi; if ls usb $usb_part $usb_path; then setenv device usb;setenv partition $usb_part;fi
+usenvme=pci enum; nvme scan;nvme info; if ls nvme $nvme_boot;then setenv device "nvme";setenv partition $nvme_boot;setenv root $nvme_root;else echo "nvme partition not found";fi
 
 useinitrd=setenv bootopts "${bootopts} initrd=${rdaddr},100M";
 checkrd=if printenv initrd;then if fatload ${device} ${partition} ${rdaddr} ${initrd};then run useinitrd;fi;fi
@@ -68,6 +75,7 @@ boot0=run lskernel;run askkernel;if printenv kernelinput ;then setenv fit ${kern
 bootmenu_0=1. Enter kernel-name to boot from SD/EMMC.=run boot0
 bootmenu_1=2. Boot kernel from TFTP.=run askbootnetfit
 bootmenu_2=3. Boot from SD/EMMC.=run newboot
+bootmenu_3=4. Boot kernel from NVME.=run askbootnvme
 
 bootmenu_default=2
 

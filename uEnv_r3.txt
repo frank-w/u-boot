@@ -21,6 +21,8 @@ sata_en=0
 
 ubootfile=u-boot.bin
 
+usb_part=0:1
+
 nvme_boot=0:1
 nvme_root=/dev/nvme0n1p2
 
@@ -49,7 +51,7 @@ loadkernel=fatload $device $partition $kaddr ${kernel}
 buildargs=setenv bootargs "board=${board} earlycon=uart8250,mmio32,0x11002000 ${bootopts} root=${root}"
 #console=${console}
 
-useusb=if usb info; then usb reset;else usb start;fi; setenv device usb;setenv partition 0:1;ls ${device} ${partition}
+useusb=if usb info; then usb reset;else usb start;fi; if ls usb $usb_part $usb_path; then setenv device usb;setenv partition $usb_part;fi
 usenvme=pci enum; nvme scan;nvme info; if ls nvme $nvme_boot;then setenv device "nvme";setenv partition $nvme_boot;setenv root $nvme_root;else echo "nvme partition not found";fi
 
 useinitrd=setenv bootopts "${bootopts} initrd=${rdaddr},20M";

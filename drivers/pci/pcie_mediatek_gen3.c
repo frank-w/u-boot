@@ -162,7 +162,7 @@ static int mtk_pcie_set_trans_table(struct mtk_pcie *pcie, u64 cpu_addr,
 		return -ENODEV;
 	}
 
-	printf("set trans table %d: %#llx %#llx, %#llx\n", num, cpu_addr, pci_addr, size);
+	//printf("set trans table %d: %#llx %#llx, %#llx\n", num, cpu_addr, pci_addr, size);
 	table = pcie->base + PCIE_TRANS_TABLE_BASE_REG +
 		num * PCIE_ATR_TLB_SET_OFFSET;
 
@@ -256,10 +256,10 @@ static int mtk_pcie_startup_port(struct udevice *dev)
 				 !!(val & PCIE_PORT_LINKUP),
 				 100 * 1000);
 	if (err) {
-		printf("%s:%s[%d] no card detected\n", __FILE__, __func__, __LINE__);
+		printf("no card detected at 0x%08lx\n",(unsigned long)pcie->base);
 		return -ETIMEDOUT;
 	}
-	printf("%s:%s[%d] detected a card\n", __FILE__, __func__, __LINE__);
+	printf("detected a card at 0x%08lx\n", (unsigned long)pcie->base);
 
 	for (i = 0; i < hose->region_count; i++) {
 		struct pci_region *reg = &hose->regions[i];

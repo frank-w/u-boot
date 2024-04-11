@@ -366,6 +366,16 @@
 			status = "okay";
 		};
 
+	};
+
+	xphy: xphy@11e10000 {
+		compatible = "mediatek,mt7988",
+		"mediatek,xsphy";
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+		status = "disabled";
+
 		xphyu3port0: usb-phy@11e13000 {
 			reg = <0 0x11e13400 0 0x500>;
 			clocks = <&dummy_clk>;//<&infracfg CLK_INFRA_USB_PIPE>;

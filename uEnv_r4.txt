@@ -30,13 +30,13 @@ ipaddr=192.168.0.19
 netmask=255.255.255.0
 serverip=192.168.0.10
 
+lskernel=ls ${device} ${partition};
 lstftp=if tftp ${loadaddr} ${serverip}:r4-itbfiles.lst;then setexpr listend ${loadaddr} + ${filesize};mw.b ${listend} 00 2;strings ${loadaddr};else echo "tftp download failed";fi
 askkernel=askenv kernelinput "enter kernel-name:";
 askbootnetfit=run lstftp askkernel;if printenv kernelinput; then setenv bootfile "${kernelinput}"; run bootnetfit;fi
 
 askbootnvme=run usenvme; if test "$device" = "nvme"; then run askkernel;if printenv kernelinput; then setenv fit $kernelinput;run newboot;fi;fi
 
-bootnetfit=run buildargs;if tftp $kaddr ${bootfile}; then bootm $kaddr;fi
 bootfile=bpi-r4.itb
 
 checkenv=test -e ${device} ${partition} ${bootenv}
@@ -66,9 +66,6 @@ wremmc=if printenv bl2file;then mmc partconf 0 1 1 1;if fatload $device $partiti
 
 bootdelay=0
 bootcmd=setenv bootdelay 3; run loadenv;bootmenu;
-
-lskernel=ls ${device} ${partition};
-askkernel=askenv kernelinput "enter kernel name:";
 
 boot0=run lskernel;run askkernel;if printenv kernelinput ;then setenv fit ${kernelinput}; run newboot; fi;
 

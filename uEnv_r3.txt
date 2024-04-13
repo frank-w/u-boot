@@ -37,7 +37,6 @@ askbootnetfit=run lstftp askkernel;if printenv kernelinput; then setenv bootfile
 
 askbootnvme=run usenvme; if test "$device" = "nvme"; then run askkernel;if printenv kernelinput; then setenv fit $kernelinput;run newboot;fi;fi
 
-bootnetfit=run buildargs;run setbootconf;if tftp $kaddr ${bootfile}; then bootm ${kaddr}${bootconf};;fi
 bootfile=bpi-r3.itb
 
 checkenv=test -e ${device} ${partition} ${bootenv}

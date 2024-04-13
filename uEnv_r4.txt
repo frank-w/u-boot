@@ -36,6 +36,7 @@ askkernel=askenv kernelinput "enter kernel-name:";
 asksetkernel=run askkernel;if printenv kernelinput; then setenv fit $kernelinput;fi
 askbootnetfit=run lstftp askkernel;if printenv kernelinput; then setenv bootfile "${kernelinput}"; run bootnetfit;fi
 
+bootnvme=run usenvme; if test "$device" = "nvme"; then run newboot; fi;
 askbootnvme=run usenvme; if test "$device" = "nvme"; then run asksetkernel;run newboot;fi
 
 bootfile=bpi-r4.itb

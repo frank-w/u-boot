@@ -31,11 +31,14 @@ ipaddr=192.168.0.19
 netmask=255.255.255.0
 serverip=192.168.0.10
 
+lskernel=ls ${device} ${partition};
 lstftp=if tftp ${loadaddr} ${serverip}:r3-itbfiles.lst;then setexpr listend ${loadaddr} + ${filesize};mw.b ${listend} 00 2;strings ${loadaddr};else echo "tftp download failed";fi
 askkernel=askenv kernelinput "enter kernel-name:";
+asksetkernel=run askkernel;if printenv kernelinput; then setenv fit $kernelinput;fi
 askbootnetfit=run lstftp askkernel;if printenv kernelinput; then setenv bootfile "${kernelinput}"; run bootnetfit;fi
 
-askbootnvme=run usenvme; if test "$device" = "nvme"; then run askkernel;if printenv kernelinput; then setenv fit $kernelinput;run newboot;fi;fi
+bootnvme=run usenvme; if test "$device" = "nvme"; then run newboot; fi;
+askbootnvme=run usenvme; if test "$device" = "nvme"; then run asksetkernel;run newboot;fi
 
 bootfile=bpi-r3.itb
 
@@ -76,12 +79,7 @@ wrfitnor=if printenv fitfile;then if fatload $device $partition ${loadaddr} ${fi
 
 bootdelay=0
 bootcmd=setenv bootdelay 3; run loadenv;bootmenu;
-
-##untested
-lskernel=ls ${device} ${partition};
-askkernel=askenv kernelinput "enter kernel name:";
-
-boot0=run lskernel;run askkernel;if printenv kernelinput ;then setenv fit ${kernelinput}; run newboot; fi;
+boot0=run lskernel;run asksetkernel; run newboot;
 
 bootmenu_0=1. Enter kernel-name to boot from SD/EMMC.=run boot0
 bootmenu_1=2. Boot kernel from TFTP.=run askbootnetfit

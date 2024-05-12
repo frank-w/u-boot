@@ -1,0 +1,17 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Author: Frank Wunderlich <frank-w@public-files.de>
+ */
+
+&eth {
+	status = "okay";
+	mediatek,gmac-id = <0>;
+	phy-mode = "rgmii";
+	mediatek,switch = "mt7530";
+	reset-gpios = <&pio 33 GPIO_ACTIVE_HIGH>;
+
+	fixed-link {
+		speed = <1000>;
+		full-duplex;
+	};
+};

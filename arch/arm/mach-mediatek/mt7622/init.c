@@ -4,15 +4,11 @@
  * Author: Sam Shih <sam.shih@mediatek.com>
  */
 
+#include <common.h>
 #include <fdtdec.h>
 #include <init.h>
 #include <asm/armv8/mmu.h>
-#include <asm/system.h>
-#include <asm/global_data.h>
-#include <asm/u-boot.h>
-#include <linux/sizes.h>
-
-DECLARE_GLOBAL_DATA_PTR;
+#include <asm/cache.h>
 
 int print_cpuinfo(void)
 {
@@ -24,13 +20,11 @@ int dram_init(void)
 {
 	int ret;
 
-	ret = fdtdec_setup_mem_size_base();
+	ret = fdtdec_setup_memory_banksize();
 	if (ret)
 		return ret;
+	return fdtdec_setup_mem_size_base();
 
-	gd->ram_size = get_ram_size((void *)gd->ram_base, SZ_2G);
-
-	return 0;
 }
 
 void reset_cpu(void)

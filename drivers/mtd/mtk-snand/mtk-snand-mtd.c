@@ -53,7 +53,7 @@ static int mtk_snand_mtd_erase(struct mtd_info *mtd, struct erase_info *instr)
 	instr->state = MTD_ERASING;
 
 	while (start_addr < end_addr) {
-		WATCHDOG_RESET();
+		schedule();
 
 		if (mtk_snand_block_isbad(msm->snf, start_addr)) {
 			if (!instr->scrub) {
@@ -107,7 +107,7 @@ static int mtk_snand_mtd_read_data(struct mtk_snand_mtd *msm, uint64_t addr,
 	ops->retlen = 0;
 
 	while (len || ooblen) {
-		WATCHDOG_RESET();
+		schedule();
 
 		if (ops->mode == MTD_OPS_AUTO_OOB)
 			ret = mtk_snand_read_page_auto_oob(msm->snf, addr,
@@ -224,7 +224,7 @@ static int mtk_snand_mtd_write_data(struct mtk_snand_mtd *msm, uint64_t addr,
 	ops->retlen = 0;
 
 	while (len || ooblen) {
-		WATCHDOG_RESET();
+		schedule();
 
 		if (len) {
 			/* Move data */

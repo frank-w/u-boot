@@ -26,10 +26,13 @@ int dram_init(void)
 	int ret;
 
 	ret = fdtdec_setup_mem_size_base();
+	printf("dram_init ret: %d\n",ret);
 	if (ret)
 		return ret;
 
-	gd->ram_size = get_ram_size((void *)gd->ram_base, SZ_2G);
+	printf("dram_init...ram-base: %08lx, ram-size: %08llx\n",gd->ram_base,gd->ram_size);
+	gd->ram_size = get_ram_size((void *)gd->ram_base, SZ_1G);
+	printf("dram_init gd->ram_size %08llx\n",gd->ram_size);
 
 	return 0;
 }

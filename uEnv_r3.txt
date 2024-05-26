@@ -9,6 +9,7 @@ fit=bpi-r3.itb
 #initrd=rootfs.cpio.zst
 
 loadaddr=0x46000000
+uaddr=0x41e00000
 kaddr=0x46000000
 rdaddr=0x48000000
 
@@ -47,7 +48,7 @@ loadenvfile=if fatload ${device} ${partition} ${loadaddr} ${bootenv};then env im
 loadenv=if run checkenv;then run loadenvfile;fi
 resetenv=env default -a;printenv;
 
-loaduboot=if fatload $device $partition $loadaddr $ubootfile;then go $loadaddr;fi
+loaduboot=if fatload $device $partition $uaddr $ubootfile;then go $uaddr;fi
 
 loadkernel=fatload $device $partition $kaddr ${kernel}
 buildargs=setenv bootargs "board=${board} earlycon=uart8250,mmio32,0x11002000 ${bootopts} root=${root}"

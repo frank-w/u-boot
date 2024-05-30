@@ -59,9 +59,15 @@ static int mtk_clk_mux_set_parent(void __iomem *base, u32 parent,
 {
 	u32 val, index = 0;
 
-	while (mux->parent[index] != parent)
-		if (++index == mux->num_parents)
-			return -EINVAL;
+	if (mux->flags & CLK_PARENT_MIXED) {
+		while (mux->parent_flags[index].id != parent)
+			if (++index == mux->num_parents)
+				return -EINVAL;
+	} else {
+		while (mux->parent[index] != parent)
+			if (++index == mux->num_parents)
+				return -EINVAL;
+	}
 
 	if (mux->flags & CLK_MUX_SETCLR_UPD) {
 		val = (mux->mux_mask << mux->mux_shift);
@@ -353,6 +359,23 @@ static ulong mtk_topckgen_get_mux_rate(struct clk *clk, u32 off)
 	return priv->tree->xtal_rate;
 }
 
+static ulong mtk_find_parent_rate(struct mtk_clk_priv *priv, struct clk *clk,
+				  const int parent, u16 flags)
+{
+	if (parent > 0 ||
+	    (parent == CLK_XTAL &&
+	    priv->tree->flags & CLK_BYPASS_XTAL)) {
+		switch (flags & CLK_PARENT_MASK) {
+		case CLK_PARENT_TOPCKGEN:
+			return mtk_clk_find_parent_rate(clk, parent, priv->parent);
+		default:
+			return mtk_clk_find_parent_rate(clk, parent, NULL);
+		}
+	}
+
+	return 0;
+}
+
 static ulong mtk_infrasys_get_mux_rate(struct clk *clk, u32 off)
 {
 	struct mtk_clk_priv *priv = dev_get_priv(clk->dev);
@@ -363,21 +386,17 @@ static ulong mtk_infrasys_get_mux_rate(struct clk *clk, u32 off)
 	index &= mux->mux_mask << mux->mux_shift;
 	index = index >> mux->mux_shift;
 
-	if (mux->parent[index] > 0 ||
-	    (mux->parent[index] == CLK_XTAL &&
-	     priv->tree->flags & CLK_BYPASS_XTAL)) {
-		switch (mux->flags & CLK_PARENT_MASK) {
-		case CLK_PARENT_TOPCKGEN:
-			return mtk_clk_find_parent_rate(clk, mux->parent[index],
-							priv->parent);
-			break;
-		default:
-			return mtk_clk_find_parent_rate(clk, mux->parent[index],
-							NULL);
-			break;
-		}
+	/*
+	 * Parents can be either from TOPCKGEN or INFRACFG,
+	 * inspect the mtk_parent struct to check the source
+	 */
+	if (mux->flags & CLK_PARENT_MIXED) {
+		const struct mtk_parent *parent = &mux->parent_flags[index];
+
+		return mtk_find_parent_rate(priv, clk, parent->id, parent->flags);
 	}
-	return 0;
+
+	return mtk_find_parent_rate(priv, clk, mux->parent[index], mux->flags);
 }
 
 static ulong mtk_topckgen_get_rate(struct clk *clk)

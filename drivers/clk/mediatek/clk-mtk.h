@@ -30,7 +30,8 @@
 #define CLK_PARENT_TOPCKGEN		BIT(5)
 #define CLK_PARENT_INFRASYS		BIT(6)
 #define CLK_PARENT_XTAL			BIT(7)
-#define CLK_PARENT_MASK			GENMASK(7, 4)
+#define CLK_PARENT_MIXED		BIT(8)
+#define CLK_PARENT_MASK			GENMASK(8, 4)
 
 #define ETHSYS_HIFSYS_RST_CTRL_OFS	0x34
 
@@ -98,10 +99,30 @@ struct mtk_fixed_factor {
 	}
 
 /**
+ * struct mtk_parent -  clock parent with flags. Needed for MUX that
+ *			parent with mixed infracfg and topckgen.
+ *
+ * @id:			index of parent clocks
+ * @flags:		hardware-specific flags (parent location,
+ *			infracfg, topckgen, APMIXED, xtal ...)
+ */
+struct mtk_parent {
+	const int id;
+	u16 flags;
+};
+
+#define PARENT(_id, _flags) {				\
+		.id = _id,				\
+		.flags = _flags,			\
+	}
+
+/**
  * struct mtk_composite - aggregate clock of mux, divider and gate clocks
  *
  * @id:			index of clocks
  * @parent:		index of parnet clocks
+ * @parent:		index of parnet clocks
+ * @parent_flags:	table of parent clocks with flags
  * @mux_reg:		hardware-specific mux register
  * @gate_reg:		hardware-specific gate register
  * @mux_mask:		mask to the mux bit field
@@ -112,7 +133,10 @@ struct mtk_fixed_factor {
  */
 struct mtk_composite {
 	const int id;
-	const int *parent;
+	union {
+		const int *parent;
+		const struct mtk_parent *parent_flags;
+	};
 	u32 mux_reg;
 	u32 mux_set_reg;
 	u32 mux_clr_reg;

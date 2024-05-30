@@ -618,13 +618,24 @@ static int mtk_clk_infrasys_disable(struct clk *clk)
 static ulong mtk_clk_gate_get_rate(struct clk *clk)
 {
 	struct mtk_cg_priv *priv = dev_get_priv(clk->dev);
+	struct udevice *parent = priv->parent;
 	const struct mtk_gate *gate;
 
 	if (clk->id < priv->tree->gates_offs)
 		return -EINVAL;
 
 	gate = &priv->gates[clk->id - priv->tree->gates_offs];
-	return mtk_clk_find_parent_rate(clk, gate->parent, priv->parent);
+	/*
+	 * Assume a infracfg-ao where:
+	 * parent = infracfg
+	 * parent->parent = topcfggen
+	 */
+	if (gate->flags & CLK_PARENT_TOPCKGEN) {
+		priv = dev_get_priv(parent);
+		parent = priv->parent;
+	}
+
+	return mtk_clk_find_parent_rate(clk, gate->parent, parent);
 }
 
 const struct clk_ops mtk_clk_apmixedsys_ops = {

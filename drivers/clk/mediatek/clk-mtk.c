@@ -524,8 +524,12 @@ static int mtk_gate_enable(struct mtk_cg_priv *priv, const struct mtk_gate *gate
 static int mtk_clk_gate_enable(struct clk *clk)
 {
 	struct mtk_cg_priv *priv = dev_get_priv(clk->dev);
-	const struct mtk_gate *gate = &priv->gates[clk->id];
+	const struct mtk_gate *gate;
 
+	if (clk->id < priv->tree->gates_offs)
+		return -EINVAL;
+
+	gate = &priv->gates[clk->id - priv->tree->gates_offs];
 	return mtk_gate_enable(priv, gate);
 }
 
@@ -570,8 +574,12 @@ static int mtk_gate_disable(struct mtk_cg_priv *priv, const struct mtk_gate *gat
 static int mtk_clk_gate_disable(struct clk *clk)
 {
 	struct mtk_cg_priv *priv = dev_get_priv(clk->dev);
-	const struct mtk_gate *gate = &priv->gates[clk->id];
+	const struct mtk_gate *gate;
 
+	if (clk->id < priv->tree->gates_offs)
+		return -EINVAL;
+
+	gate = &priv->gates[clk->id - priv->tree->gates_offs];
 	return mtk_gate_disable(priv, gate);
 }
 
@@ -591,8 +599,12 @@ static int mtk_clk_infrasys_disable(struct clk *clk)
 static ulong mtk_clk_gate_get_rate(struct clk *clk)
 {
 	struct mtk_cg_priv *priv = dev_get_priv(clk->dev);
-	const struct mtk_gate *gate = &priv->gates[clk->id];
+	const struct mtk_gate *gate;
 
+	if (clk->id < priv->tree->gates_offs)
+		return -EINVAL;
+
+	gate = &priv->gates[clk->id - priv->tree->gates_offs];
 	return mtk_clk_find_parent_rate(clk, gate->parent, priv->parent);
 }
 

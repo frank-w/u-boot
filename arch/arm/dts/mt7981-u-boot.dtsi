@@ -1,0 +1,71 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (c) 2022 MediaTek Inc.
+ * Author: Christian Marangi <ansuelsmth@gmail.com>
+ */
+
+#include <dt-bindings/reset/mt7629-reset.h>
+
+/ {
+	cpus {
+		cpu@0 {
+			mediatek,hwver = <&hwver>;
+		};
+
+		cpu@1 {
+			mediatek,hwver = <&hwver>;
+		};
+	};
+
+	gpt_clk: gpt_dummy20m {
+		compatible = "fixed-clock";
+		clock-frequency = <13000000>;
+		#clock-cells = <0>;
+		bootph-all;
+	};
+
+	soc {
+		hwver: hwver {
+			compatible = "mediatek,hwver", "syscon";
+			reg = <0 0x8000000 0 0x1000>;
+		};
+
+		timer0: timer@10008000 {
+			compatible = "mediatek,mt7986-timer";
+			reg = <0 0x10008000 0 0x1000>;
+			interrupts = <GIC_SPI 130 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&gpt_clk>;
+			clock-names = "gpt-clk";
+			bootph-all;
+		};
+	};
+
+	timer {
+		arm,cpu-registers-not-fw-configured;
+	};
+};
+
+&apmixedsys {
+	bootph-all;
+};
+
+&topckgen {
+	bootph-all;
+};
+
+&infracfg {
+	bootph-all;
+};
+
+&uart0_pins {
+	bootph-all;
+};
+
+&uart0 {
+	bootph-all;
+};
+
+&eth {
+	resets = <&ethsys ETHSYS_FE_RST>;
+	reset-names = "fe";
+};

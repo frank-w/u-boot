@@ -89,8 +89,8 @@ struct mtk_serial_priv {
 	bool force_highspeed;
 };
 
-static void _mtk_serial_setbrg(struct mtk_serial_priv *priv, int baud,
-			       uint clk_rate)
+static void _mtk_serial_setbrg(struct udevice *dev, struct mtk_serial_priv *priv,
+			       int baud, uint clk_rate)
 {
 	u32 quot, realbaud, samplecount = 1;
 
@@ -113,7 +113,12 @@ static void _mtk_serial_setbrg(struct mtk_serial_priv *priv, int baud,
 		goto set_baud;
 	}
 
-	if (priv->force_highspeed)
+	/*
+	 * Upstream linux use highspeed for anything >= 115200 and lowspeed
+	 * for < 115200. Simulate this if we are using the upstream compatible.
+	 */
+	if (priv->force_highspeed ||
+	    (device_is_compatible(dev, "mediatek,mt6577-uart") && baud >= 115200))
 		goto use_hs3;
 
 	if (baud <= 115200) {
@@ -186,7 +191,7 @@ static int mtk_serial_setbrg(struct udevice *dev, int baudrate)
 	if (IS_ERR_VALUE(clk_rate) || clk_rate == 0)
 		clk_rate = priv->fixed_clk_rate;
 
-	_mtk_serial_setbrg(priv, baudrate, clk_rate);
+	_mtk_serial_setbrg(dev, priv, baudrate, clk_rate);
 
 	return 0;
 }
@@ -302,13 +307,13 @@ DECLARE_GLOBAL_DATA_PTR;
 		writel(0, &mtk_hsuart##port.regs->ier); \
 		writel(UART_MCRVAL, &mtk_hsuart##port.regs->mcr); \
 		writel(UART_FCRVAL, &mtk_hsuart##port.regs->fcr); \
-		_mtk_serial_setbrg(&mtk_hsuart##port, gd->baudrate, \
+		_mtk_serial_setbrg(NULL, &mtk_hsuart##port, gd->baudrate, \
 				   mtk_hsuart##port.fixed_clk_rate); \
 		return 0 ; \
 	} \
 	static void mtk_serial##port##_setbrg(void) \
 	{ \
-		_mtk_serial_setbrg(&mtk_hsuart##port, gd->baudrate, \
+		_mtk_serial_setbrg(NULL, &mtk_hsuart##port, gd->baudrate, \
 				   mtk_hsuart##port.fixed_clk_rate); \
 	} \
 	static int mtk_serial##port##_getc(void) \
@@ -456,7 +461,7 @@ static inline void _debug_uart_init(void)
 	writel(UART_MCRVAL, &priv.regs->mcr);
 	writel(UART_FCRVAL, &priv.regs->fcr);
 
-	_mtk_serial_setbrg(&priv, CONFIG_BAUDRATE, priv.fixed_clk_rate);
+	_mtk_serial_setbrg(NULL, &priv, CONFIG_BAUDRATE, priv.fixed_clk_rate);
 }
 
 static inline void _debug_uart_putc(int ch)

@@ -19,6 +19,7 @@
 #include <asm/global_data.h>
 #include <net/tftp.h>
 #include "bootp.h"
+#include <status_led.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -193,6 +194,9 @@ static void new_transfer(void)
 #ifdef CONFIG_CMD_TFTPPUT
 	tftp_put_final_block_sent = 0;
 #endif
+	if (IS_ENABLED(CONFIG_LED_STATUS_ACTIVITY_ENABLE))
+		status_led_set(CONFIG_LED_STATUS_ACTIVITY,
+			       CONFIG_LED_STATUS_BLINKING);
 }
 
 #ifdef CONFIG_CMD_TFTPPUT
@@ -227,6 +231,9 @@ static void tftp_timeout_handler(void);
 static void show_block_marker(void)
 {
 	ulong pos;
+
+	if (IS_ENABLED(CONFIG_LED_STATUS_ACTIVITY_ENABLE))
+		status_led_activity(CONFIG_LED_STATUS_ACTIVITY);
 
 #ifdef CONFIG_TFTP_TSIZE
 	if (tftp_tsize) {
@@ -290,6 +297,8 @@ static void tftp_complete(void)
 	/* Print hash marks for the last packet received */
 	while (tftp_tsize && tftp_tsize_num_hash < 49) {
 		putc('#');
+		if (IS_ENABLED(CONFIG_LED_STATUS_ACTIVITY_ENABLE))
+			status_led_activity(CONFIG_LED_STATUS_ACTIVITY);
 		tftp_tsize_num_hash++;
 	}
 	puts("  ");
@@ -302,6 +311,9 @@ static void tftp_complete(void)
 			time_start * 1000, "/s");
 	}
 	puts("\ndone\n");
+	if (IS_ENABLED(CONFIG_LED_STATUS_ACTIVITY_ENABLE))
+		status_led_set(CONFIG_LED_STATUS_ACTIVITY,
+			       CONFIG_LED_STATUS_OFF);
 	if (!tftp_put_active)
 		efi_set_bootdev("Net", "", tftp_filename,
 				map_sysmem(tftp_load_addr, 0),

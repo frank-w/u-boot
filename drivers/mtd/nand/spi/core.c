@@ -32,6 +32,7 @@
 #include <linux/bug.h>
 #include <linux/mtd/spinand.h>
 #include <linux/printk.h>
+#include <status_led.h>
 #endif
 
 /* SPI NAND index visible in MTD names */
@@ -657,6 +658,9 @@ static int spinand_mtd_write(struct mtd_info *mtd, loff_t to,
 
 		ops->retlen += iter.req.datalen;
 		ops->oobretlen += iter.req.ooblen;
+
+		if (IS_ENABLED(CONFIG_LED_STATUS_ACTIVITY_ENABLE))
+			status_led_activity(CONFIG_LED_STATUS_ACTIVITY);
 	}
 
 #ifndef __UBOOT__

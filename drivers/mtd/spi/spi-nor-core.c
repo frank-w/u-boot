@@ -32,6 +32,8 @@
 #include <spi-mem.h>
 #include <spi.h>
 
+#include <status_led.h>
+
 #include "sf_internal.h"
 
 /* Define max times to check status register before we give up. */
@@ -1039,6 +1041,9 @@ static int spi_nor_erase(struct mtd_info *mtd, struct erase_info *instr)
 		ret = spi_nor_wait_till_ready(nor);
 		if (ret)
 			goto erase_err;
+
+		if (IS_ENABLED(CONFIG_LED_STATUS_ACTIVITY_ENABLE))
+			status_led_activity(CONFIG_LED_STATUS_ACTIVITY);
 	}
 
 	addr_known = false;
@@ -1816,6 +1821,8 @@ static int spi_nor_write(struct mtd_info *mtd, loff_t to, size_t len,
 			goto write_err;
 		*retlen += written;
 		i += written;
+		if (IS_ENABLED(CONFIG_LED_STATUS_ACTIVITY_ENABLE))
+			status_led_activity(CONFIG_LED_STATUS_ACTIVITY);
 	}
 
 write_err:

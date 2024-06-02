@@ -18,6 +18,7 @@
 #include <linux/bitops.h>
 #include <linux/mtd/nand.h>
 #include <linux/printk.h>
+#include <status_led.h>
 
 /**
  * nanddev_isbad() - Check if a block is bad
@@ -182,6 +183,8 @@ int nanddev_mtd_erase(struct mtd_info *mtd, struct erase_info *einfo)
 		}
 
 		nanddev_pos_next_eraseblock(nand, &pos);
+		if (IS_ENABLED(CONFIG_LED_STATUS_ACTIVITY_ENABLE))
+			status_led_activity(CONFIG_LED_STATUS_ACTIVITY);
 	}
 
 	return 0;

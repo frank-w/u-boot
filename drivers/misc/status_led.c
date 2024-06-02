@@ -82,6 +82,14 @@ void status_led_init(void)
 	status_led_init_done = 1;
 }
 
+static void status_led_sw_blink(led_dev_t *ld)
+{
+	if (++ld->cnt >= ld->period) {
+		__led_toggle(ld->mask);
+		ld->cnt -= ld->period;
+	}
+}
+
 void status_led_tick(ulong timestamp)
 {
 	led_dev_t *ld;
@@ -95,11 +103,7 @@ void status_led_tick(ulong timestamp)
 		if (ld->state != CONFIG_LED_STATUS_BLINKING)
 			continue;
 
-		if (++ld->cnt >= ld->period) {
-			__led_toggle (ld->mask);
-			ld->cnt -= ld->period;
-		}
-
+		status_led_sw_blink(ld);
 	}
 }
 
@@ -139,4 +143,15 @@ void status_led_toggle(int led)
 		return;
 
 	__led_toggle(ld->mask);
+}
+
+void status_led_activity(int led)
+{
+	led_dev_t *ld;
+
+	ld = status_get_led_dev(led);
+	if (!ld)
+		return;
+
+	status_led_sw_blink(ld);
 }

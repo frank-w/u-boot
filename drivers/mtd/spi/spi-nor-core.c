@@ -1042,8 +1042,10 @@ static int spi_nor_erase(struct mtd_info *mtd, struct erase_info *instr)
 		if (ret)
 			goto erase_err;
 
+		#if CONFIG_IS_ENABLED(CONFIG_LED_STATUS)
 		if (IS_ENABLED(CONFIG_LED_STATUS_ACTIVITY_ENABLE))
 			status_led_activity(CONFIG_LED_STATUS_ACTIVITY);
+		#endif
 	}
 
 	addr_known = false;
@@ -1821,8 +1823,10 @@ static int spi_nor_write(struct mtd_info *mtd, loff_t to, size_t len,
 			goto write_err;
 		*retlen += written;
 		i += written;
+		#if CONFIG_IS_ENABLED(CONFIG_LED_STATUS)
 		if (IS_ENABLED(CONFIG_LED_STATUS_ACTIVITY_ENABLE))
 			status_led_activity(CONFIG_LED_STATUS_ACTIVITY);
+		#endif
 	}
 
 write_err:

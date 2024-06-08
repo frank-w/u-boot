@@ -183,8 +183,10 @@ int nanddev_mtd_erase(struct mtd_info *mtd, struct erase_info *einfo)
 		}
 
 		nanddev_pos_next_eraseblock(nand, &pos);
+		#if CONFIG_IS_ENABLED(CONFIG_LED_STATUS)
 		if (IS_ENABLED(CONFIG_LED_STATUS_ACTIVITY_ENABLE))
 			status_led_activity(CONFIG_LED_STATUS_ACTIVITY);
+		#endif
 	}
 
 	return 0;

@@ -659,8 +659,10 @@ static int spinand_mtd_write(struct mtd_info *mtd, loff_t to,
 		ops->retlen += iter.req.datalen;
 		ops->oobretlen += iter.req.ooblen;
 
+		#if CONFIG_IS_ENABLED(CONFIG_LED_STATUS)
 		if (IS_ENABLED(CONFIG_LED_STATUS_ACTIVITY_ENABLE))
 			status_led_activity(CONFIG_LED_STATUS_ACTIVITY);
+		#endif
 	}
 
 #ifndef __UBOOT__

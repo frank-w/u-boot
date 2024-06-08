@@ -194,9 +194,11 @@ static void new_transfer(void)
 #ifdef CONFIG_CMD_TFTPPUT
 	tftp_put_final_block_sent = 0;
 #endif
+	#if CONFIG_IS_ENABLED(CONFIG_LED_STATUS)
 	if (IS_ENABLED(CONFIG_LED_STATUS_ACTIVITY_ENABLE))
 		status_led_set(CONFIG_LED_STATUS_ACTIVITY,
 			       CONFIG_LED_STATUS_BLINKING);
+	#endif
 }
 
 #ifdef CONFIG_CMD_TFTPPUT
@@ -232,8 +234,10 @@ static void show_block_marker(void)
 {
 	ulong pos;
 
+	#if CONFIG_IS_ENABLED(CONFIG_LED_STATUS)
 	if (IS_ENABLED(CONFIG_LED_STATUS_ACTIVITY_ENABLE))
 		status_led_activity(CONFIG_LED_STATUS_ACTIVITY);
+	#endif
 
 #ifdef CONFIG_TFTP_TSIZE
 	if (tftp_tsize) {
@@ -297,8 +301,10 @@ static void tftp_complete(void)
 	/* Print hash marks for the last packet received */
 	while (tftp_tsize && tftp_tsize_num_hash < 49) {
 		putc('#');
+		#if CONFIG_IS_ENABLED(CONFIG_LED_STATUS)
 		if (IS_ENABLED(CONFIG_LED_STATUS_ACTIVITY_ENABLE))
 			status_led_activity(CONFIG_LED_STATUS_ACTIVITY);
+		#endif
 		tftp_tsize_num_hash++;
 	}
 	puts("  ");
@@ -311,9 +317,11 @@ static void tftp_complete(void)
 			time_start * 1000, "/s");
 	}
 	puts("\ndone\n");
+	#if CONFIG_IS_ENABLED(CONFIG_LED_STATUS)
 	if (IS_ENABLED(CONFIG_LED_STATUS_ACTIVITY_ENABLE))
 		status_led_set(CONFIG_LED_STATUS_ACTIVITY,
 			       CONFIG_LED_STATUS_OFF);
+	#endif
 	if (!tftp_put_active)
 		efi_set_bootdev("Net", "", tftp_filename,
 				map_sysmem(tftp_load_addr, 0),

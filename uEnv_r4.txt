@@ -9,6 +9,7 @@ fit=bpi-r4.itb
 #initrd=rootfs.cpio.zst
 
 loadaddr=0x46000000
+uaddr=0x41e00000
 kaddr=0x46000000
 rdaddr=0x48000000
 

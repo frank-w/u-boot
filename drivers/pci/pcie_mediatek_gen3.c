@@ -6,6 +6,7 @@
  * Driver is based on u-boot gen1/2 and upstream linux gen3 code
  */
 
+#include <common.h>
 #include <clk.h>
 #include <dm.h>
 #include <generic-phy.h>
@@ -14,7 +15,6 @@
 #include <pci.h>
 #include <reset.h>
 #include <asm/io.h>
-#include <dm/device_compat.h>
 #include <dm/devres.h>
 #include <linux/bitops.h>
 #include <linux/iopoll.h>
@@ -29,7 +29,7 @@
 
 #define PCIE_PCI_IDS_1			0x9c
 #define PCIE_RC_MODE			BIT(0)
-#define PCI_CLASS(class)		((class) << 8)
+#define PCI_CLASS(class)		(class << 8)
 
 #define PCIE_CFGNUM_REG			0x140
 #define PCIE_CFG_DEVFN(devfn)		((devfn) & GENMASK(7, 0))
@@ -80,6 +80,7 @@ struct mtk_pcie {
 	struct clk top_133m_ck;
 	struct reset_ctl reset_phy;
 	struct reset_ctl reset_mac;
+	bool use_dedicated_phy;
 	struct phy phy;
 };
 
@@ -116,6 +117,7 @@ static int mtk_pcie_read_config(const struct udevice *bus, pci_dev_t bdf,
 {
 	int ret;
 
+
 	mtk_pcie_config_tlp_header(bus, bdf, offset, size);
 	ret = pci_generic_mmap_read_config(bus, mtk_pcie_config_address,
 					   bdf, offset, valuep, size);
@@ -147,21 +149,20 @@ static const struct dm_pci_ops mtk_pcie_ops = {
 	.write_config	= mtk_pcie_write_config,
 };
 
-static int mtk_pcie_set_trans_table(struct udevice *dev, struct mtk_pcie *pcie,
-				    u64 cpu_addr, u64 pci_addr, u64 size,
+static int mtk_pcie_set_trans_table(struct mtk_pcie *pcie, u64 cpu_addr,
+				    u64 pci_addr, u64 size,
 				    unsigned long type, int num)
 {
 	void __iomem *table;
 	u32 val;
 
 	if (num >= PCIE_MAX_TRANS_TABLES) {
-		dev_err(dev, "not enough translate table for addr: %#llx, limited to [%d]\n",
-			(unsigned long long)cpu_addr, PCIE_MAX_TRANS_TABLES);
+		printf("not enough translate table for addr: %#llx, limited to [%d]\n",
+		       (unsigned long long)cpu_addr, PCIE_MAX_TRANS_TABLES);
 		return -ENODEV;
 	}
 
-	dev_dbg(dev, "set trans table %d: %#llx %#llx, %#llx\n", num, cpu_addr,
-		pci_addr, size);
+	//printf("set trans table %d: %#llx %#llx, %#llx\n", num, cpu_addr, pci_addr, size);
 	table = pcie->base + PCIE_TRANS_TABLE_BASE_REG +
 		num * PCIE_ATR_TLB_SET_OFFSET;
 
@@ -255,10 +256,10 @@ static int mtk_pcie_startup_port(struct udevice *dev)
 				 !!(val & PCIE_PORT_LINKUP),
 				 100 * 1000);
 	if (err) {
-		dev_dbg(dev, "no card detected\n");
+		printf("no card detected at 0x%08lx\n",(unsigned long)pcie->base);
 		return -ETIMEDOUT;
 	}
-	dev_dbg(dev, "detected a card\n");
+	printf("detected a card at 0x%08lx\n", (unsigned long)pcie->base);
 
 	for (i = 0; i < hose->region_count; i++) {
 		struct pci_region *reg = &hose->regions[i];
@@ -266,7 +267,7 @@ static int mtk_pcie_startup_port(struct udevice *dev)
 		if (reg->flags != PCI_REGION_MEM)
 			continue;
 
-		mtk_pcie_set_trans_table(dev, pcie, reg->bus_start, reg->phys_start,
+		mtk_pcie_set_trans_table(pcie, reg->bus_start, reg->phys_start,
 					 reg->size, reg->flags, 0);
 	}
 
@@ -284,27 +285,27 @@ static int mtk_pcie_power_on(struct udevice *dev)
 
 	pcie->priv = dev;
 
-	err = generic_phy_get_by_name(dev, "pcie-phy", &pcie->phy);
+	pcie->use_dedicated_phy  = dev_read_bool(dev, "use-dedicated-phy");
+
+	if (!pcie->use_dedicated_phy) {
+		err = generic_phy_get_by_name(dev, "pcie-phy", &pcie->phy);
+		if (err)
+			return err;
+	}
+
+	err = clk_get_by_name(dev, "pl_250m", &pcie->pl_250m_ck);
 	if (err)
 		return err;
 
-	/*
-	 * Upstream linux kernel devine these clock without clock-names
-	 * and use clk bulk API to enable them all.
-	 */
-	err = clk_get_by_index(dev, 0, &pcie->pl_250m_ck);
+	err = clk_get_by_name(dev, "tl_26m", &pcie->tl_26m_ck);
 	if (err)
 		return err;
 
-	err = clk_get_by_index(dev, 1, &pcie->tl_26m_ck);
+	err = clk_get_by_name(dev, "peri_26m", &pcie->peri_26m_ck);
 	if (err)
 		return err;
 
-	err = clk_get_by_index(dev, 2, &pcie->peri_26m_ck);
-	if (err)
-		return err;
-
-	err = clk_get_by_index(dev, 3, &pcie->top_133m_ck);
+	err = clk_get_by_name(dev, "top_133m", &pcie->top_133m_ck);
 	if (err)
 		return err;
 
@@ -312,9 +313,11 @@ static int mtk_pcie_power_on(struct udevice *dev)
 	if (err)
 		return err;
 
-	err = generic_phy_power_on(&pcie->phy);
-	if (err)
-		goto err_phy_on;
+	if (!pcie->use_dedicated_phy) {
+		err = generic_phy_power_on(&pcie->phy);
+		if (err)
+			goto err_phy_on;
+	}
 
 	err = clk_enable(&pcie->pl_250m_ck);
 	if (err)

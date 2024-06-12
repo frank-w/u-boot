@@ -136,6 +136,10 @@
 	status = "okay";
 };
 
+&pcie {
+	status = "okay";
+};
+
 &pio {
 	/*en8811_pwr_a: en8811-pwr-a {
 		pins = "GPIO_11";

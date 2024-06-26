@@ -1,0 +1,83 @@
+
+#include <dt-bindings/reset/mt7629-reset.h>
+
+/{
+	timer0: timer@10004000 {
+		compatible = "mediatek,timer";
+		reg = <0 0x10004000 0 0x80>;
+		interrupts = <GIC_SPI 152 IRQ_TYPE_LEVEL_LOW>;
+		clocks = <&infracfg CLK_INFRA_APXGPT_PD>;
+		clock-names = "system-clk";
+	};
+};
+
+&topckgen {
+	bootph-all;
+};
+
+&pericfg {
+	bootph-all;
+};
+
+&apmixedsys {
+	bootph-all;
+};
+
+&timer0 {
+	bootph-all;
+};
+
+&uart0 {
+	bootph-all;
+};
+
+&snfi {
+	bootph-all;
+};
+
+&eth {
+	resets = <&ethsys ETHSYS_FE_RST>;
+	reset-names = "fe";
+};
+
+//board
+&eth {
+	mediatek,gmac-id = <0>;
+	phy-mode = "2500base-x";
+	mediatek,switch = "mt7531";
+	reset-gpios = <&pio 54 GPIO_ACTIVE_HIGH>;
+
+	fixed-link {
+		speed = <2500>;
+		full-duplex;
+	};
+};
+
+&pio {
+	/*gpio 90 for setting mode to sata*/
+	asm_sel {
+		gpio-hog;
+		gpios = <90 GPIO_ACTIVE_HIGH>;
+		output-low;
+	};
+};
+
+&sata_phy {
+	status = "okay";
+};
+
+&sata {
+	status = "okay";
+	mediatek,phy-mode = <&pciesys>;
+	ports-implemented = <0x1>;
+};
+
+&uart0 {
+	/delete-property/ pinctrl-names;
+	/delete-property/ pinctrl-0;
+	mediatek,force-highspeed;
+};
+
+&pciesys {
+	compatible = "mediatek,mt7622-pciesys", "syscon";
+};

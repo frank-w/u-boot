@@ -62,3 +62,22 @@
 	};
 };
 
+&sata_phy {
+	status = "okay";
+};
+
+&sata {
+	status = "okay";
+	mediatek,phy-mode = <&pciesys>;
+	ports-implemented = <0x1>;
+};
+
+&uart0 {
+	/delete-property/ pinctrl-names;
+	/delete-property/ pinctrl-0;
+	mediatek,force-highspeed;
+};
+
+&pciesys {
+	compatible = "mediatek,mt7622-pciesys", "syscon";
+};

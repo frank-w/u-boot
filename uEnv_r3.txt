@@ -1,0 +1,93 @@
+board=bpi-r3
+device=mmc
+partition=0:5
+bootenv=uEnv.txt
+bootdevice=sd
+
+fit=bpi-r3.itb
+#bootconf="#conf-2"
+#initrd=rootfs.cpio.zst
+
+loadaddr=0x46000000
+uaddr=0x41e00000
+kaddr=0x46000000
+rdaddr=0x48000000
+
+root=/dev/mmcblk0p6 rootfstype=ext4 rootwait
+console=ttyS0,115200n1 earlycon=uart8250,mmio32,0x11002000
+bootopts=debug=7
+
+sata_en=0
+#version="-mini"
+
+ubootfile=u-boot.bin
+
+usb_part=0:1
+
+nvme_boot=0:1
+nvme_root=/dev/nvme0n1p2
+
+#netboot
+ipaddr=192.168.0.19
+netmask=255.255.255.0
+serverip=192.168.0.10
+
+lstftp=if tftp ${loadaddr} ${serverip}:r3-itbfiles.lst;then setexpr listend ${loadaddr} + ${filesize};mw.b ${listend} 00 2;strings ${loadaddr};else echo "tftp download failed";fi
+askkernel=askenv kernelinput "enter kernel-name:";
+askbootnetfit=run lstftp askkernel;if printenv kernelinput; then setenv bootfile "${kernelinput}"; run bootnetfit;fi
+
+askbootnvme=run usenvme; if test "$device" = "nvme"; then run askkernel;if printenv kernelinput; then setenv fit $kernelinput;run newboot;fi;fi
+
+bootnetfit=run buildargs;run setbootconf;if tftp $kaddr ${bootfile}; then bootm ${kaddr}${bootconf};;fi
+bootfile=bpi-r3.itb
+
+checkenv=test -e ${device} ${partition} ${bootenv}
+loadenvfile=if fatload ${device} ${partition} ${loadaddr} ${bootenv};then env import -t ${loadaddr} ${filesize};else echo "fatload (${bootenv}) failed";fi
+loadenv=if run checkenv;then run loadenvfile;fi
+resetenv=env default -a;printenv;
+
+loaduboot=if fatload $device $partition $uaddr $ubootfile;then go $uaddr;fi
+
+loadkernel=fatload $device $partition $kaddr ${kernel}
+buildargs=setenv bootargs "board=${board} earlycon=uart8250,mmio32,0x11002000 ${bootopts} root=${root}"
+#console=${console}
+
+useusb=if usb info; then usb reset;else usb start;fi; if ls usb $usb_part $usb_path; then setenv device usb;setenv partition $usb_part;fi
+usenvme=pci enum; nvme scan;nvme info; if ls nvme $nvme_boot;then setenv device "nvme";setenv partition $nvme_boot;setenv root $nvme_root;else echo "nvme partition not found";fi
+
+useinitrd=setenv bootopts "${bootopts} initrd=${rdaddr},20M";
+checkrd=if printenv initrd;then if fatload ${device} ${partition} ${rdaddr} ${initrd};then run useinitrd;fi;fi
+
+newboot=run checkrd; run setbootconf; run buildargs;if printenv fit;then setenv kernel ${fit};if run loadkernel; then bootm ${kaddr}${bootconf}; fi;fi;
+bootnetfit=run checkrd; run setbootconf;run buildargs;if tftp $kaddr ${bootfile}; then bootm ${kaddr}${bootconf};fi
+
+loadnor=sf read ${rdaddr} 0x180000 0xa80000;sf read ${kaddr} 0xc00000 0x1400000;
+bootnor=run loadnor;run useinitrd;run setbootconf; run buildargs; bootm ${kaddr}${bootconf};
+
+checkmmc=if mmc partconf 0; then echo "emmc available";mmcdev="emmc";else echo "sd available";mmcdev="sd";fi
+checkspi=if sf probe; then echo "NOR available";spidev="nor";else echo "NAND available";spidev="nand";fi
+
+checksata=satacfg=;if test -n "$sata_en";then satacfg="#sata"; fi;
+setbootconf=run checkmmc checkspi checksata;echo $mmcdev $spidev;setenv bootconf "#conf-$mmcdev$version#$spidev$satacfg"
+
+wrspimnor=if printenv bl2file;then if fatload $device $partition $loadaddr $bl2file;then sf erase 0 0x40000;sf write ${loadaddr} 0 0x40000;else echo "loading bl2 $bl2file failed";fi;else echo "bl2file not defined";fi;if printenv fipfile;then if fatload $device $partition $loadaddr $fipfile;then sf erase 0x100000 0x80000;sf write ${loadaddr} 0x100000 0x80000;else echo "loading fip $fipfile failed";fi;else echo "fipfile not defined";fi
+wrspimnand=if printenv bl2file;then if fatload $device $partition $loadaddr $bl2file;then mtd erase spi-nand0 0x0 0x100000;mtd write spi-nand0 $loadaddr 0x0 0x100000;else echo "loading bl2 $bl2file failed";fi;else echo "bl2file not defined";fi;if printenv fipfile;then if fatload $device $partition $loadaddr $fipfile;then mtd erase spi-nand0 0x380000 0x200000;mtd write spi-nand0 $loadaddr 0x380000 0x200000;else echo "loading fip $fipfile failed";fi;else echo "fipfile not defined";fi
+wremmc=if printenv bl2file;then mmc partconf 0 1 1 1;if fatload $device $partition $loadaddr $bl2file;then mmc erase 0x0 0x400;mmc write ${loadaddr} 0x0 0x400;else echo "loading bl2 $bl2file failed";fi;else echo "bl2file not defined";fi;mmc partconf 0 1 1 0;if printenv fipfile;then if fatload $device $partition $loadaddr $fipfile;then mmc erase 0x3400 0x1000;mmc write ${loadaddr} 0x3400 0x1000;else echo "loading fip $fipfile failed";fi;else echo "fipfile not defined";fi
+wrinitnor=if printenv rdfile;then if fatload $device $partition ${loadaddr} ${rdfile};then sf erase 0x180000 0xa80000; sf write ${loadaddr} 0x180000 ${filesize};else echo "cannot load rdfile ${rdfile}";fi; else echo "no rdfile defined"; fi
+wrfitnor=if printenv fitfile;then if fatload $device $partition ${loadaddr} ${fitfile};then sf erase 0xc00000 0x1400000; sf write ${loadaddr} 0xc00000 ${filesize};else echo "cannot load fitfile ${fitfile}";fi; else echo "no fitfile defined"; fi
+
+bootdelay=0
+bootcmd=setenv bootdelay 3; run loadenv;bootmenu;
+
+##untested
+lskernel=ls ${device} ${partition};
+askkernel=askenv kernelinput "enter kernel name:";
+
+boot0=run lskernel;run askkernel;if printenv kernelinput ;then setenv fit ${kernelinput}; run newboot; fi;
+
+bootmenu_0=1. Enter kernel-name to boot from SD/EMMC.=run boot0
+bootmenu_1=2. Boot kernel from TFTP.=run askbootnetfit
+bootmenu_2=3. Boot from SD/EMMC.=run newboot
+bootmenu_3=4. Boot kernel from NVME.=run askbootnvme
+
+bootmenu_default=2

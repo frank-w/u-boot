@@ -1,3 +1,5 @@
+#include <dt-bindings/reset/mt7629-reset.h>
+
 /{
 	timer0: timer@10008000 {
 		compatible = "mediatek,mt7986-timer";
@@ -7,6 +9,11 @@
 		clock-names = "gpt-clk";
 		bootph-all;
 	};
+};
+
+&eth {
+	resets = <&ethsys ETHSYS_FE_RST>;
+	reset-names = "fe";
 };
 
 &topckgen {

@@ -150,18 +150,18 @@
 
 /* SGMIISYS_0 */
 
-#define CLK_SGM0_TX_EN			0
-#define CLK_SGM0_RX_EN			1
-#define CLK_SGM0_CK0_EN			2
-#define CLK_SGM0_CDR_CK0_EN		3
+#define CLK_SGMII0_TX250M_EN		0
+#define CLK_SGMII0_RX250M_EN		1
+#define CLK_SGMII0_CDR_REF		2
+#define CLK_SGMII0_CDR_FB		3
 #define CLK_SGMII0_NR_CLK		4
 
 /* SGMIISYS_1 */
 
-#define CLK_SGM1_TX_EN			0
-#define CLK_SGM1_RX_EN			1
-#define CLK_SGM1_CK1_EN			2
-#define CLK_SGM1_CDR_CK1_EN		3
+#define CLK_SGMII1_TX250M_EN		0
+#define CLK_SGMII1_RX250M_EN		1
+#define CLK_SGMII1_CDR_REF		2
+#define CLK_SGMII1_CDR_FB		3
 #define CLK_SGMII1_NR_CLK		4
 
 /* ETHSYS */

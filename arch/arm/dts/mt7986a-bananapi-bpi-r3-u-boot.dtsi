@@ -9,6 +9,26 @@
 	};
 };
 
+&topckgen {
+	bootph-all;
+};
+
+/*&pericfg {
+	bootph-all;
+};*/
+
+&apmixedsys {
+	bootph-all;
+};
+
+&uart0 {
+	bootph-all;
+};
+
+&pio {
+	bootph-all;
+};
+
 &eth {
 	status = "okay";
 	mediatek,gmac-id = <0>;

@@ -1,46 +1,11 @@
 /{
 	timer0: timer@10008000 {
 		compatible = "mediatek,mt7986-timer";
-		reg = <0x10008000 0x1000>;
+		reg = <0 0x10008000 0 0x1000>;
 		interrupts = <GIC_SPI 130 IRQ_TYPE_LEVEL_HIGH>;
 		clocks = <&topckgen CLK_TOP_F26M_SEL>;
 		clock-names = "gpt-clk";
 		bootph-all;
-	};
-};
-
-&pio {
-	mmc0_pins_default: mmc0default {
-		mux {
-			function = "flash";
-			groups =  "emmc_51";
-		};
-
-		conf-cmd-dat {
-			pins = "EMMC_DATA_0", "EMMC_DATA_1", "EMMC_DATA_2",
-			       "EMMC_DATA_3", "EMMC_DATA_4", "EMMC_DATA_5",
-			       "EMMC_DATA_6", "EMMC_DATA_7", "EMMC_CMD";
-			input-enable;
-			drive-strength = <MTK_DRIVE_4mA>;
-			bias-pull-up = <MTK_PUPD_SET_R1R0_01>;
-		};
-
-		conf-clk {
-			pins = "EMMC_CK";
-			drive-strength = <MTK_DRIVE_6mA>;
-			bias-pull-down = <MTK_PUPD_SET_R1R0_10>;
-		};
-
-		conf-dsl {
-			pins = "EMMC_DSL";
-			bias-pull-down = <MTK_PUPD_SET_R1R0_10>;
-		};
-
-		conf-rst {
-			pins = "EMMC_RSTB";
-			drive-strength = <MTK_DRIVE_4mA>;
-			bias-pull-up = <MTK_PUPD_SET_R1R0_01>;
-		};
 	};
 };
 
@@ -49,7 +14,7 @@
 	mediatek,gmac-id = <0>;
 	phy-mode = "2500base-x";
 	mediatek,switch = "mt7531";
-	reset-gpios = <&gpio 5 GPIO_ACTIVE_HIGH>;
+	reset-gpios = <&pio 5 GPIO_ACTIVE_HIGH>;
 
 	fixed-link {
 		speed = <2500>;

@@ -40,7 +40,7 @@ else
 	makeflags="$makeflags BL33=u-boot.bin"
 fi
 
-makeflags="PLAT=${PLAT} BOOT_DEVICE=$device $makeflags"
+makeflags="PLAT=${PLAT} BOOT_DEVICE=$device $makeflags $extraflags"
 if [[ "$device" == "ram" ]];then
 	makeflags="$makeflags RAM_BOOT_UART_DL=1"
 fi

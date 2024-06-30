@@ -1,0 +1,327 @@
+#include <dt-bindings/clock/mt7988-clk.h>
+#include <dt-bindings/reset/mt7988-reset.h>
+#include <dt-bindings/phy/phy.h>
+#include <dt-bindings/pinctrl/mt65xx.h>
+
+/ {
+	reg_3p3v: regulator-3p3v {
+		compatible = "regulator-fixed";
+		regulator-name = "fixed-3.3V";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-boot-on;
+		regulator-always-on;
+	};
+
+    spi_clk: dummy208m {
+		compatible = "fixed-clock";
+		clock-frequency = <208000000>;
+		#clock-cells = <0>;
+	};
+
+	hwver: hwver {
+		compatible = "mediatek,hwver", "syscon";
+		reg = <0 0x8000000 0 0x1000>;
+	};
+
+	apmixedsys: apmixedsys@1001e000 {
+		compatible = "mediatek,mt7988-fixed-plls", "syscon";
+		reg = <0 0x1001e000 0 0x1000>;
+		#clock-cells = <1>;
+	};
+
+	topckgen: topckgen@1001b000 {
+		compatible = "mediatek,mt7988-topckgen", "syscon";
+		reg = <0 0x1001b000 0 0x1000>;
+		clock-parent = <&apmixedsys>;
+		#clock-cells = <1>;
+	};
+
+	pinctrl: pinctrl@1001f000 {
+		compatible = "mediatek,mt7988-pinctrl";
+		reg = <0 0x1001f000 0 0x1000>,
+		      <0 0x11c10000 0 0x1000>,
+		      <0 0x11d00000 0 0x1000>,
+		      <0 0x11d20000 0 0x1000>,
+		      <0 0x11e00000 0 0x1000>,
+		      <0 0x11f00000 0 0x1000>,
+		      <0 0x1000b000 0 0x1000>;
+		reg-names = "gpio_base", "iocfg_tr_base", "iocfg_br_base",
+			    "iocfg_rb_base", "iocfg_lb_base", "iocfg_tl_base",
+			    "eint";
+		gpio: gpio-controller {
+			gpio-controller;
+			#gpio-cells = <2>;
+		};
+	};
+
+	sgmiisys0: syscon@10060000 {
+		compatible = "mediatek,mt7988-sgmiisys_0", "syscon";
+		reg = <0 0x10060000 0 0x1000>;
+		clock-parent = <&topckgen>;
+		#clock-cells = <1>;
+	};
+
+	sgmiisys1: syscon@10070000 {
+		compatible = "mediatek,mt7988-sgmiisys_1", "syscon";
+		reg = <0 0x10070000 0 0x1000>;
+		clock-parent = <&topckgen>;
+		#clock-cells = <1>;
+	};
+
+	usxgmiisys0: syscon@10080000 {
+		compatible = "mediatek,mt7988-usxgmiisys_0", "syscon";
+		reg = <0 0x10080000 0 0x1000>;
+		clock-parent = <&topckgen>;
+		#clock-cells = <1>;
+	};
+
+	usxgmiisys1: syscon@10081000 {
+		compatible = "mediatek,mt7988-usxgmiisys_1", "syscon";
+		reg = <0 0x10081000 0 0x1000>;
+		clock-parent = <&topckgen>;
+		#clock-cells = <1>;
+	};
+
+	dummy_clk: dummy12m {
+		compatible = "fixed-clock";
+		clock-frequency = <12000000>;
+		#clock-cells = <0>;
+		/* must need this line, or uart uanable to get dummy_clk */
+		bootph-all;
+	};
+
+    xhci1: xhci@11200000 {
+		compatible = "mediatek,mt7988-xhci",
+			     "mediatek,mtk-xhci";
+		reg = <0 0x11200000 0 0x2e00>,
+		      <0 0x11203e00 0 0x0100>;
+		reg-names = "mac", "ippc";
+		interrupts = <GIC_SPI 172 IRQ_TYPE_LEVEL_HIGH>;
+		phys = <&tphyu2port0 PHY_TYPE_USB2>,
+		       <&tphyu3port0 PHY_TYPE_USB3>;
+		clocks = <&dummy_clk>,
+			 <&dummy_clk>,
+			 <&dummy_clk>,
+			 <&dummy_clk>,
+			 <&dummy_clk>;
+		clock-names = "sys_ck",
+			      "xhci_ck",
+			      "ref_ck",
+			      "mcu_ck",
+			      "dma_ck";
+		#address-cells = <2>;
+		#size-cells = <2>;
+		status = "okay";
+	};
+
+	usbtphy: usb-phy@11c50000 {
+		compatible = "mediatek,mt7988",
+			     "mediatek,generic-tphy-v2";
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+		status = "okay";
+
+		tphyu2port0: usb-phy@11c50000 {
+			reg = <0 0x11c50000 0 0x700>;
+			clocks = <&dummy_clk>;
+			clock-names = "ref";
+			#phy-cells = <1>;
+			status = "okay";
+		};
+
+		tphyu3port0: usb-phy@11c50700 {
+			reg = <0 0x11c50700 0 0x900>;
+			clocks = <&dummy_clk>;
+			clock-names = "ref";
+			#phy-cells = <1>;
+			mediatek,usb3-pll-ssc-delta;
+			mediatek,usb3-pll-ssc-delta1;
+			status = "okay";
+		};
+	};
+
+	xfi_pextp0: syscon@11f20000 {
+		compatible = "mediatek,mt7988-xfi_pextp_0", "syscon";
+		reg = <0 0x11f20000 0 0x10000>;
+		clock-parent = <&topckgen>;
+		#clock-cells = <1>;
+	};
+
+	xfi_pextp1: syscon@11f30000 {
+		compatible = "mediatek,mt7988-xfi_pextp_1", "syscon";
+		reg = <0 0x11f30000 0 0x10000>;
+		clock-parent = <&topckgen>;
+		#clock-cells = <1>;
+	};
+
+	xfi_pll: syscon@11f40000 {
+		compatible = "mediatek,mt7988-xfi_pll", "syscon";
+		reg = <0 0x11f40000 0 0x1000>;
+		clock-parent = <&topckgen>;
+		#clock-cells = <1>;
+	};
+
+	topmisc: topmisc@11d10000 {
+		compatible = "mediatek,mt7988-topmisc", "syscon",
+			     "mediatek,mt7988-power-controller";
+		reg = <0 0x11d10000 0 0x10000>;
+		clock-parent = <&topckgen>;
+		#clock-cells = <1>;
+	};
+
+	infracfg: infracfg@10001000 {
+		compatible = "mediatek,mt7988-infracfg", "syscon";
+		reg = <0 0x10001000 0 0x1000>;
+		clock-parent = <&topckgen>;
+		#clock-cells = <1>;
+	};
+
+	uart0: serial@11000000 {
+		compatible = "mediatek,hsuart";
+		reg = <0 0x11000000 0 0x100>;
+		interrupts = <GIC_SPI 123 IRQ_TYPE_LEVEL_HIGH>;
+		clocks = <&infracfg CLK_INFRA_52M_UART0_CK>;
+		assigned-clocks = <&topckgen CLK_TOP_UART_SEL>,
+				  <&infracfg CLK_INFRA_MUX_UART0_SEL>;
+		assigned-clock-parents = <&topckgen CLK_TOP_XTAL>,
+					 <&topckgen CLK_TOP_UART_SEL>;
+		status = "disabled";
+	};
+
+	spi0: spi@1100a000 {
+		compatible = "mediatek,ipm-spi";
+		reg = <0 0x11007000 0 0x100>;
+		clocks = <&spi_clk>,
+			 <&spi_clk>;
+		clock-names = "sel-clk", "spi-clk";
+		interrupts = <GIC_SPI 140 IRQ_TYPE_LEVEL_HIGH>;
+		status = "disabled";
+	};
+
+	mmc0: mmc@11230000 {
+		compatible = "mediatek,mt7988-mmc",
+			     "mediatek,mt7986-mmc";
+		reg = <0 0x11230000 0 0x1000>;
+		interrupts = <GIC_SPI 143 IRQ_TYPE_LEVEL_HIGH>;
+		clocks = <&infracfg CLK_INFRA_MSDC400>,
+			 <&infracfg CLK_INFRA_MSDC2_HCK>,
+			 <&infracfg CLK_INFRA_133M_MSDC_0_HCK>,
+			 <&infracfg CLK_INFRA_66M_MSDC_0_HCK>;
+		clock-names = "source", "hclk", "source_cg", "axi_cg";
+		status = "disabled";
+	};
+
+	ethdma: syscon@15000000 {
+		compatible = "mediatek,mt7988-ethdma", "syscon";
+		reg = <0 0x15000000 0 0x20000>;
+		clock-parent = <&topckgen>;
+		#clock-cells = <1>;
+		#reset-cells = <1>;
+	};
+
+	ethwarp: syscon@15031000 {
+		compatible = "mediatek,mt7988-ethwarp", "syscon";
+		reg = <0 0x15031000 0 0x1000>;
+		clock-parent = <&topckgen>;
+		#clock-cells = <1>;
+		#reset-cells = <1>;
+	};
+
+	eth: ethernet@15100000 {
+		compatible = "mediatek,mt7988-eth", "syscon";
+		reg = <0 0x15100000 0 0x20000>;
+		mediatek,ethsys = <&ethdma>;
+		mediatek,sgmiisys = <&sgmiisys0>;
+		mediatek,usxgmiisys = <&usxgmiisys0>;
+		mediatek,xfi_pextp = <&xfi_pextp0>;
+		mediatek,xfi_pll = <&xfi_pll>;
+		mediatek,infracfg = <&topmisc>;
+		mediatek,toprgu = <&watchdog>;
+		resets = <&ethdma ETHDMA_FE_RST>, <&ethwarp ETHWARP_GSW_RST>;
+		reset-names = "fe", "mcm";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		mediatek,mcm;
+		status = "disabled";
+	};
+};
+
+&uart0 {
+	status = "okay";
+};
+
+&pinctrl {
+	spi0_pins: spi0-pins {
+		mux {
+			function = "spi";
+			groups = "spi0", "spi0_wp_hold";
+		};
+	};
+
+	mmc1_pins_default: mmc1default {
+		mux {
+			function = "flash";
+			groups =  "emmc_45";
+		};
+
+		conf-cmd-dat {
+			pins = "SPI2_CSB", "SPI2_MISO", "SPI2_MOSI",
+			       "SPI2_CLK", "SPI2_HOLD";
+			input-enable;
+			drive-strength = <MTK_DRIVE_4mA>;
+		};
+
+		conf-clk {
+			pins = "SPI2_WP";
+			drive-strength = <MTK_DRIVE_4mA>;
+		};
+	};
+};
+
+&eth {
+	status = "okay";
+	mediatek,gmac-id = <0>;
+	phy-mode = "usxgmii";
+	mediatek,switch = "mt7988";
+
+	fixed-link {
+		speed = <1000>;
+		full-duplex;
+		pause;
+	};
+};
+
+&spi0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&spi0_pins>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+	must_tx;
+	enhance_timing;
+	dma_ext;
+	ipm_design;
+	support_quad;
+	tick_dly = <2>;
+	sample_sel = <0>;
+
+	spi_nand@0 {
+		compatible = "spi-nand";
+		reg = <0>;
+		spi-max-frequency = <52000000>;
+	};
+};
+
+&mmc0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&mmc1_pins_default>;
+	max-frequency = <52000000>;
+	bus-width = <4>;
+	cap-sd-highspeed;
+	vmmc-supply = <&reg_3p3v>;
+	vqmmc-supply = <&reg_3p3v>;
+	status = "okay";
+};
+

@@ -4,6 +4,13 @@
  * Author: Sam Shih <sam.shih@mediatek.com>
  */
 
+/ {
+	wdt-reboot {
+		compatible = "wdt-reboot";
+		wdt = <&watchdog>;
+	};
+};
+
 &topckgen {
 	bootph-all;
 };

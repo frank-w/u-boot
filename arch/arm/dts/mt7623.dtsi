@@ -141,11 +141,6 @@
 		reg = <0x10007000 0x100>;
 	};
 
-	wdt-reboot {
-		compatible = "wdt-reboot";
-		wdt = <&watchdog>;
-	};
-
 	timer0: timer@10008000 {
 		compatible = "mediatek,timer";
 		reg = <0x10008000 0x80>;

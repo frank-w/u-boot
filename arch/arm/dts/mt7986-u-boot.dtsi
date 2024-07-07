@@ -52,10 +52,6 @@
 	bootph-all;
 };
 
-&snand {
-	bootph-all;
-};
-
 &pio {
 	bootph-all;
 };

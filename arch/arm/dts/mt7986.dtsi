@@ -224,6 +224,7 @@
 				  <&topckgen CLK_TOP_NFI1X_SEL>;
 		assigned-clock-parents = <&topckgen CLK_TOP_MPLL_D8>,
 					 <&topckgen CLK_TOP_MPLL_D8>;
+		bootph-all;
 		status = "disabled";
 	};
 

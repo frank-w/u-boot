@@ -28,25 +28,21 @@
 			device_type = "cpu";
 			compatible = "arm,cortex-a53";
 			reg = <0x0>;
-			mediatek,hwver = <&hwver>;
 		};
 		cpu1: cpu@1 {
 			device_type = "cpu";
 			compatible = "arm,cortex-a53";
 			reg = <0x1>;
-			mediatek,hwver = <&hwver>;
 		};
 		cpu2: cpu@2 {
 			device_type = "cpu";
 			compatible = "arm,cortex-a53";
 			reg = <0x2>;
-			mediatek,hwver = <&hwver>;
 		};
 		cpu3: cpu@3 {
 			device_type = "cpu";
 			compatible = "arm,cortex-a53";
 			reg = <0x3>;
-			mediatek,hwver = <&hwver>;
 		};
 	};
 
@@ -58,11 +54,6 @@
 		bootph-all;
 	};
 
-	hwver: hwver {
-		compatible = "mediatek,hwver", "syscon";
-		reg = <0x8000000 0x1000>;
-	};
-
 	timer {
 		compatible = "arm,armv8-timer";
 		interrupt-parent = <&gic>;
@@ -72,15 +63,6 @@
 			     <GIC_PPI 11 IRQ_TYPE_LEVEL_LOW>,
 			     <GIC_PPI 10 IRQ_TYPE_LEVEL_LOW>;
 		arm,cpu-registers-not-fw-configured;
-	};
-
-	timer0: timer@10008000 {
-		compatible = "mediatek,mt7986-timer";
-		reg = <0x10008000 0x1000>;
-		interrupts = <GIC_SPI 130 IRQ_TYPE_LEVEL_HIGH>;
-		clocks = <&topckgen CLK_TOP_F26M_SEL>;
-		clock-names = "gpt-clk";
-		bootph-all;
 	};
 
 	watchdog: watchdog@1001c000 {

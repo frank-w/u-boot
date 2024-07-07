@@ -86,7 +86,7 @@
 	};
 };
 
-&pinctrl {
+&pio {
 	spic_pins: spi1-pins-func-1 {
 		mux {
 			function = "spi";

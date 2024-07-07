@@ -56,6 +56,6 @@
 	bootph-all;
 };
 
-&pinctrl {
+&pio {
 	bootph-all;
 };

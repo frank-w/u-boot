@@ -8,6 +8,11 @@
 		interrupts = <GIC_SPI 152 IRQ_TYPE_LEVEL_LOW>;
 		clocks = <&infracfg CLK_INFRA_APXGPT_PD>;
 		clock-names = "system-clk";
+		bootph-all;
+	};
+	chosen {
+		stdout-path = &uart0;
+		tick-timer = &timer0;
 	};
 };
 
@@ -20,10 +25,6 @@
 };
 
 &apmixedsys {
-	bootph-all;
-};
-
-&timer0 {
 	bootph-all;
 };
 

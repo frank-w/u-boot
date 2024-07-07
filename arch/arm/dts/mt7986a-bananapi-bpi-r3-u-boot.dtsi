@@ -35,6 +35,10 @@
 &eth {
 	resets = <&ethsys ETHSYS_FE_RST>;
 	reset-names = "fe";
+	mediatek,sgmiisys = <&sgmiisys0>;
+	/delete-property/ clocks;
+	/delete-property/ assigned-clocks;
+	/delete-property/ assigned-clock-parents;
 };
 
 &topckgen {

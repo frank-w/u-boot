@@ -40,14 +40,6 @@
 	bootph-all;
 };
 
-&pericfg {
-	bootph-all;
-};
-
-&apmixedsys {
-	bootph-all;
-};
-
 &uart0 {
 	bootph-all;
 };

@@ -4,6 +4,38 @@
  * Author: Sam Shih <sam.shih@mediatek.com>
  */
 
+/{
+	timer0: timer@10008000 {
+		compatible = "mediatek,mt7986-timer";
+		reg = <0x10008000 0x1000>;
+		interrupts = <GIC_SPI 130 IRQ_TYPE_LEVEL_HIGH>;
+		clocks = <&topckgen CLK_TOP_F26M_SEL>;
+		clock-names = "gpt-clk";
+		bootph-all;
+	};
+
+	hwver: hwver {
+		compatible = "mediatek,hwver", "syscon";
+		reg = <0x8000000 0x1000>;
+	};
+};
+
+&cpu0 {
+	mediatek,hwver = <&hwver>;
+};
+
+&cpu1 {
+	mediatek,hwver = <&hwver>;
+};
+
+&cpu2 {
+	mediatek,hwver = <&hwver>;
+};
+
+&cpu3 {
+	mediatek,hwver = <&hwver>;
+};
+
 &topckgen {
 	bootph-all;
 };
@@ -13,10 +45,6 @@
 };
 
 &apmixedsys {
-	bootph-all;
-};
-
-&timer0 {
 	bootph-all;
 };
 

@@ -353,3 +353,5 @@
 		};
 	};
 };
+
+#include "mt7986-u-boot.dtsi"

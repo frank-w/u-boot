@@ -765,6 +765,7 @@ static int mtk_pinctrl_mt7986_probe(struct udevice *dev)
 
 static const struct udevice_id mt7986_pctrl_match[] = {
 	{.compatible = "mediatek,mt7986-pinctrl"},
+	{.compatible = "mediatek,mt7986a-pinctrl"},
 	{ /* sentinel */ }
 };
 

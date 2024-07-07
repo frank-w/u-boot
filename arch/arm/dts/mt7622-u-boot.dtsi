@@ -3,6 +3,19 @@
  * Copyright (c) 2019 MediaTek Inc.
  * Author: Sam Shih <sam.shih@mediatek.com>
  */
+/ {
+	timer0: timer@10004000 {
+		compatible = "mediatek,timer";
+		reg = <0x10004000 0x80>;
+		interrupts = <GIC_SPI 152 IRQ_TYPE_LEVEL_LOW>;
+		clocks = <&infracfg CLK_INFRA_APXGPT_PD>;
+		clock-names = "system-clk";
+		bootph-all;
+	};
+	chosen {
+		tick-timer = &timer0;
+	};
+};
 
 &topckgen {
 	bootph-all;
@@ -13,10 +26,6 @@
 };
 
 &apmixedsys {
-	bootph-all;
-};
-
-&timer0 {
 	bootph-all;
 };
 

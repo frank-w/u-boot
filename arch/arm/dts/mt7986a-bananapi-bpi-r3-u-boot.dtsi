@@ -9,7 +9,28 @@
 		clock-names = "gpt-clk";
 		bootph-all;
 	};
+	hwver: hwver {
+		compatible = "mediatek,hwver", "syscon";
+		reg = <0 0x8000000 0 0x1000>;
+	};
 };
+
+&cpu0 {
+	mediatek,hwver = <&hwver>;
+};
+
+/*&cpu1 {
+	mediatek,hwver = <&hwver>;
+};
+
+&cpu2 {
+	mediatek,hwver = <&hwver>;
+};
+
+&cpu3 {
+	mediatek,hwver = <&hwver>;
+};*/
+
 
 &eth {
 	resets = <&ethsys ETHSYS_FE_RST>;
@@ -34,6 +55,14 @@
 
 &pio {
 	bootph-all;
+};
+
+//board-level
+/ {
+	memory@40000000 {
+		device_type = "memory";
+		reg = <0 0x40000000 0 0x80000000>;
+	};
 };
 
 &eth {

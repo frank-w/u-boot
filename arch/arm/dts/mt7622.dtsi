@@ -78,14 +78,6 @@
 		arm,cpu-registers-not-fw-configured;
 	};
 
-	timer0: timer@10004000 {
-		compatible = "mediatek,timer";
-		reg = <0x10004000 0x80>;
-		interrupts = <GIC_SPI 152 IRQ_TYPE_LEVEL_LOW>;
-		clocks = <&infracfg CLK_INFRA_APXGPT_PD>;
-		clock-names = "system-clk";
-	};
-
 	infracfg: infracfg@10000000 {
 		compatible = "mediatek,mt7622-infracfg",
 			     "syscon";

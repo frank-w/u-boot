@@ -133,7 +133,7 @@
 		#clock-cells = <1>;
 	};
 
-	pinctrl: pinctrl@1001f000 {
+	pio: pinctrl@1001f000 {
 		compatible = "mediatek,mt7986-pinctrl";
 		reg = <0x1001f000 0x1000>,
 		      <0x11c30000 0x1000>,

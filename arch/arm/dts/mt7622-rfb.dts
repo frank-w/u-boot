@@ -60,7 +60,7 @@
 	};
 };
 
-&pinctrl {
+&pio {
 	pcie0_pins: pcie0-pins {
 		mux {
 			function = "pcie";

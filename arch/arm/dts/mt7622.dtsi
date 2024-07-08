@@ -150,7 +150,7 @@
 		#clock-cells = <1>;
 	};
 
-	pinctrl: pinctrl@10211000 {
+	pio: pinctrl@10211000 {
 		compatible = "mediatek,mt7622-pinctrl";
 		reg = <0x10211000 0x1000>;
 		gpio: gpio-controller {

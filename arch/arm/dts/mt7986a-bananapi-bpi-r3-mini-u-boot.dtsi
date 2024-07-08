@@ -31,7 +31,7 @@
 		reg = <14>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&en8811_pwr_a>;
-		airoha,rx-pol-reverse;
+		airoha,pnswap-rx;
 
 		reset-gpios = <&pio 49 GPIO_ACTIVE_LOW>;
 		reset-assert-us = <10000>;

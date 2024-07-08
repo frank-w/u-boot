@@ -107,7 +107,7 @@
 		//phy-supply = <&en8811_a>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&en8811_pwr_a>;
-		airoha,rx-pol-reverse;
+		airoha,pnswap-rx;
 
 		reset-gpios = <&gpio 49 GPIO_ACTIVE_LOW>;
 		reset-assert-us = <10000>;
@@ -121,7 +121,7 @@
 		//phy-supply = <&en8811_b>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&en8811_pwr_b>;
-		airoha,rx-pol-reverse;
+		airoha,pnswap-rx;
 
 		reset-gpios = <&gpio 47 GPIO_ACTIVE_LOW>;
 		reset-assert-us = <10000>;

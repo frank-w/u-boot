@@ -506,9 +506,9 @@ static int en8811h_startup(struct phy_device *phydev)
 	/* Serdes polarity */
 	pbus_value = air_buckpbus_reg_read(phydev, 0xca0f8);
 	pbus_value &= 0xfffffffc;
-	pbus_value |= ofnode_read_bool(node, "airoha,rx-pol-reverse") ?
+	pbus_value |= ofnode_read_bool(node, "airoha,pnswap-rx") ?
 			EN8811H_RX_POLARITY_REVERSE : EN8811H_RX_POLARITY_NORMAL;
-	pbus_value |= ofnode_read_bool(node, "airoha,tx-pol-reverse") ?
+	pbus_value |= ofnode_read_bool(node, "airoha,pnswap-tx") ?
 			EN8811H_TX_POLARITY_REVERSE : EN8811H_TX_POLARITY_NORMAL;
 	ret = air_buckpbus_reg_write(phydev, 0xca0f8, pbus_value);
 	if (ret < 0)

@@ -105,7 +105,7 @@
 	vqmmc-supply = <&reg_3p3v>;
 };
 
-&pinctrl {
+&pio {
 	ephy_default: ephy_default {
 		mux {
 			function = "eth";

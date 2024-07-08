@@ -92,7 +92,7 @@
 	non-removable;
 };
 
-&pinctrl {
+&pio {
 	ephy_default: ephy_default {
 		mux {
 			function = "eth";

@@ -115,7 +115,7 @@
 		#clock-cells = <1>;
 	};
 
-	pinctrl: pinctrl@10005000 {
+	pio: pinctrl@10005000 {
 		compatible = "mediatek,mt7623-pinctrl";
 		reg = <0x10005000 0x1000>;
 

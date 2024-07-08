@@ -1,36 +1,6 @@
 #include <dt-bindings/reset/mt7629-reset.h>
 
-/{
-	timer0: timer@10008000 {
-		compatible = "mediatek,mt7986-timer";
-		reg = <0 0x10008000 0 0x1000>;
-		interrupts = <GIC_SPI 130 IRQ_TYPE_LEVEL_HIGH>;
-		clocks = <&topckgen CLK_TOP_F26M_SEL>;
-		clock-names = "gpt-clk";
-		bootph-all;
-	};
-	hwver: hwver {
-		compatible = "mediatek,hwver", "syscon";
-		reg = <0 0x8000000 0 0x1000>;
-	};
-};
-
-&cpu0 {
-	mediatek,hwver = <&hwver>;
-};
-
-/*&cpu1 {
-	mediatek,hwver = <&hwver>;
-};
-
-&cpu2 {
-	mediatek,hwver = <&hwver>;
-};
-
-&cpu3 {
-	mediatek,hwver = <&hwver>;
-};*/
-
+#include "mt7986-u-boot.dtsi"
 
 &eth {
 	resets = <&ethsys ETHSYS_FE_RST>;

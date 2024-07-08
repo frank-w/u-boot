@@ -29,7 +29,7 @@
 		reg = <0 0x40000000 0 0x10000000>;
 	};
 
-	apmixedsys: apmixedsys@1001e000 {
+	/*apmixedsys: apmixedsys@1001e000 {
 		compatible = "mediatek,mt7988-fixed-plls", "syscon";
 		reg = <0 0x1001e000 0 0x1000>;
 		#clock-cells = <1>;
@@ -40,7 +40,7 @@
 		reg = <0 0x1001b000 0 0x1000>;
 		clock-parent = <&apmixedsys>;
 		#clock-cells = <1>;
-	};
+	};*/
 
 	pinctrl: pinctrl@1001f000 {
 		compatible = "mediatek,mt7988-pinctrl";
@@ -96,7 +96,7 @@
 		bootph-all;
 	};
 
-    xhci1: xhci@11200000 {
+	xhci1: xhci@11200000 {
 		compatible = "mediatek,mt7988-xhci",
 			     "mediatek,mtk-xhci";
 		reg = <0 0x11200000 0 0x2e00>,
@@ -161,12 +161,12 @@
 		#clock-cells = <1>;
 	};
 
-	xfi_pll: syscon@11f40000 {
+	/*xfi_pll: syscon@11f40000 {
 		compatible = "mediatek,mt7988-xfi_pll", "syscon";
 		reg = <0 0x11f40000 0 0x1000>;
 		clock-parent = <&topckgen>;
 		#clock-cells = <1>;
-	};
+	};*/
 
 	topmisc: topmisc@11d10000 {
 		compatible = "mediatek,mt7988-topmisc", "syscon",
@@ -176,12 +176,12 @@
 		#clock-cells = <1>;
 	};
 
-	infracfg: infracfg@10001000 {
+	/*infracfg: infracfg@10001000 {
 		compatible = "mediatek,mt7988-infracfg", "syscon";
 		reg = <0 0x10001000 0 0x1000>;
 		clock-parent = <&topckgen>;
 		#clock-cells = <1>;
-	};
+	};*/
 
 	uart0: serial@11000000 {
 		compatible = "mediatek,hsuart";
@@ -226,13 +226,13 @@
 		#reset-cells = <1>;
 	};
 
-	ethwarp: syscon@15031000 {
+	/*ethwarp: syscon@15031000 {
 		compatible = "mediatek,mt7988-ethwarp", "syscon";
 		reg = <0 0x15031000 0 0x1000>;
 		clock-parent = <&topckgen>;
 		#clock-cells = <1>;
 		#reset-cells = <1>;
-	};
+	};*/
 
 	eth: ethernet@15100000 {
 		compatible = "mediatek,mt7988-eth", "syscon";

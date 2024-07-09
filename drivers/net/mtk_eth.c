@@ -1031,6 +1031,7 @@ static int mt7988_setup(struct mtk_eth_priv *priv)
 	u32 pmcr;
 	int i;
 
+	printf("%s %d\n",__func__,__LINE__);
 	priv->gsw_base = regmap_get_range(priv->ethsys_regmap, 0) + GSW_BASE;
 
 	priv->mt753x_phy_base = (priv->mt753x_smi_addr + 1) &
@@ -1067,6 +1068,7 @@ static int mt7988_setup(struct mtk_eth_priv *priv)
 		break;
 	}
 
+	printf("%s %d\n",__func__,__LINE__);
 	pmcr = MT7988_FORCE_MODE |
 	       (IPG_96BIT_WITH_SHORT_IPG << IPG_CFG_S) |
 	       MAC_MODE | MAC_TX_EN | MAC_RX_EN |
@@ -1080,6 +1082,7 @@ static int mt7988_setup(struct mtk_eth_priv *priv)
 	/* Keep MAC link down before starting eth */
 	mt753x_reg_write(priv, PMCR_REG(6), FORCE_MODE_LNK);
 
+	printf("%s %d\n",__func__,__LINE__);
 	/* Turn on PHYs */
 	for (i = 0; i < MT753X_NUM_PHYS; i++) {
 		phy_addr = MT753X_PHY_ADDR(priv->mt753x_phy_base, i);
@@ -1088,8 +1091,10 @@ static int mt7988_setup(struct mtk_eth_priv *priv)
 		priv->mii_write(priv, phy_addr, MII_BMCR, phy_val);
 	}
 
+	printf("%s %d\n",__func__,__LINE__);
 	mt7988_phy_setting(priv);
 
+	printf("%s %d\n",__func__,__LINE__);
 	return 0;
 }
 
@@ -1098,6 +1103,7 @@ static int mt753x_switch_init(struct mtk_eth_priv *priv)
 	int ret;
 	int i;
 
+	printf("%s %d\n",__func__,__LINE__);
 	/* Global reset switch */
 	if (priv->mcm) {
 		reset_assert(&priv->rst_mcm);
@@ -1112,6 +1118,7 @@ static int mt753x_switch_init(struct mtk_eth_priv *priv)
 	}
 
 	ret = priv->switch_init(priv);
+	printf("%s %d ret:%d\n",__func__,__LINE__,ret);
 	if (ret)
 		return ret;
 
@@ -1131,6 +1138,7 @@ static int mt753x_switch_init(struct mtk_eth_priv *priv)
 				 (VLAN_ATTR_USER << VLAN_ATTR_S));
 	}
 
+	printf("%s %d\n",__func__,__LINE__);
 	return 0;
 }
 
@@ -1232,18 +1240,22 @@ static int mtk_phy_start(struct mtk_eth_priv *priv)
 	struct phy_device *phydev = priv->phydev;
 	int ret;
 
+	printf("%s %d\n",__func__,__LINE__);
 	ret = phy_startup(phydev);
 
+	printf("%s %d ret:%d\n",__func__,__LINE__,ret);
 	if (ret) {
 		debug("Could not initialize PHY %s\n", phydev->dev->name);
 		return ret;
 	}
 
+	printf("%s %d\n",__func__,__LINE__);
 	if (!phydev->link) {
 		debug("%s: link down.\n", phydev->dev->name);
 		return 0;
 	}
 
+	printf("%s %d\n",__func__,__LINE__);
 	if (!priv->force_mode) {
 		if (priv->phy_interface == PHY_INTERFACE_MODE_USXGMII ||
 		    priv->phy_interface == PHY_INTERFACE_MODE_XGMII)
@@ -1264,6 +1276,7 @@ static int mtk_phy_probe(struct udevice *dev)
 	struct mtk_eth_priv *priv = dev_get_priv(dev);
 	struct phy_device *phydev;
 
+	printf("%s %d\n",__func__,__LINE__);
 	phydev = phy_connect(priv->mdio_bus, priv->phy_addr, dev,
 			     priv->phy_interface);
 	if (!phydev)
@@ -1275,6 +1288,7 @@ static int mtk_phy_probe(struct udevice *dev)
 	priv->phydev = phydev;
 	phy_config(phydev);
 
+	printf("%s %d\n",__func__,__LINE__);
 	return 0;
 }
 
@@ -1437,6 +1451,7 @@ static void mtk_mac_init(struct mtk_eth_priv *priv)
 	int i, ge_mode = 0;
 	u32 mcr;
 
+	printf("%s %d\n",__func__,__LINE__);
 	switch (priv->phy_interface) {
 	case PHY_INTERFACE_MODE_RGMII_RXID:
 	case PHY_INTERFACE_MODE_RGMII:
@@ -1473,6 +1488,7 @@ static void mtk_mac_init(struct mtk_eth_priv *priv)
 		       SYSCFG0_GE_MODE_M << SYSCFG0_GE_MODE_S(priv->gmac_id),
 		       ge_mode << SYSCFG0_GE_MODE_S(priv->gmac_id));
 
+	printf("%s %d\n",__func__,__LINE__);
 	if (priv->force_mode) {
 		mcr = (IPG_96BIT_WITH_SHORT_IPG << IPG_CFG_S) |
 		      (MAC_RX_PKT_LEN_1536 << MAC_RX_PKT_LEN_S) |
@@ -1500,6 +1516,7 @@ static void mtk_mac_init(struct mtk_eth_priv *priv)
 		mtk_gmac_write(priv, GMAC_PORT_MCR(priv->gmac_id), mcr);
 	}
 
+	printf("%s %d\n",__func__,__LINE__);
 	if (MTK_HAS_CAPS(priv->soc->caps, MTK_GMAC1_TRGMII) &&
 	    !MTK_HAS_CAPS(priv->soc->caps, MTK_TRGMII_MT7621_CLK)) {
 		/* Lower Tx Driving for TRGMII path */
@@ -1512,6 +1529,7 @@ static void mtk_mac_init(struct mtk_eth_priv *priv)
 			     RX_RST | RXC_DQSISEL);
 		mtk_gmac_rmw(priv, GMAC_TRGMII_RCK_CTRL, RX_RST, 0);
 	}
+	printf("%s %d\n",__func__,__LINE__);
 }
 
 static void mtk_xmac_init(struct mtk_eth_priv *priv)
@@ -1616,6 +1634,7 @@ static void mtk_eth_mdc_init(struct mtk_eth_priv *priv)
 {
 	u32 divider;
 
+	printf("%s %d\n",__func__,__LINE__);
 	if (priv->mdc == 0)
 		return;
 
@@ -1630,6 +1649,7 @@ static void mtk_eth_mdc_init(struct mtk_eth_priv *priv)
 	/* Configure MDC divider */
 	mtk_gmac_rmw(priv, GMAC_PPSC_REG, PHY_MDC_CFG,
 		     FIELD_PREP(PHY_MDC_CFG, divider));
+	printf("%s %d\n",__func__,__LINE__);
 }
 
 static int mtk_eth_start(struct udevice *dev)
@@ -1637,6 +1657,7 @@ static int mtk_eth_start(struct udevice *dev)
 	struct mtk_eth_priv *priv = dev_get_priv(dev);
 	int i, ret;
 
+	printf("%s %d\n",__func__,__LINE__);
 	/* Reset FE */
 	reset_assert(&priv->rst_fe);
 	udelay(1000);
@@ -1650,6 +1671,7 @@ static int mtk_eth_start(struct udevice *dev)
 	/* Packets forward to PDMA */
 	mtk_gdma_write(priv, priv->gmac_id, GDMA_IG_CTRL_REG, GDMA_FWD_TO_CPU);
 
+	printf("%s %d\n",__func__,__LINE__);
 	for (i = 0; i < priv->soc->gdma_count; i++) {
 		if (i == priv->gmac_id)
 			continue;
@@ -1669,6 +1691,7 @@ static int mtk_eth_start(struct udevice *dev)
 
 	udelay(500);
 
+	printf("%s %d\n",__func__,__LINE__);
 	mtk_eth_fifo_init(priv);
 
 	if (priv->switch_mac_control)
@@ -1685,6 +1708,7 @@ static int mtk_eth_start(struct udevice *dev)
 		     TX_WB_DDONE | RX_DMA_EN | TX_DMA_EN);
 	udelay(500);
 
+	printf("%s %d\n",__func__,__LINE__);
 	return 0;
 }
 
@@ -1809,6 +1833,7 @@ static int mtk_eth_probe(struct udevice *dev)
 	ulong iobase = pdata->iobase;
 	int ret;
 
+	printf("%s %d\n",__func__,__LINE__);
 	/* Frame Engine Register Base */
 	priv->fe_base = (void *)iobase;
 
@@ -1817,9 +1842,11 @@ static int mtk_eth_probe(struct udevice *dev)
 
 	/* MDIO register */
 	ret = mtk_mdio_register(dev);
+	printf("%s %d ret:%d\n",__func__,__LINE__,ret);
 	if (ret)
 		return ret;
 
+	printf("%s %d\n",__func__,__LINE__);
 	/* Prepare for tx/rx rings */
 	priv->tx_ring_noc = (void *)
 		noncached_alloc(priv->soc->txd_size * NUM_TX_DESC,
@@ -1831,6 +1858,7 @@ static int mtk_eth_probe(struct udevice *dev)
 	/* Set MDC divider */
 	mtk_eth_mdc_init(priv);
 
+	printf("%s %d\n",__func__,__LINE__);
 	/* Set MAC mode */
 	if (priv->phy_interface == PHY_INTERFACE_MODE_USXGMII ||
 	    priv->phy_interface == PHY_INTERFACE_MODE_XGMII)
@@ -1838,11 +1866,13 @@ static int mtk_eth_probe(struct udevice *dev)
 	else
 		mtk_mac_init(priv);
 
+	printf("%s %d\n",__func__,__LINE__);
 	/* Probe phy if switch is not specified */
 	if (priv->sw == SW_NONE)
 		return mtk_phy_probe(dev);
 
 	/* Initialize switch */
+	printf("%s %d\n",__func__,__LINE__);
 	return mt753x_switch_init(priv);
 }
 
@@ -1870,29 +1900,35 @@ static int mtk_eth_of_to_plat(struct udevice *dev)
 	ofnode subnode;
 	int ret;
 
+	printf("%s %d\n",__func__,__LINE__);
 	priv->soc = (const struct mtk_soc_data *)dev_get_driver_data(dev);
 	if (!priv->soc) {
 		dev_err(dev, "missing soc compatible data\n");
 		return -EINVAL;
 	}
 
+	printf("%s %d\n",__func__,__LINE__);
 	pdata->iobase = (phys_addr_t)dev_remap_addr(dev);
 
 	/* get corresponding ethsys phandle */
 	ret = dev_read_phandle_with_args(dev, "mediatek,ethsys", NULL, 0, 0,
 					 &args);
+	printf("%s %d ret:%d\n",__func__,__LINE__,ret);
 	if (ret)
 		return ret;
 
 	priv->ethsys_regmap = syscon_node_to_regmap(args.node);
+	printf("%s %d\n",__func__,__LINE__);
 	if (IS_ERR(priv->ethsys_regmap))
 		return PTR_ERR(priv->ethsys_regmap);
 
+	printf("%s %d\n",__func__,__LINE__);
 	if (MTK_HAS_CAPS(priv->soc->caps, MTK_INFRA)) {
 		/* get corresponding infracfg phandle */
 		ret = dev_read_phandle_with_args(dev, "mediatek,infracfg",
 						 NULL, 0, 0, &args);
 
+		printf("%s %d ret:%d\n",__func__,__LINE__,ret);
 		if (ret)
 			return ret;
 
@@ -1903,6 +1939,7 @@ static int mtk_eth_of_to_plat(struct udevice *dev)
 
 	/* Reset controllers */
 	ret = reset_get_by_name(dev, "fe", &priv->rst_fe);
+	printf("%s %d ret:%d\n",__func__,__LINE__,ret);
 	if (ret) {
 		printf("error: Unable to get reset ctrl for frame engine\n");
 		return ret;
@@ -1912,6 +1949,7 @@ static int mtk_eth_of_to_plat(struct udevice *dev)
 
 	priv->mdc = 0;
 	subnode = ofnode_find_subnode(dev_ofnode(dev), "mdio");
+	printf("%s %d\n",__func__,__LINE__);
 	if (ofnode_valid(subnode)) {
 		priv->mdc = ofnode_read_u32_default(subnode, "clock-frequency", 2500000);
 		if (priv->mdc > MDC_MAX_FREQ ||
@@ -1921,6 +1959,7 @@ static int mtk_eth_of_to_plat(struct udevice *dev)
 		}
 	}
 
+	printf("%s %d\n",__func__,__LINE__);
 	/* Interface mode is required */
 	pdata->phy_interface = dev_read_phy_mode(dev);
 	priv->phy_interface = pdata->phy_interface;
@@ -1928,6 +1967,7 @@ static int mtk_eth_of_to_plat(struct udevice *dev)
 		printf("error: phy-mode is not set\n");
 		return -EINVAL;
 	}
+	printf("%s %d\n",__func__,__LINE__);
 
 	/* Force mode or autoneg */
 	subnode = ofnode_find_subnode(dev_ofnode(dev), "fixed-link");
@@ -1944,11 +1984,13 @@ static int mtk_eth_of_to_plat(struct udevice *dev)
 		}
 	}
 
+	printf("%s %d\n",__func__,__LINE__);
 	if (priv->phy_interface == PHY_INTERFACE_MODE_SGMII ||
 	    priv->phy_interface == PHY_INTERFACE_MODE_2500BASEX) {
 		/* get corresponding sgmii phandle */
 		ret = dev_read_phandle_with_args(dev, "mediatek,sgmiisys",
 						 NULL, 0, 0, &args);
+		printf("%s %d ret:%d\n",__func__,__LINE__,ret);
 		if (ret)
 			return ret;
 
@@ -1971,6 +2013,7 @@ static int mtk_eth_of_to_plat(struct udevice *dev)
 		/* get corresponding usxgmii phandle */
 		ret = dev_read_phandle_with_args(dev, "mediatek,usxgmiisys",
 						 NULL, 0, 0, &args);
+		printf("%s %d ret:%d\n",__func__,__LINE__,ret);
 		if (ret)
 			return ret;
 
@@ -1978,9 +2021,11 @@ static int mtk_eth_of_to_plat(struct udevice *dev)
 		if (IS_ERR(priv->usxgmii_regmap))
 			return PTR_ERR(priv->usxgmii_regmap);
 
+		printf("%s %d\n",__func__,__LINE__);
 		/* get corresponding xfi_pextp phandle */
 		ret = dev_read_phandle_with_args(dev, "mediatek,xfi_pextp",
 						 NULL, 0, 0, &args);
+		printf("%s %d ret:%d\n",__func__,__LINE__,ret);
 		if (ret)
 			return ret;
 
@@ -1991,9 +2036,11 @@ static int mtk_eth_of_to_plat(struct udevice *dev)
 		/* get corresponding xfi_pll phandle */
 		ret = dev_read_phandle_with_args(dev, "mediatek,xfi_pll",
 						 NULL, 0, 0, &args);
+		printf("%s %d ret:%d\n",__func__,__LINE__,ret);
 		if (ret)
 			return ret;
 
+		printf("%s %d\n",__func__,__LINE__);
 		priv->xfi_pll_regmap = syscon_node_to_regmap(args.node);
 		if (IS_ERR(priv->xfi_pll_regmap))
 			return PTR_ERR(priv->xfi_pll_regmap);
@@ -2001,20 +2048,24 @@ static int mtk_eth_of_to_plat(struct udevice *dev)
 		/* get corresponding toprgu phandle */
 		ret = dev_read_phandle_with_args(dev, "mediatek,toprgu",
 						 NULL, 0, 0, &args);
+		printf("%s %d ret:%d\n",__func__,__LINE__,ret);
 		if (ret)
 			return ret;
 
 		priv->toprgu_regmap = syscon_node_to_regmap(args.node);
+		printf("%s %d\n",__func__,__LINE__);
 		if (IS_ERR(priv->toprgu_regmap))
 			return PTR_ERR(priv->toprgu_regmap);
 	}
 
+	printf("%s %d\n",__func__,__LINE__);
 	/* check for switch first, otherwise phy will be used */
 	priv->sw = SW_NONE;
 	priv->switch_init = NULL;
 	priv->switch_mac_control = NULL;
 	str = dev_read_string(dev, "mediatek,switch");
 
+	printf("%s %d\n",__func__,__LINE__);
 	if (str) {
 		if (!strcmp(str, "mt7530")) {
 			priv->sw = SW_MT7530;
@@ -2029,6 +2080,7 @@ static int mtk_eth_of_to_plat(struct udevice *dev)
 			priv->mt753x_smi_addr = MT753X_DFL_SMI_ADDR;
 			priv->mt753x_reset_wait_time = 200;
 		} else if (!strcmp(str, "mt7988")) {
+			printf("%s %d\n",__func__,__LINE__);
 			priv->sw = SW_MT7988;
 			priv->switch_init = mt7988_setup;
 			priv->switch_mac_control = mt7988_mac_control;
@@ -2039,6 +2091,7 @@ static int mtk_eth_of_to_plat(struct udevice *dev)
 			return -EINVAL;
 		}
 
+		printf("%s %d\n",__func__,__LINE__);
 		priv->mcm = dev_read_bool(dev, "mediatek,mcm");
 		if (priv->mcm) {
 			ret = reset_get_by_name(dev, "mcm", &priv->rst_mcm);
@@ -2047,12 +2100,14 @@ static int mtk_eth_of_to_plat(struct udevice *dev)
 				return ret;
 			}
 		} else {
+			printf("%s %d\n",__func__,__LINE__);
 			gpio_request_by_name(dev, "reset-gpios", 0,
 					     &priv->rst_gpio, GPIOD_IS_OUT);
 		}
 	} else {
 		ret = dev_read_phandle_with_args(dev, "phy-handle", NULL, 0,
 						 0, &args);
+		printf("%s %d ret:%d\n",__func__,__LINE__,ret);
 		if (ret) {
 			printf("error: phy-handle is not specified\n");
 			return ret;
@@ -2065,6 +2120,7 @@ static int mtk_eth_of_to_plat(struct udevice *dev)
 		}
 	}
 
+	printf("%s %d\n",__func__,__LINE__);
 	return 0;
 }
 

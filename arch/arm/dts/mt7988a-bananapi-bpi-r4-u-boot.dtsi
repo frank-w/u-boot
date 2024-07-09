@@ -325,6 +325,18 @@
 	mediatek,hwver = <&hwver>;
 };
 
+&xfi_pll {
+	compatible = "mediatek,mt7988-xfi_pll", "syscon"; //driver needs syscon too
+};
+
+&watchdog {
+	compatible = "mediatek,mt7988-wdt", "syscon"; //driver needs syscon too (and mt7988-wdt compatible added)
+};
+
+&ethwarp {
+	compatible = "mediatek,mt7988-ethwarp", "syscon"; //also needs syscon
+};
+
 &eth {
 	status = "okay";
 	mediatek,gmac-id = <0>;

@@ -225,6 +225,11 @@ config OF_OVERLAY_LIST
 	  control. This option can then be used by a FIT generator to include
 	  the overlays in the FIT image.
 
+config OF_OVERLAY_LIST_BASEDT
+	string "List of device tree overlays to include in base devicetree"
+	help
+	  This option specifies a list of device tree overlays to use for building the base-dt.
+
 choice
 	prompt "OF LIST compression"
 	depends on MULTI_DTB_FIT

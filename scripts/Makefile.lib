@@ -406,6 +406,21 @@ cmd_dtco = mkdir -p $(dir ${dtc-tmp}) ; \
 $(obj)/%.dtbo: $(src)/%.dtso $(DTC) FORCE
 	$(call if_changed_dep,dtco)
 
+
+#merge CONFIG_DEFAULT_DEVICE_TREE + OF_OVERLAY_LIST_BASEDT to target DTB
+#manual:
+# dtc -I dtb -O dts dts/upstream/src/arm64/mediatek/mt7986a-bananapi-bpi-r3-sd.dtbo
+# fdtoverlay -i dts/upstream/src/arm64/mediatek/mt7986a-bananapi-bpi-r3.dtb -o dts/upstream/src/arm64/mediatek/mt7986a-bananapi-bpi-r3-sd.dtb dts/upstream/src/arm64/mediatek/mt7986a-bananapi-bpi-r3-sd.dtbo
+# dtc -I dtb -O dts dts/upstream/src/arm64/mediatek/mt7986a-bananapi-bpi-r3-sd.dtb | less
+
+#currently linux-version
+quiet_cmd_fdtoverlay = DTOVL   $@
+      cmd_fdtoverlay = $(objtree)/scripts/dtc/fdtoverlay -o $@ -i $(real-prereqs)
+
+$(multi-dtb-y): FORCE
+	$(call if_changed,fdtoverlay)
+$(call multi_depend, $(multi-dtb-y), .dtb, -dtbs)
+
 # Fonts
 # ---------------------------------------------------------------------------
 

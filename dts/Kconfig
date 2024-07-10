@@ -113,7 +113,6 @@ config OF_UPSTREAM_BUILD_VENDOR
 
 config OF_UPSTREAM_VENDOR
 	string "Vendor to build all upstream devicetree files for"
-	depends on OF_UPSTREAM_BUILD_VENDOR
 	default "qcom" if ARCH_SNAPDRAGON
 	default "rockchip" if ARCH_ROCKCHIP
 	default "amlogic" if ARCH_MESON
@@ -123,7 +122,7 @@ config OF_UPSTREAM_VENDOR
 	default "xilinx" if ARCH_VERSAL || ARCH_ZYNQ
 	default "nvidia" if ARCH_TEGRA
 	help
-	  Select the vendor to build all devicetree files for.
+	  Select the vendor to build devicetree files for.
 
 choice
 	prompt "Provider of DTB for DT control"

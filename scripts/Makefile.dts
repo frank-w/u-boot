@@ -2,15 +2,54 @@
 
 dtb-y += $(patsubst %,%.dtb,$(subst ",,$(CONFIG_DEFAULT_DEVICE_TREE) $(CONFIG_OF_LIST) $(CONFIG_SPL_OF_LIST)))
 
-ifeq ($(CONFIG_OF_UPSTREAM_BUILD_VENDOR),y)
+ifeq ($(CONFIG_OF_UPSTREAM),y)
 ifeq ($(CONFIG_ARM64),y)
 dt_dir := $(srctree)/dts/upstream/src/arm64
 else
 dt_dir := $(srctree)/dts/upstream/src/$(ARCH)
 endif
 
+# $(warning dtso is [$(dt_dir)/$(subst ",,$(CONFIG_OF_UPSTREAM_VENDOR))/*.dtso])
+# CONFIG_OF_UPSTREAM_VENDOR is only set if CONFIG_OF_UPSTREAM_BUILD_VENDOR is set (but not all dts/i there are compilable)
+#CONFIG_OF_UPSTREAM_VENDOR:=${CONFIG_SYS_VENDOR}
+dtb-vendor_dtso := $(patsubst %.dtso,%.dtbo,$(wildcard $(dt_dir)/$(subst ",,$(CONFIG_OF_UPSTREAM_VENDOR))/*.dtso))
+#dtbo-y += $(subst $(dt_dir)/,,$(dtb-vendor_dtso))
+dtb-y += $(subst $(dt_dir)/,,$(dtb-vendor_dtso))
+
+$(warning dtso is [$(wildcard $(dt_dir)/$(subst ",,$(CONFIG_OF_UPSTREAM_VENDOR))/*.dtso)])
+
+#$(warning $$dtb-vendor_dtso is [${dtb-vendor_dtso}])
+
+endif
+
+ifeq ($(CONFIG_OF_UPSTREAM_BUILD_VENDOR),y)
+
 dtb-vendor_dts := $(patsubst %.dts,%.dtb,$(wildcard $(dt_dir)/$(subst ",,$(CONFIG_OF_UPSTREAM_VENDOR))/*.dts))
 
 dtb-y += $(subst $(dt_dir)/,,$(dtb-vendor_dts))
+
+endif
+
+#$(warning $$dtb-y is [${dtb-y}])
+#$(warning $$dtbo-y is [${dtbo-y}])
+
+ifneq ($(CONFIG_OF_OVERLAY_LIST_BASEDT),)
+#$(warning $(CONFIG_OF_OVERLAY_LIST_BASEDT))
+quiet_cmd_fdtoverlay = FDTO $(CONFIG_OF_OVERLAY_LIST_BASEDT)
+
+dtbos:=$(subst ",,$(CONFIG_OF_OVERLAY_LIST_BASEDT))
+#$(warning $(dtbos))
+dtbos:=$(addprefix $(dt_dir)/$(subst ",,$(CONFIG_OF_UPSTREAM_VENDOR))/,$(dtbos))
+$(warning dtbos:$(dtbos))
+basedtb:=$(addprefix $(dt_dir)/$(subst ",,$(CONFIG_OF_UPSTREAM_VENDOR))/,$(subst ",,$(CONFIG_DEFAULT_DEVICE_TREE)))
+basedtb:=$(addsuffix .dtb,$(basedtb))
+$(warning basedtb:$(basedtb))
+
+#merge CONFIG_DEFAULT_DEVICE_TREE + OF_OVERLAY_LIST_BASEDT (dtbos) to target DTB
+
+multi-dtb-y+= $(basedtb) $(dtbos)
+
+#$(multi-dtb-y): FORCE
+#	$(call if_changed,fdtoverlay)
 
 endif

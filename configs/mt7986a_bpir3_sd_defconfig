@@ -9,6 +9,9 @@ CONFIG_ENV_SIZE=0x80000
 CONFIG_ENV_OFFSET=0x300000
 CONFIG_OF_UPSTREAM=y
 CONFIG_DEFAULT_DEVICE_TREE="mediatek/mt7986a-bananapi-bpi-r3"
+CONFIG_OF_OVERLAY_LIST_BASEDT="mt7986a-bananapi-bpi-r3-nand.dtbo mt7986a-bananapi-bpi-r3-nor.dtbo mt7986a-bananapi-bpi-r3-sd.dtbo"
+#mt7986a-bananapi-bpi-r3-emmc.dtbo
+
 CONFIG_TARGET_MT7986=y
 CONFIG_DEBUG_UART_BASE=0x11002000
 CONFIG_DEBUG_UART_CLOCK=40000000

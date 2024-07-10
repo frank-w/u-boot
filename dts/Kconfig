@@ -246,6 +246,11 @@ config OF_OVERLAY_LIST
 	  the overlays in the FIT image or by binman when assembling an image
 	  that uses overlays during DT fixup.
 
+config OF_OVERLAY_LIST_BASEDT
+	string "List of device tree overlays to include in base devicetree"
+	help
+	  This option specifies a list of device tree overlays to use for building the base-dt.
+
 choice
 	prompt "OF LIST compression"
 	depends on MULTI_DTB_FIT

@@ -2,6 +2,7 @@
 # scripts/dtc makefile
 
 hostprogs-y	:= dtc
+hostprogs-y	+= fdtoverlay
 always		:= $(hostprogs-y)
 
 dtc-objs	:= dtc.o flattree.o fstree.o data.o livetree.o treesource.o \
@@ -17,6 +18,23 @@ HOSTCFLAGS_dtc-parser.tab.o := -I$(src)
 
 # dependencies on generated files need to be listed explicitly
 $(obj)/dtc-lexer.lex.o: $(obj)/dtc-parser.tab.h
+
+#FDTOVERLAY_SRCS = \
+#	fdtoverlay.c \
+#	fdt_rw.c \
+#	util.c
+#
+#fdtoverlay-objs = $(FDTOVERLAY_SRCS:%.c=%.o)
+
+# The upstream project builds libfdt as a separate library.  We are choosing to
+# instead directly link the libfdt object files into fdtoverlay.
+libfdt-objs     := fdt.o fdt_ro.o fdt_wip.o fdt_sw.o fdt_rw.o fdt_strerror.o fdt_empty_tree.o fdt_addresses.o fdt_overlay.o
+libfdt          = $(addprefix libfdt/,$(libfdt-objs))
+fdtoverlay-objs := $(libfdt) fdtoverlay.o util.o
+
+# Source files need to get at the userspace version of libfdt_env.h to compile
+HOST_EXTRACFLAGS += -I $(src)/libfdt
+
 
 # Added for U-Boot
 ifeq ($(PYTHON_ENABLE),y)

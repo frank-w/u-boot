@@ -47,7 +47,7 @@ $(warning basedtb:$(basedtb))
 
 #merge CONFIG_DEFAULT_DEVICE_TREE + OF_OVERLAY_LIST_BASEDT (dtbos) to target DTB
 
-multi-dtb-y+= $(basedtb) $(dtbos)
+multi-dtb-y+= "$(dtbos)"
 
 #$(multi-dtb-y): FORCE
 #	$(call if_changed,fdtoverlay)

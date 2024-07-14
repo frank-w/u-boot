@@ -173,8 +173,7 @@ case $1 in
 		LANG=C
 		CFLAGS=-j$(grep ^processor /proc/cpuinfo  | wc -l)
 		echo "LV: -$ubranch, crosscompile: $CROSS_COMPILE, CFLAGS: $CFLAGS"
-		make DEVICE_TREE_DEBUG=1 --trace LOCALVERSION="-$ubranch" ${CFLAGS} 2> >(tee "build.log")
-		#make LOCALVERSION="-$ubranch" ${CFLAGS} 2> >(tee "build.log")
+		make LOCALVERSION="-$ubranch" ${CFLAGS} 2> >(tee "build.log")
 		if [[ $? -eq 0 ]];then
 			FILESIZE=$(stat -c%s "u-boot.bin");
 			if [[ $MAXSIZE -gt 0 && $FILESIZE -gt $MAXSIZE ]]; then

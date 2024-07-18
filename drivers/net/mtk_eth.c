@@ -28,6 +28,7 @@
 #include <linux/printk.h>
 
 #include "mtk_eth.h"
+#include <asm/arch-mediatek/clock.h>
 
 #define NUM_TX_DESC		24
 #define NUM_RX_DESC		24
@@ -1996,7 +1997,11 @@ static int mtk_eth_of_to_plat(struct udevice *dev)
 
 		priv->xfi_pll_regmap = syscon_node_to_regmap(args.node);
 		if (IS_ERR(priv->xfi_pll_regmap))
-			return PTR_ERR(priv->xfi_pll_regmap);
+		{
+			priv->xfi_pll_regmap = syscon_get_regmap_by_driver_data(MEDIATEK_SYSCON_XFIPLL);
+			if (IS_ERR(priv->xfi_pll_regmap))
+				return PTR_ERR(priv->xfi_pll_regmap);
+		}
 
 		/* get corresponding toprgu phandle */
 		ret = dev_read_phandle_with_args(dev, "mediatek,toprgu",
@@ -2006,7 +2011,11 @@ static int mtk_eth_of_to_plat(struct udevice *dev)
 
 		priv->toprgu_regmap = syscon_node_to_regmap(args.node);
 		if (IS_ERR(priv->toprgu_regmap))
-			return PTR_ERR(priv->toprgu_regmap);
+		{
+			priv->toprgu_regmap = syscon_get_regmap_by_driver_data(MEDIATEK_SYSCON_WDT);
+			if (IS_ERR(priv->toprgu_regmap))
+				return PTR_ERR(priv->toprgu_regmap);
+		}
 	}
 
 	/* check for switch first, otherwise phy will be used */

@@ -17,6 +17,8 @@
 #include <linux/bitops.h>
 #include <linux/err.h>
 
+#include <asm/arch-mediatek/clock.h>
+
 struct mediatek_reset_priv {
 	struct regmap *regmap;
 	u32 regofs;
@@ -60,9 +62,11 @@ static int mediatek_reset_probe(struct udevice *dev)
 		return -EINVAL;
 
 	priv->regmap = syscon_node_to_regmap(dev_ofnode(dev));
-	if (IS_ERR(priv->regmap))
-		return PTR_ERR(priv->regmap);
-
+	if (IS_ERR(priv->regmap)) {
+		priv->regmap = syscon_get_regmap_by_driver_data(MEDIATEK_SYSCON_RESET);
+		if (IS_ERR(priv->regmap))
+			return PTR_ERR(priv->regmap);
+	}
 	return 0;
 }
 

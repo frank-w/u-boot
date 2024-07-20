@@ -54,15 +54,19 @@ struct reset_ops mediatek_reset_ops = {
 
 static int mediatek_reset_probe(struct udevice *dev)
 {
+	int ret;
+
 	struct mediatek_reset_priv *priv = dev_get_priv(dev);
 
 	if (!priv->regofs && !priv->nr_resets)
 		return -EINVAL;
 
 	priv->regmap = syscon_node_to_regmap(dev_ofnode(dev));
-	if (IS_ERR(priv->regmap))
-		return PTR_ERR(priv->regmap);
-
+	if (IS_ERR(priv->regmap)) {
+		ret = regmap_init_mem(dev_ofnode(dev), &priv->regmap);
+		if (ret || IS_ERR(priv->regmap))
+			return PTR_ERR(priv->regmap);
+	}
 	return 0;
 }
 

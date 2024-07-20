@@ -10,7 +10,6 @@
 
 static const struct udevice_id mt7988_syscon_ids[] = {
 	{ .compatible = "mediatek,mt7988-wdt", .data = MEDIATEK_SYSCON_WDT },
-	{ .compatible = "mediatek,mt7988-ethwarp", .data = MEDIATEK_SYSCON_RESET },
 	{ .compatible = "mediatek,mt7988-xfi-pll", .data = MEDIATEK_SYSCON_XFIPLL },
 	{ }
 };
@@ -40,16 +39,10 @@ U_BOOT_DRIVER(mediatek_mt7988_wdt) = {
 	.bind = mt7988_syscon_bind_of_plat,
 };
 
-U_BOOT_DRIVER(mediatek_mt7988_ethwarp) = {
-	.name = "mediatek_mt7988_ethwarp",
-	.id = UCLASS_SYSCON,
-	.of_match = mt7988_syscon_ids + 1,
-	.bind = mt7988_syscon_bind_of_plat,
-};
 U_BOOT_DRIVER(mediatek_mt7988_xfi_pll) = {
 	.name = "mediatek_mt7988_xfi_pll",
 	.id = UCLASS_SYSCON,
-	.of_match = mt7988_syscon_ids + 2,
+	.of_match = mt7988_syscon_ids + 1,
 	.bind = mt7988_syscon_bind_of_plat,
 };
 

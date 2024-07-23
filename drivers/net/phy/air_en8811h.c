@@ -10,7 +10,6 @@
 
 /* INCLUDE FILE DECLARATIONS
 */
-#include <common.h>
 #include <eth_phy.h>
 #include <phy.h>
 #include <errno.h>

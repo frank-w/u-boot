@@ -9,7 +9,7 @@
 	status = "disabled";
 };
 
-/delete-node/ &{/ethernet@fe2a0000/mdio/switch@0};
+/delete-node/ &{/ethernet@fe2a0000/mdio/switch@1f};
 
 &usb_host0_ohci {
 	status = "disabled";

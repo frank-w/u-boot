@@ -330,14 +330,30 @@
 	compatible = "mediatek,mt7988-xfi_pextp_0", "syscon";
 };
 
+&xfi_pll {
+	compatible = "mediatek,mt7988-xfi-pll", "syscon";
+};
+
 &ethsys {
 	compatible = "mediatek,mt7988-ethdma", "syscon";
+};
+
+&ethwarp {
+	compatible = "mediatek,mt7988-ethwarp", "syscon";
+};
+
+&usxgmiisys0 {
+	compatible = "mediatek,mt7988-usxgmiisys_0", "syscon";
 };
 
 &watchdog {
 	compatible = "mediatek,mt7622-wdt",
 		     "mediatek,mt6589-wdt",
 		     "syscon";
+};
+
+&topmisc {
+	clock-parent = <&topckgen>;
 };
 
 &eth {

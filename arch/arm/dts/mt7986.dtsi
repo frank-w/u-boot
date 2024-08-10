@@ -370,10 +370,10 @@
 		#address-cells = <3>;
 		#size-cells = <2>;
 
-		clocks = <&infracfg_ao CK_INFRA_IPCIE_PIPE_CK>,
-                         <&infracfg_ao CK_INFRA_IPCIE_CK>,
-                         <&infracfg_ao CK_INFRA_IPCIER_CK>,
-                         <&infracfg_ao CK_INFRA_IPCIEB_CK>;
+		clocks = <&infracfg CLK_INFRA_IPCIE_PIPE_CK>,
+                         <&infracfg CLK_INFRA_IPCIE_CK>,
+                         <&infracfg CLK_INFRA_IPCIER_CK>,
+                         <&infracfg CLK_INFRA_IPCIEB_CK>;
 		clock-names = "pl_250m", "tl_26m", "peri_26m", "top_133m";
 
 		bus-range = <0x00 0xff>;

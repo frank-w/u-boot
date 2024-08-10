@@ -142,7 +142,7 @@
 	status = "okay";
 };
 
-&pinctrl {
+&pio {
 	en8811_pwr_a: en8811-pwr-a {
 		pins = "GPIO_11";
 		drive-strength = <MTK_DRIVE_8mA>;

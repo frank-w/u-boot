@@ -692,7 +692,7 @@ static int mtk_spim_probe(struct udevice *dev)
 			return ret;
 		}
 
-		ret = clk_get_by_name(dev, "hclk", &priv->hclk);
+		ret = clk_get_by_name(dev, "spi-hclk", &priv->hclk);
 		if (ret < 0) {
 			dev_err(dev, "failed to get hclk\n");
 			return ret;

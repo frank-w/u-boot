@@ -10,6 +10,7 @@
 #include <hang.h>
 #include <wdt.h>
 #include <asm/io.h>
+#include <regmap.h>
 #include <linux/bitops.h>
 
 #define MTK_WDT_MODE			0x00
@@ -36,6 +37,7 @@
 
 struct mtk_wdt_priv {
 	void __iomem *base;
+	struct regmap *regmap;
 };
 
 static int mtk_wdt_reset(struct udevice *dev)
@@ -122,16 +124,28 @@ static int mtk_wdt_start(struct udevice *dev, u64 timeout_ms, ulong flags)
 static int mtk_wdt_probe(struct udevice *dev)
 {
 	struct mtk_wdt_priv *priv = dev_get_priv(dev);
+	int ret;
 
 	priv->base = dev_read_addr_ptr(dev);
 	if (!priv->base)
 		return -ENOENT;
+
+	ret = regmap_init_mem(dev_ofnode(dev), &priv->regmap);
+	if (ret)
+		return ret;
 
 	/* Clear status */
 	clrsetbits_le32(priv->base + MTK_WDT_MODE,
 			WDT_MODE_IRQ_EN | WDT_MODE_EXTPOL, WDT_MODE_KEY);
 
 	return mtk_wdt_stop(dev);
+}
+
+static int mtk_wdt_remove(struct udevice *dev)
+{
+	struct mtk_wdt_priv *priv = dev_get_priv(dev);
+	regmap_uninit(priv->regmap);
+	return 0;
 }
 
 static const struct wdt_ops mtk_wdt_ops = {
@@ -155,6 +169,7 @@ U_BOOT_DRIVER(mtk_wdt) = {
 	.of_match = mtk_wdt_ids,
 	.priv_auto	= sizeof(struct mtk_wdt_priv),
 	.probe = mtk_wdt_probe,
+	.remove = mtk_wdt_remove,
 	.ops = &mtk_wdt_ops,
 	.flags = DM_FLAG_PRE_RELOC,
 };

@@ -26,11 +26,19 @@ env erase
 ## Usage
 
 ```sh
-  #edit build.conf to select bpi-r64/bpi-r2pro/bpi-r3 if needed
+  #edit build.conf to select bpi-r64/bpi-r2pro/bpi-r3/bpi-r4 and maybe device
   ./build.sh importconfig
   ./build.sh config #optional (menuconfig)
   ./build.sh
+  ./build.sh install #write to sd-card (r2+r2pro only)
+
+  # for mtk arm64 boards uboot.bin has to be packed into atf, so addional steps are needed:
+  #checkout/delete build.conf (maybe make copy for restore in atf-branch)
+  git checkout mtk-atf
+  #create build.conf with same settings like before (board+device) (maybe restore copy from before)
+  ./build.sh
   ./build.sh install #write to sd-card
+
   ./build.sh umount #umount automatic mounted partitions
 ```
 

@@ -15,7 +15,7 @@ rdaddr=0x48000000
 
 root=/dev/mmcblk0p6 rootfstype=ext4 rootwait
 console=ttyS0,115200n1 earlycon=uart8250,mmio32,0x11000000
-bootopts=debug=7 mem=3G
+bootopts=debug=7
 
 #version=-v0
 wifi_en=0

@@ -17,6 +17,14 @@
 #include <devapc.h>
 #include <timer.h>
 
+#if ENCRYPT_BL33
+#include <bl33_dec.h>
+#endif
+
+#ifdef MTK_FW_ENC
+#include <fw_dec.h>
+#endif
+
 static void mt7986_disable_l2c_shared(void)
 {
 	uint32_t inval_l2_tags_complete;
@@ -84,6 +92,14 @@ void bl31_platform_setup(void)
 	devapc_init();
 
 	plat_efuse_init();
+
+#if ENCRYPT_BL33
+	if (bl33_decrypt())
+		panic();
+#endif
+#ifdef MTK_FW_ENC
+	fw_dec_init();
+#endif
 }
 
 /*******************************************************************************

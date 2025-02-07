@@ -44,6 +44,9 @@ BL2_SOURCES		+=	common/desc_image_load.c			\
 				$(MTK_PLAT_SOC)/drivers/spi/boot_spi.c		\
 				$(MTK_PLAT_SOC)/drivers/timer/cpuxgpt.c
 
+# Include dram driver files
+include $(MTK_PLAT_SOC)/drivers/dram/dram.mk
+
 ifeq ($(I2C_SUPPORT), 1)
 include $(APSOC_COMMON)/drivers/i2c/i2c.mk
 override I2C_GPIO_SDA_PIN	:=	44

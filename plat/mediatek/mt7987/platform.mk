@@ -47,4 +47,5 @@ include $(MTK_PLAT_SOC_BSP)/bl32.mk
 include $(MTK_PLAT_SOC)/drivers/efuse/efuse.mk
 
 include $(APSOC_COMMON)/bl2/tbbr_post.mk
+include $(APSOC_COMMON)/bl2/ar_post.mk
 include $(APSOC_COMMON)/bl2/bl2_image_post.mk

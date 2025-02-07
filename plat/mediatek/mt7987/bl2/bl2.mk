@@ -44,6 +44,9 @@ BL2_SOURCES		+=	common/desc_image_load.c			\
 				$(MTK_PLAT_SOC)/drivers/spi/boot_spi.c		\
 				$(MTK_PLAT_SOC)/drivers/timer/cpuxgpt.c
 
+# Include dram driver files
+include $(MTK_PLAT_SOC)/drivers/dram/dram.mk
+
 # Dual-FIP
 include $(APSOC_COMMON)/bl2/dual_fip.mk
 

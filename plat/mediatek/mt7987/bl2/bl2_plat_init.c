@@ -11,6 +11,7 @@
 #include <mt7987_gpio.h>
 #include <cpuxgpt.h>
 #include <pll.h>
+#include <emi.h>
 #include <mtk_wdt.h>
 #ifdef I2C_SUPPORT
 #include <mt_i2c.h>
@@ -201,6 +202,7 @@ const struct initcall bl2_initcalls[] = {
 	INITCALL(mtk_print_cpu),
 	INITCALL(mtk_infra_ao_init),
 	INITCALL(mtk_pcie_init),
+	INITCALL(mtk_mem_init),
 	INITCALL(mtk_wed_init),
 	INITCALL(mtk_i2p5g_phy_init),
 	INITCALL(mt7987_enable_lvts_hw_reset),

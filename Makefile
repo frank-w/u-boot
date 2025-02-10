@@ -645,6 +645,7 @@ $(eval $(call assert_booleans,\
 	BL2_INV_DCACHE \
 	ENCRYPT_BL31 \
 	ENCRYPT_BL32 \
+	ENCRYPT_BL33 \
 	ERRATA_SPECULATIVE_AT \
 	ERRATA_SME_POWER_DOWN \
 	RAS_TRAP_NS_ERR_REC_ACCESS \
@@ -805,6 +806,7 @@ $(eval $(call add_defines,\
 	FFH_SUPPORT \
 	ENCRYPT_BL31 \
 	ENCRYPT_BL32 \
+	ENCRYPT_BL33 \
 	ERROR_DEPRECATED \
 	FAULT_INJECTION_SUPPORT \
 	GICV2_G0_FOR_EL3 \
@@ -1068,7 +1070,15 @@ endif #(NEED_RMM)
 
 # Add the BL33 image if required by the platform
 ifeq (${NEED_BL33},yes)
+ifeq ($(ENCRYPT_BL33),1)
+BL33_ENC := $(BUILD_PLAT)/bl33_enc.bin
+CRT_DEPS += $(BL33_ENC)
+
+$(eval $(call ENCRYPT_FW,$(BL33),$(BL33_ENC)))
+$(eval $(call TOOL_ADD_IMG_PAYLOAD,BL33,$(BL33_ENC),--nt-fw,$(BL33_ENC),))
+else
 $(eval $(call TOOL_ADD_IMG,bl33,--nt-fw))
+endif
 endif #(NEED_BL33)
 
 ifeq (${NEED_BL2U},yes)

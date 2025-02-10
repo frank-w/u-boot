@@ -136,7 +136,7 @@ struct mmc_ops {
 	void (*init)(void);
 	int (*send_cmd)(struct mmc_cmd *cmd);
 	int (*set_ios)(unsigned int clk, unsigned int width);
-	int (*prepare)(int lba, uintptr_t buf, size_t size);
+	int (*prepare)(int lba, uintptr_t buf, size_t size, int write);
 	int (*read)(int lba, uintptr_t buf, size_t size);
 	int (*write)(int lba, const uintptr_t buf, size_t size);
 };
@@ -262,6 +262,7 @@ struct mmc_device_info {
 size_t mmc_read_blocks(int lba, uintptr_t buf, size_t size);
 size_t mmc_write_blocks(int lba, const uintptr_t buf, size_t size);
 size_t mmc_erase_blocks(int lba, size_t size);
+int mmc_part_switch(unsigned char part_type);
 int mmc_part_switch_current_boot(void);
 int mmc_part_switch_user(void);
 size_t mmc_boot_part_size(void);

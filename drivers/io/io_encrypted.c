@@ -99,6 +99,8 @@ static int enc_dev_init(io_dev_info_t *dev_info, const uintptr_t init_params)
 
 static int enc_dev_close(io_dev_info_t *dev_info)
 {
+	io_dev_close(backend_dev_handle);
+
 	backend_dev_handle = (uintptr_t)NULL;
 	backend_dev_spec = (uintptr_t)NULL;
 

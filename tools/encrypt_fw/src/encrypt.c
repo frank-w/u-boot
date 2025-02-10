@@ -7,6 +7,7 @@
 
 #include <firmware_encrypted.h>
 #include <openssl/evp.h>
+#include <openssl/kdf.h>
 #include <stdio.h>
 #include <string.h>
 #include "debug.h"
@@ -29,6 +30,7 @@ static int gcm_encrypt(unsigned short fw_enc_status, char *key_string,
 	unsigned char data[BUFFER_SIZE], enc_data[BUFFER_SIZE];
 	unsigned char key[KEY_SIZE], iv[IV_SIZE], tag[TAG_SIZE];
 	int bytes, enc_len = 0, i, j, ret = 0;
+	unsigned int image_len = 0;
 	struct fw_enc_hdr header;
 
 	memset(&header, 0, sizeof(struct fw_enc_hdr));
@@ -105,6 +107,7 @@ static int gcm_encrypt(unsigned short fw_enc_status, char *key_string,
 		}
 
 		fwrite(enc_data, 1, enc_len, op_file);
+		image_len += bytes;
 	}
 
 	ret = EVP_EncryptFinal_ex(ctx, enc_data, &enc_len);
@@ -126,6 +129,7 @@ static int gcm_encrypt(unsigned short fw_enc_status, char *key_string,
 	header.dec_algo = KEY_ALG_GCM;
 	header.iv_len = IV_SIZE;
 	header.tag_len = TAG_SIZE;
+	header.image_len = image_len;
 	memcpy(header.iv, iv, IV_SIZE);
 	memcpy(header.tag, tag, TAG_SIZE);
 
@@ -164,4 +168,99 @@ int encrypt_file(unsigned short fw_enc_status, int enc_alg, char *key_string,
 	default:
 		return -1;
 	}
+}
+
+static int hex2bin(char *hex, int hex_len, uint8_t *out)
+{
+	int i, j;
+
+	for (i = 0, j = 0; j < hex_len; i ++, j += 2) {
+		if (sscanf(&hex[j], "%02hhx", &out[i]) != 1) {
+			ERROR("Incorrect key format\n");
+			return -1;
+		}
+	}
+	return 0;
+}
+
+static int bin2hex(uint8_t *bin, int bin_len, char *out)
+{
+	int i, j;
+
+	for (i = 0, j = 0; i < bin_len; i ++, j += 2) {
+		if (sprintf(&out[j], "%02x", bin[i]) < 0) {
+			ERROR("Incorrect key format\n");
+			return -1;
+		}
+	}
+	return 0;
+}
+
+int do_hkdf(char *key_hex, uint32_t key_hex_len,
+	    char *salt_hex, uint32_t salt_hex_len,
+	    char *buf, size_t out_len)
+{
+	EVP_PKEY_CTX *pctx;
+	uint8_t key[ROE_KEY_SIZE] = { 0 };
+	uint8_t salt[SALT_SIZE] = { 0 };
+	uint8_t out_key[FIP_KEY_SIZE] = { 0 };
+	uint32_t ret = 0;
+
+	pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, NULL);
+	if (!pctx) {
+		ERROR("EVP_PKEY_CTX_new_id: error\n");
+		return -1;
+	}
+
+	ret = hex2bin(key_hex, key_hex_len, key);
+	if (ret) {
+		ERROR("hex2bin key error\n");
+		goto out;
+	}
+
+	ret = hex2bin(salt_hex, salt_hex_len, salt);
+	if (ret) {
+		ERROR("hex2bin salt error\n");
+		goto out;
+	}
+
+	ret = EVP_PKEY_derive_init(pctx);
+	if (ret <= 0) {
+		ERROR("Init Failed, ret:%x\n", ret);
+		goto out;
+	}
+
+	ret = EVP_PKEY_CTX_set_hkdf_md(pctx, EVP_sha256());
+	if (ret <= 0) {
+		ERROR("md Failed, ret:%x\n", ret);
+		goto out;
+	}
+
+	ret = EVP_PKEY_CTX_set1_hkdf_salt(pctx, salt, sizeof(salt));
+	if (ret <= 0) {
+		ERROR("Salt Failed, ret:%x\n", ret);
+		goto out;
+	}
+
+	ret = EVP_PKEY_CTX_set1_hkdf_key(pctx, key, sizeof(key));
+	if (ret <= 0) {
+		ERROR("Key Failed, ret:%x\n", ret);
+		goto out;
+	}
+
+	ret = EVP_PKEY_derive(pctx, out_key, &out_len);
+	if (ret <= 0) {
+		ERROR("Out Failed, ret:%x\n", ret);
+		goto out;
+	}
+
+	ret = bin2hex(out_key, sizeof(out_key), buf);
+	if (ret) {
+		ERROR("bin2hex key error\n");
+		goto out;
+	}
+
+out:
+	EVP_PKEY_CTX_free(pctx);
+	return ret;
 }

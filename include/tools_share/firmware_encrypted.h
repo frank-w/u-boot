@@ -31,6 +31,7 @@ enum fw_enc_status_t {
 
 struct fw_enc_hdr {
 	uint32_t magic;
+	uint32_t image_len;
 	uint16_t dec_algo;
 	uint16_t flags;
 	uint16_t iv_len;

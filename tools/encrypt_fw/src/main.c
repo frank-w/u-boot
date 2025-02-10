@@ -130,6 +130,10 @@ static const cmd_opt_t common_cmd_opt[] = {
 		{ "out", required_argument, NULL, 'o' },
 		"Encrypted output filename."
 	},
+	{
+		{ "salt", optional_argument, NULL, 's' },
+		"Key HKDF derive new key."
+	}
 };
 
 int main(int argc, char *argv[])
@@ -141,6 +145,8 @@ int main(int argc, char *argv[])
 	char *nonce = NULL;
 	char *in_fn = NULL;
 	char *out_fn = NULL;
+	char *salt = NULL;
+	char out[FIP_KEY_SIZE * 2 + 1] = { 0 };
 	unsigned short fw_enc_status = 0;
 
 	NOTICE("Firmware Encryption Tool: %s\n", build_msg);
@@ -158,7 +164,7 @@ int main(int argc, char *argv[])
 
 	while (1) {
 		/* getopt_long stores the option index here. */
-		c = getopt_long(argc, argv, "a:f:hi:k:n:o:", cmd_opt, &opt_idx);
+		c = getopt_long(argc, argv, "a:f:hi:k:n:o:s:", cmd_opt, &opt_idx);
 
 		/* Detect the end of the options. */
 		if (c == -1) {
@@ -187,6 +193,10 @@ int main(int argc, char *argv[])
 			break;
 		case 'n':
 			nonce = optarg;
+			break;
+		case 's':
+			salt = optarg;
+			memset(out, 0, sizeof(out));
 			break;
 		case 'h':
 			print_help(argv[0], cmd_opt);
@@ -218,7 +228,12 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	ret = encrypt_file(fw_enc_status, key_alg, key, nonce, in_fn, out_fn);
+	if (salt) {
+		do_hkdf(key, strlen(key), salt, strlen(salt), out, FIP_KEY_SIZE);
+		ret = encrypt_file(fw_enc_status, key_alg, out, nonce, in_fn, out_fn);
+	} else {
+		ret = encrypt_file(fw_enc_status, key_alg, key, nonce, in_fn, out_fn);
+	}
 
 	CRYPTO_cleanup_all_ex_data();
 

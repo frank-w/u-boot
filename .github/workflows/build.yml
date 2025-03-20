@@ -154,6 +154,22 @@ jobs:
           bash build.sh rename
           rm build.conf
 
+      - name: Build for BananaPi-R3 (RAM/EMMC)
+        run: |
+          git checkout ${{ env.BRANCH }}
+          echo -e "board=bpi-r3\ndevice=emmc" > build.conf
+          sed -i 's/^bootcmd/#bootcmd/' uEnv_r3.txt
+          bash build.sh importconfig
+          bash build.sh build
+          bash build.sh rename
+          git checkout build.conf uEnv_r3.txt
+
+          git checkout mtk-atf
+          echo -e "board=bpi-r3\ndevice=ram" > build.conf
+          bash build.sh build
+          bash build.sh rename
+          rm build.conf
+
       - name: Build for BananaPi-R3Mini (EMMC)
         run: |
           git checkout ${{ env.BRANCH }}
@@ -168,6 +184,22 @@ jobs:
           bash build.sh build
           bash build.sh rename
           bash build.sh createimg non-interactive
+          rm build.conf
+
+      - name: Build for BananaPi-R3Mini (RAM/EMMC)
+        run: |
+          git checkout ${{ env.BRANCH }}
+          echo -e "board=bpi-r3mini\ndevice=emmc" > build.conf
+          sed -i 's/^bootcmd/#bootcmd/' uEnv_r3.txt
+          bash build.sh importconfig
+          bash build.sh build
+          bash build.sh rename
+          git checkout build.conf uEnv_r3.txt
+
+          git checkout mtk-atf
+          echo -e "board=bpi-r3mini\ndevice=ram" > build.conf
+          bash build.sh build
+          bash build.sh rename
           rm build.conf
 
       - name: Build for BananaPi-R4 (SD)
@@ -213,6 +245,22 @@ jobs:
 
           git checkout mtk-atf
           echo -e "board=bpi-r4\ndevice=spim-nand" > build.conf
+          bash build.sh build
+          bash build.sh rename
+          rm build.conf
+
+      - name: Build for BananaPi-R4 (RAM/EMMC)
+        run: |
+          git checkout ${{ env.BRANCH }}
+          echo -e "board=bpi-r4\ndevice=emmc" > build.conf
+          sed -i 's/^bootcmd/#bootcmd/' uEnv_r4.txt
+          bash build.sh importconfig
+          bash build.sh build
+          bash build.sh rename
+          git checkout build.conf uEnv_r4.txt
+
+          git checkout mtk-atf
+          echo -e "board=bpi-r4\ndevice=ram" > build.conf
           bash build.sh build
           bash build.sh rename
           rm build.conf

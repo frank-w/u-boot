@@ -295,4 +295,5 @@ jobs:
             u-boot-r4*.bin
             *_fip.bin
             *_bl2.img
+            *ram_bl2.bin
             *.img.gz

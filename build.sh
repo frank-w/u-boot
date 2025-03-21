@@ -177,13 +177,17 @@ case $1 in
 		gzip $IMGDIR/$IMGNAME.img
 	;;
 	"rename")
+		extname=""
+		if [[ "$extraflags" =~ "UBI=1" ]];then
+			extname="_ubi"
+		fi
 		set -x
 		if [[ "$device" == "ram" ]];then
 			cp build/${PLAT}/release/bl2.bin ${board}_${device}_bl2.bin
 		else
-			cp build/${PLAT}/release/bl2.img ${board}_${device}_bl2.img
+			cp build/${PLAT}/release/bl2.img ${board}_${device}${extname}_bl2.img
 		fi
-		cp build/${PLAT}/release/fip.bin ${board}_${device}_fip.bin
+		cp build/${PLAT}/release/fip.bin ${board}_${device}${extname}_fip.bin
 		set +x
 	;;
 	"clean")

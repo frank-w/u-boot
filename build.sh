@@ -181,6 +181,9 @@ case $1 in
 		if [[ "$extraflags" =~ "UBI=1" ]];then
 			extname="_ubi"
 		fi
+		if [[ "$extraflags" =~ "DDR4_4BG_MODE=1" ]];then
+			extname="${extname}_8GB"
+		fi
 		set -x
 		if [[ "$device" == "ram" ]];then
 			cp build/${PLAT}/release/bl2.bin ${board}_${device}_bl2.bin

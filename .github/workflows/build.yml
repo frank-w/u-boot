@@ -240,6 +240,11 @@ jobs:
           bash build.sh build
           bash build.sh rename
           bash build.sh createimg non-interactive
+
+          echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
+          bash build.sh build
+          bash build.sh rename
+
           rm build.conf
 
       - name: Build for BananaPi-R4 (EMMC)
@@ -256,6 +261,11 @@ jobs:
           bash build.sh build
           bash build.sh rename
           bash build.sh createimg non-interactive
+
+          echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
+          bash build.sh build
+          bash build.sh rename
+
           rm build.conf
 
       - name: Build for BananaPi-R4 (NAND)
@@ -271,9 +281,19 @@ jobs:
           echo -e "board=bpi-r4\ndevice=spim-nand" > build.conf
           bash build.sh build
           bash build.sh rename
+
           echo -e "extraflags=UBI=1" >> build.conf
           bash build.sh build
           bash build.sh rename
+
+          echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
+          bash build.sh build
+          bash build.sh rename
+
+          echo -e "extraflags=UBI=1 DDR4_4BG_MODE=1" >> build.conf
+          bash build.sh build
+          bash build.sh rename
+
           rm build.conf
 
       - name: Build for BananaPi-R4 (RAM/EMMC)
@@ -290,6 +310,11 @@ jobs:
           echo -e "board=bpi-r4\ndevice=ram" > build.conf
           bash build.sh build
           bash build.sh rename
+
+          echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
+          bash build.sh build
+          bash build.sh rename
+
           rm build.conf
 
       - name: Upload binaries to release

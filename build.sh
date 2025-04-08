@@ -60,9 +60,13 @@ case $1 in
 	"build")
 		#make -f Makefile PLAT=mt7622 BOOT_DEVICE=sdmmc DDR3_FLYBY=1 all fip
 		#make -f Makefile PLAT=mt7986 BOOT_DEVICE=sdmmc DRAM_USE_DDR4=1 all fip
-                set -x
+		set -x
 		make $makeflags $mkimg BUILD_STRING=$version all fip
-                set +x
+		ret=$?
+		set +x
+		if [[ $ret -ne 0 ]];then
+			exit $ret
+		fi
 	;;
 	"install")
 		if [[ "$device" != "sdmmc" ]];then echo "$1 not supported for $device";exit 1;fi

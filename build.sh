@@ -25,6 +25,8 @@ case $device in
 	"spi-nor") device="nor";;
 esac
 
+version="$(git rev-parse --short HEAD)-${board}-${device}"
+
 #DEFCONFIG="mt7986_rfb_${device}_defconfig"
 
 case $board in
@@ -59,7 +61,7 @@ case $1 in
 		#make -f Makefile PLAT=mt7622 BOOT_DEVICE=sdmmc DDR3_FLYBY=1 all fip
 		#make -f Makefile PLAT=mt7986 BOOT_DEVICE=sdmmc DRAM_USE_DDR4=1 all fip
                 set -x
-		make $makeflags $mkimg all fip
+		make $makeflags $mkimg BUILD_STRING=$version all fip
                 set +x
 	;;
 	"install")

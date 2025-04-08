@@ -242,6 +242,7 @@ jobs:
           bash build.sh rename
           bash build.sh createimg non-interactive
 
+          rm -r ./build/mt7988/release/
           git checkout mtk-atf-2025
           echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
           bash build.sh build
@@ -264,6 +265,7 @@ jobs:
           bash build.sh rename
           bash build.sh createimg non-interactive
 
+          rm -r ./build/mt7988/release/
           git checkout mtk-atf-2025
           echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
           bash build.sh build
@@ -289,6 +291,7 @@ jobs:
           bash build.sh build
           bash build.sh rename
 
+          rm -r ./build/mt7988/release/
           git checkout mtk-atf-2025
           echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
           bash build.sh build
@@ -315,6 +318,7 @@ jobs:
           bash build.sh build
           bash build.sh rename
 
+          rm -r ./build/mt7988/release/
           git checkout mtk-atf-2025
           echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
           bash build.sh build

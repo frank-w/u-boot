@@ -52,6 +52,7 @@ jobs:
       - name: Fetch mtk-atf branch
         run: |
           git fetch origin mtk-atf
+          git fetch origin mtk-atf-2025
 
       - name: Build for BananaPi-R2
         run: |
@@ -241,6 +242,7 @@ jobs:
           bash build.sh rename
           bash build.sh createimg non-interactive
 
+          git checkout mtk-atf-2025
           echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
           bash build.sh build
           bash build.sh rename
@@ -262,6 +264,7 @@ jobs:
           bash build.sh rename
           bash build.sh createimg non-interactive
 
+          git checkout mtk-atf-2025
           echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
           bash build.sh build
           bash build.sh rename
@@ -286,6 +289,7 @@ jobs:
           bash build.sh build
           bash build.sh rename
 
+          git checkout mtk-atf-2025
           echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
           bash build.sh build
           bash build.sh rename
@@ -311,6 +315,7 @@ jobs:
           bash build.sh build
           bash build.sh rename
 
+          git checkout mtk-atf-2025
           echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
           bash build.sh build
           bash build.sh rename

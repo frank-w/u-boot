@@ -34,6 +34,12 @@ env erase
   ./build.sh umount #umount automatic mounted partitions
 ```
 
+## flash precompiled binaries
+
+e.g. for change my image (not tested for openwrt) to 8G-variant
+```sh
+sudo dd if=bpi-r4_sdmmc_8GB_bl2.img of=/dev/sdX1 conv=notrunc,fsync
+```
 ## building and flash image
 
 for all boards there are basic sdcard image templates created containing

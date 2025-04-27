@@ -366,7 +366,8 @@ static void __dead2 mtk_plat_system_off(void)
 	ERROR("Power-down unsupported.\n");
 	console_switch_state(CONSOLE_FLAG_RUNTIME);
 
-	mtk_plat_system_reset();
+	//mtk_plat_system_reset();
+	panic();
 }
 
 #pragma weak mtk_plat_system_reset2

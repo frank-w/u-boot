@@ -51,7 +51,6 @@ jobs:
 
       - name: Fetch mtk-atf branch
         run: |
-          git fetch origin mtk-atf
           git fetch origin mtk-atf-2025
 
       - name: Build for BananaPi-R2
@@ -70,7 +69,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf
 
-          git checkout mtk-atf
+          git checkout mtk-atf-2025
           echo -e "board=bpi-r64\ndevice=sdmmc" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -102,7 +101,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf
 
-          git checkout mtk-atf
+          git checkout mtk-atf-2025
           echo -e "board=bpi-r3\ndevice=sdmmc" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -118,7 +117,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf
 
-          git checkout mtk-atf
+          git checkout mtk-atf-2025
           echo -e "board=bpi-r3\ndevice=emmc" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -134,7 +133,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf
 
-          git checkout mtk-atf
+          git checkout mtk-atf-2025
           echo -e "board=bpi-r3\ndevice=spim-nand" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -152,7 +151,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf
 
-          git checkout mtk-atf
+          git checkout mtk-atf-2025
           echo -e "board=bpi-r3\ndevice=nor" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -171,7 +170,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf uEnv_r3.txt
 
-          git checkout mtk-atf
+          git checkout mtk-atf-2025
           echo -e "board=bpi-r3\ndevice=ram" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -186,7 +185,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf
 
-          git checkout mtk-atf
+          git checkout mtk-atf-2025
           echo -e "board=bpi-r3mini\ndevice=emmc" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -202,7 +201,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf
 
-          git checkout mtk-atf
+          git checkout mtk-atf-2025
           echo -e "board=bpi-r3mini\ndevice=spim-nand" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -221,7 +220,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf uEnv_r3.txt
 
-          git checkout mtk-atf
+          git checkout mtk-atf-2025
           echo -e "board=bpi-r3mini\ndevice=ram" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -236,14 +235,11 @@ jobs:
           bash build.sh rename
           git checkout build.conf
 
-          git checkout mtk-atf
+          git checkout mtk-atf-2025
           echo -e "board=bpi-r4\ndevice=sdmmc" > build.conf
           bash build.sh build
           bash build.sh rename
           bash build.sh createimg non-interactive
-
-          rm -r ./build/mt7988/release/
-          git checkout mtk-atf-2025
           echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
           bash build.sh build
           bash build.sh rename
@@ -252,7 +248,6 @@ jobs:
 
       - name: Build for BananaPi-R4 (EMMC)
         run: |
-          rm -r ./build/mt7988/release/
           git checkout ${{ env.BRANCH }}
           echo -e "board=bpi-r4\ndevice=emmc" > build.conf
           bash build.sh importconfig
@@ -260,14 +255,11 @@ jobs:
           bash build.sh rename
           git checkout build.conf
 
-          git checkout mtk-atf
+          git checkout mtk-atf-2025
           echo -e "board=bpi-r4\ndevice=emmc" > build.conf
           bash build.sh build
           bash build.sh rename
           bash build.sh createimg non-interactive
-
-          rm -r ./build/mt7988/release/
-          git checkout mtk-atf-2025
           echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
           bash build.sh build
           bash build.sh rename
@@ -276,7 +268,6 @@ jobs:
 
       - name: Build for BananaPi-R4 (NAND)
         run: |
-          rm -r ./build/mt7988/release/
           git checkout ${{ env.BRANCH }}
           echo -e "board=bpi-r4\ndevice=spi-nand" > build.conf
           bash build.sh importconfig
@@ -284,21 +275,16 @@ jobs:
           bash build.sh rename
           git checkout build.conf
 
-          git checkout mtk-atf
+          git checkout mtk-atf-2025
           echo -e "board=bpi-r4\ndevice=spim-nand" > build.conf
           bash build.sh build
           bash build.sh rename
-
           echo -e "extraflags=UBI=1" >> build.conf
           bash build.sh build
           bash build.sh rename
-
-          rm -r ./build/mt7988/release/
-          git checkout mtk-atf-2025
           echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
           bash build.sh build
           bash build.sh rename
-
           echo -e "extraflags='UBI=1 DDR4_4BG_MODE=1'" >> build.conf
           bash build.sh build
           bash build.sh rename
@@ -307,7 +293,6 @@ jobs:
 
       - name: Build for BananaPi-R4 (RAM/EMMC)
         run: |
-          rm -r ./build/mt7988/release/
           git checkout ${{ env.BRANCH }}
           echo -e "board=bpi-r4\ndevice=emmc" > build.conf
           sed -i 's/^bootcmd/#bootcmd/' uEnv_r4.txt
@@ -316,13 +301,10 @@ jobs:
           bash build.sh rename
           git checkout build.conf uEnv_r4.txt
 
-          git checkout mtk-atf
+          git checkout mtk-atf-2025
           echo -e "board=bpi-r4\ndevice=ram" > build.conf
           bash build.sh build
           bash build.sh rename
-
-          rm -r ./build/mt7988/release/
-          git checkout mtk-atf-2025
           echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
           bash build.sh build
           bash build.sh rename

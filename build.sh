@@ -54,6 +54,12 @@ case $1 in
 	#"defconfig")
 	#	nano configs/$DEFCONFIG
 	#;;
+	"clean")
+		set -x
+		make $makeflags realclean
+		ret=$?
+		set +x
+	;;
 	"config")
 		make menuconfig
 	;;

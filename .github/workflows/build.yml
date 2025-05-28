@@ -75,6 +75,7 @@ jobs:
           bash build.sh rename
           bash build.sh createimg non-interactive
 
+          make realclean
           echo -e "board=bpi-r64\ndevice=emmc" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -137,6 +138,7 @@ jobs:
           echo -e "board=bpi-r3\ndevice=spim-nand" > build.conf
           bash build.sh build
           bash build.sh rename
+          make realclean
           echo -e "extraflags=UBI=1" >> build.conf
           bash build.sh build
           bash build.sh rename
@@ -155,6 +157,7 @@ jobs:
           echo -e "board=bpi-r3\ndevice=nor" > build.conf
           bash build.sh build
           bash build.sh rename
+          make realclean
           echo -e "extraflags=UBI=1" >> build.conf
           bash build.sh build
           bash build.sh rename
@@ -205,6 +208,7 @@ jobs:
           echo -e "board=bpi-r3mini\ndevice=spim-nand" > build.conf
           bash build.sh build
           bash build.sh rename
+          make realclean
           echo -e "extraflags=UBI=1" >> build.conf
           bash build.sh build
           bash build.sh rename
@@ -240,6 +244,7 @@ jobs:
           bash build.sh build
           bash build.sh rename
           bash build.sh createimg non-interactive
+          make realclean
           echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
           bash build.sh build
           bash build.sh rename
@@ -260,6 +265,7 @@ jobs:
           bash build.sh build
           bash build.sh rename
           bash build.sh createimg non-interactive
+          make realclean
           echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
           bash build.sh build
           bash build.sh rename
@@ -279,12 +285,15 @@ jobs:
           echo -e "board=bpi-r4\ndevice=spim-nand" > build.conf
           bash build.sh build
           bash build.sh rename
+          make realclean
           echo -e "extraflags=UBI=1" >> build.conf
           bash build.sh build
           bash build.sh rename
+          make realclean
           echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
           bash build.sh build
           bash build.sh rename
+          make realclean
           echo -e "extraflags='UBI=1 DDR4_4BG_MODE=1'" >> build.conf
           bash build.sh build
           bash build.sh rename
@@ -305,6 +314,7 @@ jobs:
           echo -e "board=bpi-r4\ndevice=ram" > build.conf
           bash build.sh build
           bash build.sh rename
+          make realclean
           echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
           bash build.sh build
           bash build.sh rename

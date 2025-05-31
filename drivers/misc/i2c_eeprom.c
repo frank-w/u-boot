@@ -25,7 +25,7 @@ int i2c_eeprom_read(struct udevice *dev, int offset, uint8_t *buf, int size)
 {
 	const struct i2c_eeprom_ops *ops = device_get_ops(dev);
 
-	printf("%s:%d %s start\n",__FUNCTION__,__LINE__,dev->name);
+	printf("%s:%d %s read start offset 0x%x\n",__FUNCTION__,__LINE__,dev->name,offset);
 	if (!ops->read)
 		return -ENOSYS;
 	printf("%s:%d %s read end\n",__FUNCTION__,__LINE__,dev->name);
@@ -171,6 +171,13 @@ static int i2c_eeprom_std_probe(struct udevice *dev)
 	if (ret)
 		return -ENODEV;
 
+	if (dev->parent){
+		printf("%s:%d parent:%s\n",__FUNCTION__,__LINE__,dev->parent->name);
+
+		if (dev->parent->parent){
+			printf("%s:%d grand-parent:%s\n",__FUNCTION__,__LINE__,dev->parent->parent->name);
+		}
+	}
 	printf("%s:%d %s probe end\n",__FUNCTION__,__LINE__,dev->name);
 	return 0;
 }

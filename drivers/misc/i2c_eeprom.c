@@ -4,7 +4,7 @@
  */
 
 #define LOG_CATEGORY UCLASS_I2C_EEPROM
-
+#define DEBUG 1
 #include <linux/delay.h>
 #include <linux/err.h>
 #include <linux/kernel.h>
@@ -25,9 +25,10 @@ int i2c_eeprom_read(struct udevice *dev, int offset, uint8_t *buf, int size)
 {
 	const struct i2c_eeprom_ops *ops = device_get_ops(dev);
 
+	printf("%s:%d %s start\n",__FUNCTION__,__LINE__,dev->name);
 	if (!ops->read)
 		return -ENOSYS;
-
+	printf("%s:%d %s read end\n",__FUNCTION__,__LINE__,dev->name);
 	return ops->read(dev, offset, buf, size);
 }
 
@@ -154,6 +155,7 @@ static int i2c_eeprom_std_probe(struct udevice *dev)
 {
 	u8 test_byte;
 	int ret;
+	printf("%s:%d %s probe start\n",__FUNCTION__,__LINE__,dev->name);
 	struct i2c_eeprom_drv_data *data =
 		(struct i2c_eeprom_drv_data *)dev_get_driver_data(dev);
 
@@ -169,6 +171,7 @@ static int i2c_eeprom_std_probe(struct udevice *dev)
 	if (ret)
 		return -ENODEV;
 
+	printf("%s:%d %s probe end\n",__FUNCTION__,__LINE__,dev->name);
 	return 0;
 }
 

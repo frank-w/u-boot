@@ -4,7 +4,7 @@
  * Copyright (C) 2017 National Instruments Corp
  * Written by Michal Simek
  */
-
+#define DEBUG 1
 #include <dm.h>
 #include <errno.h>
 #include <i2c.h>
@@ -123,12 +123,13 @@ static int pca954x_select(struct udevice *mux, struct udevice *bus,
 	struct pca954x_priv *priv = dev_get_priv(mux);
 	const struct chip_desc *chip = &chips[dev_get_driver_data(mux)];
 	uchar byte;
-
+	printf("%s:%d %s select start bus %s channel:#%d\n",__FUNCTION__,__LINE__,mux->name,bus->name,channel);
 	if (chip->muxtype == pca954x_ismux)
 		byte = channel | chip->enable;
 	else
 		byte = 1 << channel;
 
+	printf("%s:%d %s select end\n",__FUNCTION__,__LINE__,mux->name);
 	return dm_i2c_write(mux, priv->addr, &byte, 1);
 }
 

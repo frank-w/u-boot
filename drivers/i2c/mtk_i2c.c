@@ -7,6 +7,7 @@
  * MediaTek I2C Interface driver
  */
 
+#define DEBUG 1
 #include <clk.h>
 #include <cpu_func.h>
 #include <dm.h>
@@ -696,6 +697,7 @@ static int mtk_i2c_transfer(struct udevice *dev, struct i2c_msg *msg,
 	uint num_cnt;
 	int ret;
 
+	printf("%s:%d %s transfer start\n",__FUNCTION__,__LINE__,dev->name);
 	priv->auto_restart = true;
 	left_num = nmsgs;
 	if (mtk_i2c_clk_enable(priv))
@@ -753,6 +755,7 @@ static int mtk_i2c_transfer(struct udevice *dev, struct i2c_msg *msg,
 		msg++;
 	}
 	ret = 0;
+	printf("%s:%d %s transfer end\n",__FUNCTION__,__LINE__,dev->name);
 
 err_exit:
 	if (mtk_i2c_clk_disable(priv))
@@ -785,6 +788,7 @@ static int mtk_i2c_probe(struct udevice *dev)
 {
 	struct mtk_i2c_priv *priv = dev_get_priv(dev);
 
+	printf("%s:%d %s probe start\n",__FUNCTION__,__LINE__,dev->name);
 	priv->soc_data = (struct mtk_i2c_soc_data *)dev_get_driver_data(dev);
 
 	if (mtk_i2c_clk_enable(priv))
@@ -794,6 +798,7 @@ static int mtk_i2c_probe(struct udevice *dev)
 	if (mtk_i2c_clk_disable(priv))
 		return log_msg_ret("probe disable clk", -1);
 
+	printf("%s:%d %s probe finish\n",__FUNCTION__,__LINE__,dev->name);
 	return 0;
 }
 

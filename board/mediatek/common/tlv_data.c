@@ -33,33 +33,35 @@
 static void set_mac_len(struct tlvinfo_tlv *tlv_entry,
                    struct tlv_data *td)
 {
-    uint16_t t_maclen;
+	uint16_t t_maclen;
 
-    memcpy(&t_maclen, tlv_entry->value, sizeof(t_maclen));
-    td->maclen = be16_to_cpu(t_maclen);
+	memcpy(&t_maclen, tlv_entry->value, sizeof(t_maclen));
+	td->maclen = be16_to_cpu(t_maclen);
 }
 
 static void set_mac_address(struct tlvinfo_tlv *tlv_entry,
                    struct tlv_data *td)
 {
-    u8 *mac;
-    mac = td->macbase;
+	u8 *mac;
+	mac = td->macbase;
 
-    memcpy(mac, tlv_entry->value, sizeof(mac));
+	memcpy(mac, tlv_entry->value, sizeof(mac));
 }
 
 static void set_mac_addr(struct tlv_data *td) {
-    int     i;
-    char    t_mac[18];
-    char    enetvar[11];
+	int     i;
+	char    t_mac[18];
+	char    enetvar[11];
 
-    for (i = 0; i < td->maclen; i++) {
-        snprintf(enetvar, sizeof(enetvar), i >= 1 ? "eth%daddr" : "ethaddr", i);
+	for (i = 0; i < td->maclen; i++) {
+		snprintf(enetvar, sizeof(enetvar), i >= 1 ? "eth%daddr" : "ethaddr", i);
 
-        if (i < 1) {
-            snprintf(t_mac, sizeof(t_mac), "%02X:%02X:%02X:%02X:%02X:%02X", td->macbase[0], td->macbase[1], td->macbase[2], td->macbase[3], td->macbase[4], td->macbase[5]);
-        } else {
-            td->macbase[5]++;
+		if (i < 1) {
+			snprintf(t_mac, sizeof(t_mac), "%02X:%02X:%02X:%02X:%02X:%02X",
+				td->macbase[0], td->macbase[1], td->macbase[2],
+				td->macbase[3], td->macbase[4], td->macbase[5]);
+		} else {
+			td->macbase[5]++;
 			if (td->macbase[5] == 0) {
 				td->macbase[4]++;
 				if (td->macbase[4] == 0) {
@@ -71,54 +73,57 @@ static void set_mac_addr(struct tlv_data *td) {
 					}
 				}
 			}
-            
-            snprintf(t_mac, sizeof(t_mac), "%02X:%02X:%02X:%02X:%02X:%02X", td->macbase[0], td->macbase[1], td->macbase[2], td->macbase[3], td->macbase[4], td->macbase[5]);
-        }
 
-        env_set(enetvar, t_mac);
-    }
+			snprintf(t_mac, sizeof(t_mac), "%02X:%02X:%02X:%02X:%02X:%02X",
+				td->macbase[0], td->macbase[1], td->macbase[2],
+				td->macbase[3], td->macbase[4], td->macbase[5]);
+		}
+
+		env_set(enetvar, t_mac);
+	}
 }
 
 static void parse_tlv_data(u8 *eeprom, struct tlvinfo_header *hdr,
                struct tlvinfo_tlv *entry, struct tlv_data *td)
 {
-    unsigned int tlv_offset, tlv_len;
+	unsigned int tlv_offset, tlv_len;
 
-    tlv_offset = sizeof(struct tlvinfo_header);
-    tlv_len = sizeof(struct tlvinfo_header) + be16_to_cpu(hdr->totallen);
-    while (tlv_offset < tlv_len) {
-        entry = (struct tlvinfo_tlv *)&eeprom[tlv_offset];
+	tlv_offset = sizeof(struct tlvinfo_header);
+	tlv_len = sizeof(struct tlvinfo_header) + be16_to_cpu(hdr->totallen);
 
-        switch (entry->type) {
-            case TLV_CODE_MAC_BASE:
-                set_mac_address(entry, td);
-                break;
-            case TLV_CODE_MAC_SIZE:
-                set_mac_len(entry, td);
-                break;
-            default:
-                break;
-        }
+	while (tlv_offset < tlv_len) {
+		entry = (struct tlvinfo_tlv *)&eeprom[tlv_offset];
 
-        tlv_offset += sizeof(struct tlvinfo_tlv) + entry->length;
-    }
+		switch (entry->type) {
+			case TLV_CODE_MAC_BASE:
+				set_mac_address(entry, td);
+				break;
+			case TLV_CODE_MAC_SIZE:
+				set_mac_len(entry, td);
+				break;
+			default:
+				break;
+		}
+
+		tlv_offset += sizeof(struct tlvinfo_tlv) + entry->length;
+	}
 }
 
 void read_tlv_data(struct tlv_data *td)
 {
-    u8 eeprom_data[TLV_TOTAL_LEN_MAX];
-    struct tlvinfo_header *tlv_hdr;
-    struct tlvinfo_tlv *tlv_entry;
-    int ret, i;
+	u8 eeprom_data[TLV_TOTAL_LEN_MAX];
+	struct tlvinfo_header *tlv_hdr;
+	struct tlvinfo_tlv *tlv_entry;
+	int ret, i;
 
-    for (i = 0; i < 2; i++) {
-        ret = read_tlvinfo_tlv_eeprom(eeprom_data, &tlv_hdr,
-                          &tlv_entry, i);
-        if (ret < 0)
-            continue;
+	for (i = 0; i < 2; i++) {
+		ret = read_tlvinfo_tlv_eeprom(eeprom_data, &tlv_hdr,
+			&tlv_entry, i);
+		if (ret < 0)
+			continue;
 
-        parse_tlv_data(eeprom_data, tlv_hdr, tlv_entry, td);
+		parse_tlv_data(eeprom_data, tlv_hdr, tlv_entry, td);
 
-        set_mac_addr(td);
-    }
+		set_mac_addr(td);
+	}
 }

@@ -37,6 +37,7 @@ static void set_mac_len(struct tlvinfo_tlv *tlv_entry,
 
 	memcpy(&t_maclen, tlv_entry->value, sizeof(t_maclen));
 	td->maclen = be16_to_cpu(t_maclen);
+	printf("mac-len: %d\n", td->maclen);
 }
 
 static void set_mac_address(struct tlvinfo_tlv *tlv_entry,
@@ -53,6 +54,9 @@ static void set_mac_addr(struct tlv_data *td) {
 	char    t_mac[18];
 	char    enetvar[11];
 
+	printf("mac-len (set_mac_addr): %d\n", td->maclen);
+
+	if (td->maclen>5) {td->maclen=5;} //limit the mac-count
 	for (i = 0; i < td->maclen; i++) {
 		snprintf(enetvar, sizeof(enetvar), i >= 1 ? "eth%daddr" : "ethaddr", i);
 
@@ -78,6 +82,7 @@ static void set_mac_addr(struct tlv_data *td) {
 				td->macbase[0], td->macbase[1], td->macbase[2],
 				td->macbase[3], td->macbase[4], td->macbase[5]);
 		}
+		printf("set_mac_addr i: %d var: %s mac: %s\n",i,enetvar,t_mac);
 
 		env_set(enetvar, t_mac);
 	}
@@ -94,6 +99,7 @@ static void parse_tlv_data(u8 *eeprom, struct tlvinfo_header *hdr,
 	while (tlv_offset < tlv_len) {
 		entry = (struct tlvinfo_tlv *)&eeprom[tlv_offset];
 
+		printf("offset: 0x%x code: 0x%x\n", tlv_offset,entry->type);
 		switch (entry->type) {
 			case TLV_CODE_MAC_BASE:
 				set_mac_address(entry, td);
@@ -104,9 +110,10 @@ static void parse_tlv_data(u8 *eeprom, struct tlvinfo_header *hdr,
 			default:
 				break;
 		}
-
+		printf("mac-len (parse_tlv_data): %d\n", td->maclen);
 		tlv_offset += sizeof(struct tlvinfo_tlv) + entry->length;
 	}
+	printf("mac-len (parse_tlv_data - after loop): %d\n", td->maclen);
 }
 
 void read_tlv_data(struct tlv_data *td)
@@ -123,7 +130,7 @@ void read_tlv_data(struct tlv_data *td)
 			continue;
 
 		parse_tlv_data(eeprom_data, tlv_hdr, tlv_entry, td);
-
+		printf("mac-len (read_tlv_data): %d\n", td->maclen);
 		set_mac_addr(td);
 	}
 }

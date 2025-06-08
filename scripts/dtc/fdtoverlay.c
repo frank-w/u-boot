@@ -94,10 +94,10 @@ static int do_fdtoverlay(const char *input_filename,
 {
 	char *blob = NULL;
 	char **ovblob = NULL;
-	size_t buf_len;
+	off_t buf_len;
 	int i, ret = -1;
 
-	blob = utilfdt_read(input_filename, &buf_len);
+	blob = utilfdt_read_len(input_filename, &buf_len);
 	if (!blob) {
 		fprintf(stderr, "\nFailed to read '%s'\n", input_filename);
 		goto out_err;
@@ -115,8 +115,8 @@ static int do_fdtoverlay(const char *input_filename,
 
 	/* read and keep track of the overlay blobs */
 	for (i = 0; i < argc; i++) {
-		size_t ov_len;
-		ovblob[i] = utilfdt_read(argv[i], &ov_len);
+		off_t ov_len;
+		ovblob[i] = utilfdt_read_len(argv[i], &ov_len);
 		if (!ovblob[i]) {
 			fprintf(stderr, "\nFailed to read '%s'\n", argv[i]);
 			goto out_err;
@@ -133,8 +133,9 @@ static int do_fdtoverlay(const char *input_filename,
 	buf_len = fdt_totalsize(blob);
 
 	/* apply the overlays in sequence */
+	size_t b_len=buf_len; //cast from off_t (long int) to size_t (long unsigned int)
 	for (i = 0; i < argc; i++) {
-		blob = apply_one(blob, ovblob[i], &buf_len, argv[i]);
+		blob = apply_one(blob, ovblob[i], &b_len, argv[i]);
 		if (!blob)
 			goto out_err;
 	}

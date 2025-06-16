@@ -59,9 +59,9 @@ bootcmd=setenv bootdelay 3; run reloadmenu;
 png=ping ${serverip}
 
 #Netboot
-ipaddr=192.168.0.11
+ipaddr=192.168.0.18
 netmask=255.255.255.0
-serverip=192.168.0.10
+serverip=192.168.0.11
 
 bootfile=uImage
 ubootfile=u-boot.bin
@@ -77,7 +77,7 @@ bootnet=run lstftp;run askkernel;if printenv kernelinput ;then setenv bootfile "
 ubootnet=run lstftpu;run askuboot;if printenv ubootinput ;then setenv ubootfile "${ubootinput}"; fi; if tftp ${ubootaddr} ${ubootfile};then icache off;dcache off;go ${ubootaddr};fi
 
 #NFS
-nfsip=192.168.0.10
+nfsip=192.168.0.11
 nfsrfs=/var/nfs/bpi-r2
 setnfsargs=setenv netbootargs "root=/dev/nfs rw nfsroot=${nfsip}:${nfsrfs},nfsvers=3,tcp nfsrootdebug";
 bootnfs=run setnfsargs bootnet

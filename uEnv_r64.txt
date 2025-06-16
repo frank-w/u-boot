@@ -48,7 +48,7 @@ newboot=run buildargs;if printenv fit;then setenv kernel ${fit};if run loadkerne
 #netboot
 ipaddr=192.168.0.19
 netmask=255.255.255.0
-serverip=192.168.0.10
+serverip=192.168.0.11
 #bootfile=uImage_5.4.0-r64-main_mt7531-sata
 #bootdtbfile=5.4.0-r64-main_mt7531-sata.dtb
 

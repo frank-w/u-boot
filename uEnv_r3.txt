@@ -30,7 +30,7 @@ nvme_root=/dev/nvme0n1p2
 #netboot
 ipaddr=192.168.0.19
 netmask=255.255.255.0
-serverip=192.168.0.10
+serverip=192.168.0.11
 
 lstftp=if tftp ${loadaddr} ${serverip}:r3-itbfiles.lst;then setexpr listend ${loadaddr} + ${filesize};mw.b ${listend} 00 2;strings ${loadaddr};else echo "tftp download failed";fi
 askkernel=askenv kernelinput "enter kernel-name:";

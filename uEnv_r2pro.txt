@@ -15,7 +15,8 @@ ramdisk_addr_r=0x0a200000
 distro_bootcmd=bootflow scan -lb
 
 ipaddr=192.168.0.19
-serverip=192.168.0.10
+netmask=255.255.255.0
+serverip=192.168.0.11
 
 #console=earlyprintk console=ttyS0,115200
 root=/dev/mmcblk0p3 rootfstype=ext4 rootwait

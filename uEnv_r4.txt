@@ -26,6 +26,9 @@ usb_part=0:1
 nvme_boot=0:1
 nvme_root=/dev/nvme0n1p2
 
+ubi_part=0:3
+ubi_partname=rootfs
+
 #netboot
 ipaddr=192.168.0.19
 netmask=255.255.255.0
@@ -41,20 +44,22 @@ bootnetfit=run buildargs;if tftp $kaddr ${bootfile}; then bootm $kaddr;fi
 bootfile=bpi-r4.itb
 
 checkenv=test -e ${device} ${partition} ${bootenv}
-loadenvfile=if fatload ${device} ${partition} ${loadaddr} ${bootenv};then env import -t ${loadaddr} ${filesize};else echo "fatload (${bootenv}) failed";fi
+loadenvfile=if load ${device} ${partition} ${loadaddr} ${bootenv};then env import -t ${loadaddr} ${filesize};else echo "load (${bootenv}) failed";fi
 loadenv=if run checkenv;then run loadenvfile;fi
 resetenv=env default -a;printenv;
 
-loadkernel=fatload $device $partition $kaddr ${kernel}
+loadkernel=load $device $partition $kaddr ${kernel}
 buildargs=setenv bootargs "board=${board} console=${console} root=${root} ${bootopts}
 
 useusb=if usb info; then usb reset;else usb start;fi; if ls usb $usb_part $usb_path; then setenv device usb;setenv partition $usb_part;fi
 usenvme=pci enum; nvme scan;nvme info; if ls nvme $nvme_boot;then setenv device "nvme";setenv partition $nvme_boot;setenv root $nvme_root;else echo "nvme partition not found";fi
+useubi=ubi part ubi;ubifsmount ubi0:$ubi_partname;if ls ubi $ubi_part;then setenv device "ubi";setenv partition $ubi_part;else echo "ubi partition $ubi_part not found";fi
+umountubi=if test $device == "ubi";then ubifsumount;fi
 
 useinitrd=setenv bootopts "${bootopts} initrd=${rdaddr},100M";
-checkrd=if printenv initrd;then if fatload ${device} ${partition} ${rdaddr} ${initrd};then run useinitrd;fi;fi
+checkrd=if printenv initrd;then if load ${device} ${partition} ${rdaddr} ${initrd};then run useinitrd;fi;fi
 
-newboot=run checkrd; run setbootconf; run buildargs;if printenv fit;then setenv kernel ${fit};if run loadkernel; then bootm ${kaddr}${bootconf}; fi;fi;
+newboot=run checkrd; run setbootconf; run buildargs;if printenv fit;then setenv kernel ${fit};if run loadkernel; then run umountubi; bootm ${kaddr}${bootconf}; fi;fi;
 bootnetfit=run checkrd; run setbootconf;run buildargs;if tftp $kaddr ${bootfile}; then bootm ${kaddr}${bootconf};fi
 
 checkmmc=if mmc partconf 0; then echo "emmc available";mmcdev="emmc";else echo "sd available";mmcdev="sd";fi

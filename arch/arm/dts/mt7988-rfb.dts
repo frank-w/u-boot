@@ -242,6 +242,22 @@
 		spi-max-frequency = <52000000>;
 		spi-rx-bus-width = <4>;
 		spi-tx-bus-width = <4>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@0 {
+				label = "bl2";
+				reg = <0x0 0x200000>;
+			};
+
+			partition@200000 {
+				label = "ubi";
+				reg = <0x200000 0x7e00000>;
+			};
+		};
 	};
 };
 

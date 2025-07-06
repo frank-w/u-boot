@@ -198,7 +198,7 @@ case $1 in
 		fi
 		set -x
 		if [[ "$device" == "ram" ]];then
-			cp build/${PLAT}/release/bl2.bin ${board}_${device}_bl2.bin
+			cp build/${PLAT}/release/bl2.bin ${board}_${device}${extname}_bl2.bin
 		else
 			cp build/${PLAT}/release/bl2.img ${board}_${device}${extname}_bl2.img
 		fi

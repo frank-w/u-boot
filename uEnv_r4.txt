@@ -69,7 +69,7 @@ checksata=if test -n "$sata_en" && test $sata_en -eq 1;then setenv satacfg "#sat
 checkwifi=if test -n "$wifi_en" && test $wifi_en -eq 1;then setenv wificfg "#wifi"; fi
 check2g5=if test -n "$is2g5" && test $is2g5 -eq 1;then setenv variant "-2g5"; fi
 checkr4pro=if test -n "$isr4pro" && test $isr4pro -eq 1;then setenv variant "-r4pro"; fi
-setbootconf=run check2g5;run checkmmc;run checksata;run checkwifi;setenv bootconf "#conf-base$variant#ov-$mmcdev$version$wificfg$satacfg";printenv bootconf
+setbootconf=run check2g5;run checkr4pro;run checkmmc;run checksata;run checkwifi;setenv bootconf "#conf-base$variant#ov-$mmcdev$version$wificfg$satacfg";printenv bootconf
 
 wrspimnand=if printenv bl2file;then if fatload $device $partition $loadaddr $bl2file;then mtd erase spi-nand0 0x0 0x100000;mtd write spi-nand0 $loadaddr 0x0 0x100000;else echo "loading bl2 $bl2file failed";fi;else echo "bl2file not defined";fi;if printenv fipfile;then if fatload $device $partition $loadaddr $fipfile;then mtd erase spi-nand0 0x580000 0x200000;mtd write spi-nand0 $loadaddr 0x580000 0x200000;else echo "loading fip $fipfile failed";fi;else echo "fipfile not defined";fi
 wremmc=if printenv bl2file;then mmc partconf 0 1 1 1;if fatload $device $partition $loadaddr $bl2file;then mmc erase 0x0 0x400;mmc write ${loadaddr} 0x0 0x400;else echo "loading bl2 $bl2file failed";fi;else echo "bl2file not defined";fi;mmc partconf 0 1 1 0;if printenv fipfile;then if fatload $device $partition $loadaddr $fipfile;then mmc erase 0x3400 0x1000;mmc write ${loadaddr} 0x3400 0x1000;else echo "loading fip $fipfile failed";fi;else echo "fipfile not defined";fi

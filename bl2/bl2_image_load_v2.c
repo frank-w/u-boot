@@ -18,6 +18,11 @@
 
 #include <platform_def.h>
 
+#ifdef DUAL_FIP
+void bl2_plat_handle_post_image_load_err(unsigned int image_id);
+int mtk_fip_image_setup_next_slot(void);
+#endif
+
 /*******************************************************************************
  * This function loads SCP_BL2/BL3x images and returns the ep_info for
  * the next executable image.
@@ -29,6 +34,14 @@ struct entry_point_info *bl2_load_images(void)
 	const bl_load_info_node_t *bl2_node_info;
 	int plat_setup_done = 0;
 	int err;
+
+#ifdef DUAL_FIP
+	bool dual_fip_retry = true;
+	int ret;
+
+retry:
+	plat_setup_done = 0;
+#endif
 
 	/*
 	 * Get information about the images to load.
@@ -71,6 +84,19 @@ struct entry_point_info *bl2_load_images(void)
 			if (err != 0) {
 				ERROR("BL2: Failed to load image id %u (%i)\n",
 				      bl2_node_info->image_id, err);
+#ifdef DUAL_FIP
+				if (dual_fip_retry) {
+					/* Restore image info */
+					bl2_plat_handle_post_image_load_err(bl2_node_info->image_id);
+
+					/* Try next FIP slot */
+					ret = mtk_fip_image_setup_next_slot();
+					if (!ret) {
+						dual_fip_retry = false;
+						goto retry;
+					}
+				}
+#endif
 				plat_error_handler(err);
 			}
 		} else {

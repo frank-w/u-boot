@@ -20,5 +20,6 @@ void image_decompress_init(uintptr_t buf_base, uint32_t buf_size,
 			   decompressor_t *decompressor);
 void image_decompress_prepare(struct image_info *info);
 int image_decompress(struct image_info *info);
+void image_decompress_restore(struct image_info *info);
 
 #endif /* IMAGE_DECOMPRESS_H */

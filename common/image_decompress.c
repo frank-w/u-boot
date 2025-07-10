@@ -78,3 +78,8 @@ int image_decompress(struct image_info *info)
 
 	return 0;
 }
+
+void image_decompress_restore(struct image_info *info)
+{
+	*info = saved_image_info;
+}

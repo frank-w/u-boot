@@ -98,6 +98,7 @@ static int load_image(unsigned int image_id, image_info_t *image_data)
 	if (io_result != 0) {
 		WARN("Failed to access image id=%u (%i)\n",
 			image_id, io_result);
+		(void)io_dev_close(dev_handle);
 		return io_result;
 	}
 

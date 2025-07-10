@@ -42,6 +42,15 @@ static void version_usage(int);
 static int help_cmd(int argc, char *argv[]);
 static void usage(void);
 
+#ifdef MTK_FIP_CHKSUM
+void mtk_fip_chksum_init(void);
+void mtk_fip_chksum_update(const void *buf, size_t len);
+void mtk_fip_chksum_update_zero(size_t len);
+void mtk_fip_chksum_finish(void *buf);
+
+static const uuid_t mtk_chksum_uuid = UUID_MTK_FIP_CHECKSUM;
+#endif
+
 /* Available subcommands. */
 static cmd_t cmds[] = {
 	{ .name = "info",    .handler = info_cmd,    .usage = info_usage    },
@@ -424,6 +433,24 @@ static image_t *read_image_from_file(const uuid_t *uuid, const char *filename)
 	return image;
 }
 
+#ifdef MTK_FIP_CHKSUM
+static image_t *gen_image_with_zero_data(const uuid_t *uuid, size_t len)
+{
+	image_t *image;
+
+	assert(uuid != NULL);
+	assert(len);
+
+	image = xzalloc(sizeof(*image), "failed to allocate memory for image");
+	image->toc_e.uuid = *uuid;
+	image->buffer = xmalloc(len, "failed to allocate image buffer");
+	memset(image->buffer, 0, len);
+	image->toc_e.size = len;
+
+	return image;
+}
+#endif
+
 static int write_image_to_file(const image_t *image, const char *filename)
 {
 	FILE *fp;
@@ -538,6 +565,10 @@ static int pack_images(const char *filename, uint64_t toc_flags, unsigned long a
 	uint64_t entry_offset, buf_size, payload_size = 0, pad_size;
 	size_t nr_images = 0;
 
+#ifdef MTK_FIP_CHKSUM
+	mtk_fip_chksum_init();
+#endif
+
 	for (desc = image_desc_head; desc != NULL; desc = desc->next)
 		if (desc->image != NULL)
 			nr_images++;
@@ -585,6 +616,10 @@ static int pack_images(const char *filename, uint64_t toc_flags, unsigned long a
 	if (verbose)
 		log_dbgx("Metadata size: %zu bytes", buf_size);
 
+#ifdef MTK_FIP_CHKSUM
+	mtk_fip_chksum_update(buf, buf_size);
+#endif
+
 	xfwrite(buf, buf_size, fp, filename);
 
 	if (verbose)
@@ -593,10 +628,30 @@ static int pack_images(const char *filename, uint64_t toc_flags, unsigned long a
 	for (desc = image_desc_head; desc != NULL; desc = desc->next) {
 		image_t *image = desc->image;
 
+#ifdef MTK_FIP_CHKSUM
+		long last_offs;
+
+		last_offs = ftell(fp);
+		if (last_offs < 0)
+			log_errx("Failed to get file position");
+#endif
+
 		if (image == NULL)
 			continue;
 		if (fseek(fp, image->toc_e.offset_address, SEEK_SET))
 			log_errx("Failed to set file position");
+
+#ifdef MTK_FIP_CHKSUM
+		if (image->toc_e.offset_address > (unsigned long)last_offs)
+			mtk_fip_chksum_update_zero(image->toc_e.offset_address - last_offs);
+
+		if (!memcmp(&image->toc_e.uuid, &mtk_chksum_uuid,
+			    sizeof(mtk_chksum_uuid))) {
+			mtk_fip_chksum_finish(image->buffer);
+		} else {
+			mtk_fip_chksum_update(image->buffer, image->toc_e.size);
+		}
+#endif
 
 		xfwrite(image->buffer, image->toc_e.size, fp, filename);
 	}
@@ -631,8 +686,18 @@ static void update_fip(void)
 		if (desc->action != DO_PACK)
 			continue;
 
-		image = read_image_from_file(&desc->uuid,
-		    desc->action_arg);
+#ifdef MTK_FIP_CHKSUM
+		if (!memcmp(&desc->uuid, &mtk_chksum_uuid,
+			    sizeof(mtk_chksum_uuid))) {
+			image = gen_image_with_zero_data(&desc->uuid,
+					sizeof(struct mtk_fip_checksum));
+		} else
+#endif
+		{
+			image = read_image_from_file(&desc->uuid,
+			    desc->action_arg);
+		}
+
 		if (desc->image != NULL) {
 			if (verbose) {
 				log_dbgx("Replacing %s with %s",
@@ -702,6 +767,7 @@ static int create_cmd(int argc, char *argv[])
 	size_t nr_opts = 0;
 	unsigned long long toc_flags = 0;
 	unsigned long align = 1;
+	image_desc_t *desc;
 
 	if (argc < 2)
 		create_usage(EXIT_FAILURE);
@@ -722,7 +788,12 @@ static int create_cmd(int argc, char *argv[])
 
 		switch (c) {
 		case OPT_TOC_ENTRY: {
-			image_desc_t *desc;
+#ifdef MTK_FIP_CHKSUM
+			if (!strcmp(opts[opt_index].name, "fip-chksum")) {
+				fprintf(stderr, "Please don't specify --fip-chksum manually\n");
+				exit(1);
+			}
+#endif
 
 			desc = lookup_image_desc_from_opt(opts[opt_index].name);
 			set_image_desc_action(desc, DO_PACK, optarg);
@@ -767,6 +838,11 @@ static int create_cmd(int argc, char *argv[])
 	if (argc == 0)
 		create_usage(EXIT_SUCCESS);
 
+#ifdef MTK_FIP_CHKSUM
+	desc = lookup_image_desc_from_opt("fip-chksum");
+	set_image_desc_action(desc, DO_PACK, NULL);
+#endif
+
 	update_fip();
 
 	pack_images(argv[0], toc_flags, align);
@@ -806,6 +882,7 @@ static int update_cmd(int argc, char *argv[])
 	unsigned long long toc_flags = 0;
 	unsigned long align = 1;
 	int pflag = 0;
+	image_desc_t *desc;
 
 	if (argc < 2)
 		update_usage(EXIT_FAILURE);
@@ -827,7 +904,12 @@ static int update_cmd(int argc, char *argv[])
 
 		switch (c) {
 		case OPT_TOC_ENTRY: {
-			image_desc_t *desc;
+#ifdef MTK_FIP_CHKSUM
+			if (!strcmp(opts[opt_index].name, "fip-chksum")) {
+				fprintf(stderr, "Please don't specify --fip-chksum manually\n");
+				exit(1);
+			}
+#endif
 
 			desc = lookup_image_desc_from_opt(opts[opt_index].name);
 			set_image_desc_action(desc, DO_PACK, optarg);
@@ -875,6 +957,11 @@ static int update_cmd(int argc, char *argv[])
 
 	if (argc == 0)
 		update_usage(EXIT_SUCCESS);
+
+#ifdef MTK_FIP_CHKSUM
+	desc = lookup_image_desc_from_opt("fip-chksum");
+	set_image_desc_action(desc, DO_PACK, NULL);
+#endif
 
 	if (outfile[0] == '\0')
 		snprintf(outfile, sizeof(outfile), "%s", argv[0]);
@@ -1090,6 +1177,13 @@ static int remove_cmd(int argc, char *argv[])
 		case OPT_TOC_ENTRY: {
 			image_desc_t *desc;
 
+#ifdef MTK_FIP_CHKSUM
+			if (!strcmp(opts[opt_index].name, "fip-chksum")) {
+				fprintf(stderr, "Please don't specify --fip-chksum manually\n");
+				exit(1);
+			}
+#endif
+
 			desc = lookup_image_desc_from_opt(opts[opt_index].name);
 			set_image_desc_action(desc, DO_REMOVE, NULL);
 			break;
@@ -1133,6 +1227,11 @@ static int remove_cmd(int argc, char *argv[])
 
 	if (argc == 0)
 		remove_usage(EXIT_SUCCESS);
+
+#ifdef MTK_FIP_CHKSUM
+	desc = lookup_image_desc_from_opt("fip-chksum");
+	set_image_desc_action(desc, DO_PACK, NULL);
+#endif
 
 	if (outfile[0] != '\0' && access(outfile, F_OK) == 0 && !fflag)
 		log_errx("File %s already exists, use --force to overwrite it",

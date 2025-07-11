@@ -138,6 +138,44 @@ static int mmc_device_state(void)
 	return MMC_GET_STATE(resp_data[0]);
 }
 
+/* Customize polling function for eMMC CMD6 */
+static int mmc_device_state_cmd6(void)
+{
+	unsigned int gen_cmd6_time = mmc_ext_csd[CMD_EXTCSD_GEN_CMD6_TIME];
+	unsigned int max_wait_us = gen_cmd6_time ?
+				   (gen_cmd6_time * 10 * 1000) : 20000;
+	uint64_t timeout = timeout_init_us(max_wait_us);
+	unsigned int resp_data[4] = {0};
+	int ret;
+
+	do {
+		if (timeout_elapsed(timeout)) {
+			ERROR("Device not ready after %u ms\n",
+			      max_wait_us / 1000);
+			return -EIO;
+		}
+
+		ret = mmc_send_cmd(MMC_CMD(13), rca << RCA_SHIFT_OFFSET,
+				   MMC_RESPONSE_R1, &resp_data[0]);
+		if (ret != 0) {
+			udelay(100);
+			continue;
+		}
+
+		if ((resp_data[0] & STATUS_SWITCH_ERROR) != 0U) {
+			return -EIO;
+		}
+
+		if ((resp_data[0] & STATUS_READY_FOR_DATA) != 0U) {
+			break;
+		}
+
+		udelay(100);
+	} while (1);
+
+	return MMC_GET_STATE(resp_data[0]);
+}
+
 static int mmc_send_part_switch_cmd(unsigned char part_config)
 {
 	int ret;
@@ -159,7 +197,7 @@ static int mmc_send_part_switch_cmd(unsigned char part_config)
 	mdelay(part_time);
 
 	do {
-		ret = mmc_device_state();
+		ret = mmc_device_state_cmd6();
 		if (ret < 0) {
 			return ret;
 		}
@@ -181,7 +219,7 @@ static int mmc_set_ext_csd(unsigned int ext_cmd, unsigned int value)
 	}
 
 	do {
-		ret = mmc_device_state();
+		ret = mmc_device_state_cmd6();
 		if (ret < 0) {
 			return ret;
 		}
@@ -572,14 +610,23 @@ static int mmc_enumerate(unsigned int clk, unsigned int bus_width)
 		}
 	} while (ret != MMC_STATE_TRAN);
 
-	ret = mmc_set_ios(clk, bus_width);
-	if (ret != 0) {
-		return ret;
+	if (mmc_dev_info->mmc_dev_type != MMC_IS_EMMC) {
+		ret = mmc_set_ios(clk, bus_width);
+		if (ret != 0) {
+			return ret;
+		}
 	}
 
 	ret = mmc_fill_device_info();
 	if (ret != 0) {
 		return ret;
+	}
+
+	if (mmc_dev_info->mmc_dev_type == MMC_IS_EMMC) {
+		ret = mmc_set_ios(clk, bus_width);
+		if (ret != 0) {
+			return ret;
+		}
 	}
 
 	if (is_sd_cmd6_enabled() &&

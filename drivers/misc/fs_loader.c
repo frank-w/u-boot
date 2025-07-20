@@ -228,6 +228,65 @@ int request_firmware_into_buf(struct udevice *dev,
 	return ret;
 }
 
+/**
+ * request_firmware_into_buf_via_env - Load firmware using environment variables.
+ * @dev: An instance of a driver.
+ * @buf: Address of buffer to load firmware into.
+ * @offset: Offset of a file for start reading into buffer.
+ * @fw_index: Index of the firmware entry to load.
+ *
+ * This function loads firmware into the provided buffer using environment
+ * variables to determine the firmware file path, address, and size. It supports
+ * multiple firmware entries by using indexed environment variable names such as
+ * "fw_dir0", "fw_size0", etc.
+ *
+ * Return: Size of total read, negative value when error.
+ */
+int request_firmware_into_buf_via_env(struct udevice *dev,
+				      void *buf, u32 offset,
+				      unsigned int fw_index)
+{
+	char var_name[32];
+	size_t size;
+	int ret;
+
+	for (unsigned int index = 0; index < fw_index; index++) {
+		snprintf(var_name, sizeof(var_name), "fw_dir%u", index);
+		const char *name = env_get(var_name);
+
+		if (!name) {
+			printf("Error: env var %s not set.\n", var_name);
+			goto fail;
+		}
+
+		snprintf(var_name, sizeof(var_name), "fw_size%u", index);
+		size = env_get_hex(var_name, 0);
+		if (!size) {
+			printf("Error: env var %s is invalid or zero.\n", var_name);
+			goto fail;
+		}
+
+		ret = request_firmware_into_buf(dev, name, buf, size, offset);
+		if (ret < 0) {
+			printf("Error: Failed to load firmware %s, size 0x%zx.\n",
+			       name, size);
+			return ret;
+		}
+
+		buf = (void *)((uintptr_t)buf + size);
+	}
+
+	return 0;
+fail:
+	printf("Error: Failed to load firmware via environment variables.\n"
+	       "Set these environment variables for each firmware index:\n"
+	       "  fw_dirN   - path to firmware file (e.g., fw_dir0)\n"
+	       "  fw_sizeN  - size of firmware (e.g., fw_size0)\n"
+	       "Where N is the firmware index (0, 1, ...).\n");
+
+	return -EINVAL;
+}
+
 static int fs_loader_of_to_plat(struct udevice *dev)
 {
 	u32 phandlepart[2];

@@ -27,6 +27,13 @@ usb_part=0:1
 nvme_boot=0:1
 nvme_root=/dev/nvme0n1p2
 
+en8811h_fw_part=0:6
+en8811h_fw_dm_dir=/lib/firmware/airoha/EthMD32.dm.bin
+en8811h_fw_dsp_dir=/lib/firmware/airoha/EthMD32.DSP.bin
+en8811h_load_firmware_addr=0x46000000
+en8811h_load_firmware_size=0x24000
+en8811h_load_firmware=mw.b ${en8811h_load_firmware_addr} 0 ${en8811h_load_firmware_size} && load mmc ${en8811h_fw_part} 0x46000000 ${en8811h_fw_dm_dir} && if test ${filesize} -eq 4000; then setexpr nextaddr ${en8811h_load_firmware_addr} + ${filesize}; load mmc ${en8811h_fw_part} ${nextaddr} ${en8811h_fw_dsp_dir}; else echo "loading MD32 FW failed"; env set en8811h_load_firmware_size 0; exit 1;fi
+
 #netboot
 ipaddr=192.168.0.19
 netmask=255.255.255.0

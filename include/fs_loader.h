@@ -64,4 +64,22 @@ int request_firmware_into_buf(struct udevice *dev,
  * Return: 0 on success, negative value on error
  */
 int get_fs_loader(struct udevice **dev);
+
+/**
+ * request_firmware_into_buf_via_env - Load firmware using environment variables.
+ * @dev: An instance of a driver.
+ * @buf: Address of buffer to load firmware into.
+ * @offset: Offset of a file for start reading into buffer.
+ * @fw_index: Index of the firmware entry to load.
+ *
+ * This function loads firmware into the provided buffer using environment
+ * variables to determine the firmware file path, address, and size. It supports
+ * multiple firmware entries by using indexed environment variable names such as
+ * "fw_dir0", "fw_size0", etc.
+ *
+ * Return: Size of total read, negative value when error.
+ */
+int request_firmware_into_buf_via_env(struct udevice *dev,
+				      void *buf, u32 offset,
+				      unsigned int fw_index);
 #endif

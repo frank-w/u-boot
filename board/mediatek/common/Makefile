@@ -2,4 +2,5 @@
 #
 # Copyright (C) Semenets V. Pavel
 
+obj-$(CONFIG_TARGET_MT7986) += tlv_data.o
 obj-$(CONFIG_TARGET_MT7988) += tlv_data.o

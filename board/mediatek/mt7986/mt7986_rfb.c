@@ -8,11 +8,26 @@
 #include <asm/io.h>
 #include <linux/libfdt.h>
 #include <fdt_support.h>
+#include "../common/tlv_data.h"
 
 #define	MT7986_BOOT_NOR		0
 #define	MT7986_BOOT_SPIM_NAND	1
 #define	MT7986_BOOT_EMMC	2
 #define	MT7986_BOOT_SNFI_NAND	3
+
+static struct tlv_data mtk_tlv_data = { 0 };
+
+static void mtk_read_tlv_data(void)
+{
+	static bool read_once;
+
+	if (read_once) {
+		return;
+	}
+
+	read_once = true;
+	read_tlv_data(&mtk_tlv_data);
+}
 
 int board_init(void)
 {
@@ -50,6 +65,7 @@ void getBootDevice(void)
 int board_late_init(void)
 {
 	getBootDevice();
+	mtk_read_tlv_data();
 	return 0;
 }
 

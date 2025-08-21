@@ -69,7 +69,7 @@
 	status = "okay";
 
 	eeprom@50 {
-		compatible = "atmel,24c02";
+		compatible = "atmel,24c256";
 		reg = <0x50>;
 		size = <256>;
 	};

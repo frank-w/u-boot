@@ -89,7 +89,7 @@ case $1 in
 				sudo dd if=${SRCFIP} of=${DEV} bs=512 seek=2048 conv=notrunc,fsync #1> /dev/null 2>&1
 				set +x
 			;;
-			"bpi-r3"|"bpi-r4")
+			"bpi-r3"|"bpi-r4"|"bpi-r4lite")
 				set -x
 				sudo dd if=${SRCBL2} of=${DEV}1 conv=notrunc,fsync #1> /dev/null 2>&1
 				sudo dd if=${SRCFIP} of=${DEV}4 conv=notrunc,fsync #1> /dev/null 2>&1
@@ -104,7 +104,7 @@ case $1 in
 			"bpi-r64")
 				sudo dd if=${DEV} of=${board}_bl2fip.img bs=512 count=6144
 			;;
-			"bpi-r3"|"bpi-r4")
+			"bpi-r3"|"bpi-r4"|"bpi-r4lite")
 				sudo dd of=${board}_bl2.img if=${DEV}1
 				sudo dd of=${board}_fip.bin if=${DEV}4
 			;;

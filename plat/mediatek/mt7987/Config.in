@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Copyright (c) 2025 Daniel Golle <daniel@makrotopia.org>
+#
+# MT7987 platform-specific configurations
+#
+
+if _PLAT_MT7987
+
+choice
+	prompt "SPI controller for flash memory"
+	depends on (_BOOT_DEVICE_SPIM_NAND || _BOOT_DEVICE_SPI_NOR)
+	default _SPIM_CTRL_0 if _BOOT_DEVICE_SPIM_NAND
+	default _SPIM_CTRL_2 if _BOOT_DEVICE_SPI_NOR
+
+	config _SPIM_CTRL_0
+		bool "spi0"
+
+	config _SPIM_CTRL_2
+		bool "spi2"
+
+endchoice
+
+config SPIM_CTRL
+	int
+	default 0 if _SPIM_CTRL_0
+	default 2 if _SPIM_CTRL_2
+
+endif # _PLAT_MT7987

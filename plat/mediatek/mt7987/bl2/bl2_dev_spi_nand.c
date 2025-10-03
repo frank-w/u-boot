@@ -12,10 +12,18 @@
 
 #define MTK_QSPI_SRC_CLK		CB_MPLL_D2
 
+#if SPIM_CTRL == 0
+#define SELECTED_SPIM SPIM0
+#elif SPIM_CTRL == 2
+#define SELECTED_SPIM SPIM2
+#else
+#error "Invalid SPI controller selection"
+#endif
+
 uint32_t mtk_plat_get_qspi_src_clk(void)
 {
 	/* config GPIO pinmux to spi mode */
-	mtk_spi_gpio_init(SPIM0);
+	mtk_spi_gpio_init(SELECTED_SPIM);
 
 	/* select 208M clk */
 	mtk_spi_source_clock_select(MTK_QSPI_SRC_CLK);

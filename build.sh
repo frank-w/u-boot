@@ -33,7 +33,7 @@ case $board in
 	"bpi-r64") PLAT="mt7622";makeflags="DDR3_FLYBY=1";;
 	"bpi-r3"|"bpi-r3mini") PLAT="mt7986";makeflags="DRAM_USE_DDR4=1";FIP_COMPRESS=1;;
 	"bpi-r4") PLAT="mt7988";makeflags="DRAM_USE_COMB=1";FIP_COMPRESS=1;;
-	"bpi-r4lite") PLAT="mt7987";makeflags="DRAM_USE_COMB=1";FIP_COMPRESS=1;;
+	"bpi-r4lite") PLAT="mt7987";makeflags="DRAM_USE_COMB=1 SPIM_CTRL=2";FIP_COMPRESS=1;;
 esac
 
 if [[ $FIP_COMPRESS -eq 1 ]];then

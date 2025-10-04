@@ -74,7 +74,7 @@ static const struct mt7987_msdc_conf {
 	{
 		.base = MSDC0_BASE,
 		.top_base = MSDC0_TOP_BASE,
-		.bus_width = MMC_BUS_WIDTH_8,
+		.bus_width = MMC_BUS_WIDTH_4,
 		.type = MMC_IS_EMMC,
 		.src_clk = 200000000,
 		.dev_comp = &mt7987_msdc_compat,

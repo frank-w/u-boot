@@ -33,3 +33,12 @@
 		};
 	};
 };
+
+&mmc0 {
+	bus-width = <4>;
+
+	/delete-property/ mmc-hs200-1_8v;
+	/delete-property/ mmc-hs400-1_8v;
+	/delete-property/ hs400-ds-delay;
+	max-frequency = <52000000>;
+};

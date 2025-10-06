@@ -337,10 +337,6 @@ jobs:
           bash build.sh build
           bash build.sh rename
           bash -x build.sh createimg non-interactive
-          make realclean
-          echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
-          bash build.sh build
-          bash build.sh rename
 
           rm build.conf
 
@@ -359,10 +355,6 @@ jobs:
           bash build.sh build
           bash build.sh rename
           bash build.sh createimg non-interactive
-          make realclean
-          echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
-          bash build.sh build
-          bash build.sh rename
 
           rm build.conf
 
@@ -379,18 +371,11 @@ jobs:
 
           git checkout mtk-atf-2025
           echo -e "board=bpi-r4lite\ndevice=spim-nand" > build.conf
-          bash build.sh build
-          bash build.sh rename
-          make realclean
           echo -e "extraflags=UBI=1" >> build.conf
           bash build.sh build
           bash build.sh rename
           make realclean
-          echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
-          bash build.sh build
-          bash build.sh rename
-          make realclean
-          echo -e "extraflags='UBI=1 DDR4_4BG_MODE=1'" >> build.conf
+          echo -e "extraflags=UBI=1" >> build.conf
           bash build.sh build
           bash build.sh rename
 
@@ -415,14 +400,6 @@ jobs:
           echo -e "extraflags=UBI=1" >> build.conf
           bash build.sh build
           bash build.sh rename
-          make realclean
-          echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
-          bash build.sh build
-          bash build.sh rename
-          make realclean
-          echo -e "extraflags='UBI=1 DDR4_4BG_MODE=1'" >> build.conf
-          bash build.sh build
-          bash build.sh rename
 
           rm build.conf
 
@@ -439,10 +416,6 @@ jobs:
 
           git checkout mtk-atf-2025
           echo -e "board=bpi-r4lite\ndevice=ram" > build.conf
-          bash build.sh build
-          bash build.sh rename
-          make realclean
-          echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
           bash build.sh build
           bash build.sh rename
 

@@ -321,6 +321,132 @@ jobs:
 
           rm build.conf
 
+      - name: Build for BananaPi-R4 Lite (SD)
+        run: |
+          git checkout ${{ env.BRANCH }}
+          echo -e "board=bpi-r4lite" > build.conf
+          echo "isr4lite=1" >> uEnv_r4.txt
+          bash build.sh importconfig
+          bash build.sh build
+          bash build.sh rename
+          git checkout build.conf uEnv_r4.txt
+
+          git checkout mtk-atf-2025
+          echo -e "board=bpi-r4lite\ndevice=sdmmc" > build.conf
+          bash build.sh build
+          bash build.sh rename
+          bash -x build.sh createimg non-interactive
+          make realclean
+          echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
+          bash build.sh build
+          bash build.sh rename
+
+          rm build.conf
+
+      - name: Build for BananaPi-R4 Lite (EMMC)
+        run: |
+          git checkout ${{ env.BRANCH }}
+          echo -e "board=bpi-r4lite\ndevice=emmc" > build.conf
+          echo "isr4lite=1" >> uEnv_r4.txt
+          bash build.sh importconfig
+          bash build.sh build
+          bash build.sh rename
+          git checkout build.conf uEnv_r4.txt
+
+          git checkout mtk-atf-2025
+          echo -e "board=bpi-r4lite\ndevice=emmc" > build.conf
+          bash build.sh build
+          bash build.sh rename
+          bash build.sh createimg non-interactive
+          make realclean
+          echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
+          bash build.sh build
+          bash build.sh rename
+
+          rm build.conf
+
+      - name: Build for BananaPi-R4 Lite (NAND)
+        run: |
+          git checkout ${{ env.BRANCH }}
+          echo -e "board=bpi-r4lite\ndevice=spi-nand" > build.conf
+          echo "isr4lite=1" >> uEnv_r4.txt
+          sed -i 's/^bootmenu_default=2/bootmenu_default=4/' uEnv_r4.txt
+          bash build.sh importconfig
+          bash build.sh build
+          bash build.sh rename
+          git checkout build.conf uEnv_r4.txt
+
+          git checkout mtk-atf-2025
+          echo -e "board=bpi-r4lite\ndevice=spim-nand" > build.conf
+          bash build.sh build
+          bash build.sh rename
+          make realclean
+          echo -e "extraflags=UBI=1" >> build.conf
+          bash build.sh build
+          bash build.sh rename
+          make realclean
+          echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
+          bash build.sh build
+          bash build.sh rename
+          make realclean
+          echo -e "extraflags='UBI=1 DDR4_4BG_MODE=1'" >> build.conf
+          bash build.sh build
+          bash build.sh rename
+
+          rm build.conf
+
+      - name: Build for BananaPi-R4 Lite (NOR)
+        run: |
+          git checkout ${{ env.BRANCH }}
+          echo -e "board=bpi-r4lite\ndevice=spi-nor" > build.conf
+          echo "isr4lite=1" >> uEnv_r4.txt
+          sed -i 's/^bootmenu_default=2/bootmenu_default=4/' uEnv_r4.txt
+          bash build.sh importconfig
+          bash build.sh build
+          bash build.sh rename
+          git checkout build.conf uEnv_r4.txt
+
+          git checkout mtk-atf-2025
+          echo -e "board=bpi-r4lite\ndevice=nor" > build.conf
+          bash build.sh build
+          bash build.sh rename
+          make realclean
+          echo -e "extraflags=UBI=1" >> build.conf
+          bash build.sh build
+          bash build.sh rename
+          make realclean
+          echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
+          bash build.sh build
+          bash build.sh rename
+          make realclean
+          echo -e "extraflags='UBI=1 DDR4_4BG_MODE=1'" >> build.conf
+          bash build.sh build
+          bash build.sh rename
+
+          rm build.conf
+
+      - name: Build for BananaPi-R4 Lite (RAM/EMMC)
+        run: |
+          git checkout ${{ env.BRANCH }}
+          echo -e "board=bpi-r4lite\ndevice=emmc" > build.conf
+          echo "isr4lite=1" >> uEnv_r4.txt
+          sed -i 's/^bootcmd/#bootcmd/' uEnv_r4.txt
+          bash build.sh importconfig
+          bash build.sh build
+          bash build.sh rename
+          git checkout build.conf uEnv_r4.txt
+
+          git checkout mtk-atf-2025
+          echo -e "board=bpi-r4lite\ndevice=ram" > build.conf
+          bash build.sh build
+          bash build.sh rename
+          make realclean
+          echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
+          bash build.sh build
+          bash build.sh rename
+
+          rm build.conf
+
       - name: Upload binaries to release
         if: endsWith(github.ref,'-bpi') && contains(env.UBOOTVER,'-rc') == false
         uses: marvinpinto/action-automatic-releases@latest

@@ -146,7 +146,7 @@ case $board in
 		else
 			dev=$device
 		fi
-		FILE_DEFCFG=mt7988a_bpir4lite_${dev}_defconfig
+		FILE_DEFCFG=mt7987a_bpir4lite_${dev}_defconfig
 
 		#DTS=mt7988a-${dev}-rfb
 		DTS=mt7987a-sd-rfb

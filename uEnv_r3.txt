@@ -32,9 +32,9 @@ en8811h_fw_dm_dir=/lib/firmware/airoha/EthMD32.dm.bin
 en8811h_fw_dsp_dir=/lib/firmware/airoha/EthMD32.DSP.bin
 
 #netboot
-ipaddr=192.168.0.19
+ipaddr=192.168.1.1
 netmask=255.255.255.0
-serverip=192.168.0.11
+serverip=192.168.1.10
 
 lstftp=if tftp ${loadaddr} ${serverip}:r3-itbfiles.lst;then setexpr listend ${loadaddr} + ${filesize};mw.b ${listend} 00 2;strings ${loadaddr};else echo "tftp download failed";fi
 askkernel=askenv kernelinput "enter kernel-name:";
@@ -81,7 +81,7 @@ wremmc=if printenv bl2file;then mmc partconf 0 1 1 1;if fatload $device $partiti
 wrinitnor=if printenv rdfile;then if fatload $device $partition ${loadaddr} ${rdfile};then sf erase 0x180000 0xa80000; sf write ${loadaddr} 0x180000 ${filesize};else echo "cannot load rdfile ${rdfile}";fi; else echo "no rdfile defined"; fi
 wrfitnor=if printenv fitfile;then if fatload $device $partition ${loadaddr} ${fitfile};then sf erase 0xc00000 0x1400000; sf write ${loadaddr} 0xc00000 ${filesize};else echo "cannot load fitfile ${fitfile}";fi; else echo "no fitfile defined"; fi
 
-bootdelay=0
+bootdelay=3
 bootcmd=setenv bootdelay 3; run loadenv;bootmenu;
 
 ##untested

@@ -1,115 +1,70 @@
-# U-boot for BPI-R2/R64/R2Pro/R3/R4
+## Setup the Workspace in Native Linux Distro
 
-![CI](https://github.com/frank-w/u-boot/workflows/CI/badge.svg?branch=2023-10-bpi)
+It can be shown that Docker would produce the `/dev/loop*` related errors for "`./build.sh createimg`" command in branch `mtk-atf-2025`.
 
-## Requirements
-
-On x86/x64-host you need cross compile tools for the armhf architecture:
-```sh
-sudo apt-get install gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu libc6-armhf-cross u-boot-tools make gcc swig python-dev python3-pyelftools
-```
-
-## Issues
-
-R2:
-- loadenv fails because of resized environment (4096 => 8188)
-  - backup your saved environment before update uboot or 
-    change back CONFIG_ENV_SIZE to SZ_4K (./build.sh soc)
-  - erase your saved environment
+The build is tested in Debian/Ubuntu/LinuxMint system:
 
 ```
-env erase
+cat /etc/os-release
+
+NAME="Linux Mint"
+VERSION="21.1 (Vera)"
+ID=linuxmint
+ID_LIKE="ubuntu debian"
+PRETTY_NAME="Linux Mint 21.1"
+VERSION_ID="21.1"
+HOME_URL="https://www.linuxmint.com/"
+SUPPORT_URL="https://forums.linuxmint.com/"
+BUG_REPORT_URL="http://linuxmint-troubleshooting-guide.readthedocs.io/en/latest/"
+PRIVACY_POLICY_URL="https://www.linuxmint.com/"
+VERSION_CODENAME=vera
+UBUNTU_CODENAME=jammy
 ```
 
-- no emmc-command (not needed "emmc pconf 0x48" = "mmc partconf 0 1 1 0")
+Install packages:
 
-## Usage
-
-```sh
-  #edit build.conf to select bpi-r64/bpi-r2pro/bpi-r3 if needed
-  ./build.sh importconfig
-  ./build.sh config #optional (menuconfig)
-  ./build.sh
-  ./build.sh install #write to sd-card
-  ./build.sh umount #umount automatic mounted partitions
+```
+sudo apt install -y \
+xxd gdisk dosfstools \
+gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu libc6-armhf-cross u-boot-tools make gcc swig python-dev-is-python3 python3-pyelftools \
+gcc-aarch64-linux-gnu u-boot-tools bc make gcc ccache libc6-dev libncurses5-dev libssl-dev bison flex
 ```
 
-## flash precompiled binaries
+Clone:
 
-e.g. for change my image (not tested for openwrt) to 8G-variant
-```sh
-sudo dd if=bpi-r4_sdmmc_8GB_bl2.img of=/dev/sdX1 conv=notrunc,fsync
 ```
-## building and flash image
-
-for all boards there are basic sdcard image templates created containing
-the full bootchain till uboot.
-
-- bpi-r2.img.gz
-- bpi-r2pro.img.gz
-- bpi-r3_sdmmc.img.gz
-- bpi-r4_sdmmc.img.gz
-- bpi-r64_sdmmc.img.gz
-
-These do not contain linux kernel or rootfs but you can flash them as base to sdcard.
-
-```sh
-gunzip -c bpi-r3_sdmmc.img.gz | sudo dd bs=1M status=progress conv=notrunc,fsync of=/dev/sdX
-
-#writing R3 emmc (booting from spi-nand/nor and load kernel with initrd)
-gunzip -c /mnt/bpi-r3_emmc.img.gz | dd bs=1M status=progress conv=notrunc,fsync of=/dev/mmcblk0
+cd ~
+git clone git@github.com:brucerry/BPI-Router-Uboot.git -b 2025-07-bpi
+cd BPI-Router-Uboot
 ```
 
-After this you can extract the rootfs and kernel to the card.
+## Steps
 
-refresh partitiontable and mounting
+1. Run script
 
-```sh
-sudo partprobe /dev/sdX
-udisksctl mount -b /dev/disk/by-label/BPI-BOOT
-udisksctl mount -b /dev/disk/by-label/BPI-ROOT
+```
+./run.sh bpi-r3
 ```
 
-debian bullseye rootfs (created by buildchroot.sh in same folder):
-https://drive.google.com/drive/folders/1mEcz1NLX8kv_AOKCPGGBcebRtLVNrQqF?usp=share_link
+2. Find output
 
-kernel:
-https://github.com/frank-w/BPI-Router-Linux/releases/
-
-```sh
-# unpack debian rootfs
-sudo tar -xzf bullseye_arm64.tar.gz -C /media/$USER/BPI-ROOT
-# unpack kernel binary files
-sudo tar -xzf bpi-r3_6.1.0-main.tar.gz --strip-components=1 -C /media/$USER/BPI-BOOT BPI-BOOT
-# for r3 move kernel binary to root of boot-partition and rename it
-mv /media/$USER/BPI-BOOT/bananapi/bpi-r3/linux/bpi-r3.itb /media/$USER/BPI-BOOT/bpi-r3-6.1.0.itb
-echo "fit=bpi-r3-6.1.0.itb" >> /media/$USER/BPI-BOOT/uEnv.txt
-# unpack kernel modules to rootfs
-# debian uses /lib as symlink to usr/lib, extracting the dir from tar overwrites symlink with directory
-# which contains then only the kernel-modules, but not other libs so extract the subfolder to /lib
-sudo tar -xzf bpi-r3_6.1.0-main.tar.gz --strip-components=2 -C /media/$USER/BPI-ROOT/lib/ BPI-ROOT/lib/
 ```
-R2 uses uImage and kernel=xxx in uEnv.txt (in folder bananapi/bpi-r2/linux)
-R64, R3, R4 uses fit in in root dir of BPI-BOOT partition (fit=bpi-rX.itb)
-R2Pro uses now fit and uEnv.txt too (Image.gz+dtb in extlinux folder as fallback).
-
-set root-password and maybe make additional changes:
-
-```sh
-sudo chroot /media/$USER/BPI-ROOT
-passwd
-echo "bpi-r3" > /etc/hostname
+ubuntu@afe0fd51a26a:~/BPI-Router-Uboot$ ll u-boot* bpi*
+-rw-r--r-- 1 ubuntu ubuntu 7588105 Sep 26 17:33 bpi-r3_emmc.img.gz
+-rw-r--r-- 1 ubuntu ubuntu  200793 Sep 26 17:33 bpi-r3_emmc_bl2.img
+-rw-r--r-- 1 ubuntu ubuntu  280761 Sep 26 17:33 bpi-r3_emmc_fip.bin
+-rwxr-xr-x 1 ubuntu ubuntu 6064000 Sep 26 17:28 u-boot*
+-rw-r--r-- 1 ubuntu ubuntu  681072 Sep 26 17:28 u-boot-dtb.bin
+-rwxr-xr-x 1 ubuntu ubuntu  667432 Sep 26 17:28 u-boot-nodtb.bin*
+-rw-r--r-- 1 ubuntu ubuntu  681072 Sep 26 17:28 u-boot-r3_2025.07-bpi-arm64-emmc.bin
+-rw-r--r-- 1 ubuntu ubuntu  681072 Sep 26 17:28 u-boot.bin
+-rw-r--r-- 1 ubuntu ubuntu  243072 Sep 26 17:28 u-boot.bin.xz
+-rw-r--r-- 1 ubuntu ubuntu   12546 Sep 26 17:28 u-boot.cfg
+-rw-r--r-- 1 ubuntu ubuntu   13640 Sep 26 17:28 u-boot.dtb
+-rw-r--r-- 1 ubuntu ubuntu    1315 Sep 26 17:28 u-boot.lds
+-rw-r--r-- 1 ubuntu ubuntu  938726 Sep 26 17:28 u-boot.map
+-rwxr-xr-x 1 ubuntu ubuntu 1997290 Sep 26 17:28 u-boot.srec*
+-rw-r--r-- 1 ubuntu ubuntu  251269 Sep 26 17:28 u-boot.sym
+-rw-r--r-- 1 ubuntu ubuntu  658384 Sep 26 17:29 u-boot_mt7988.bin
+ubuntu@afe0fd51a26a:~/BPI-Router-Uboot$ 
 ```
-/etc/fstab
-```sh
-# <file system>	<dir>	<type>	<options>		<dump>	<pass>
-/dev/mmcblk0p5	/boot	vfat    errors=remount-ro	0	1
-/dev/mmcblk0p6	/	ext4	defaults		0	0
-```
-
-maybe add network-config (systemd) and systemd services i uploaded here:
-https://drive.google.com/drive/folders/1kST9ZOv8xQWFfo9GUNIIpKjD8QuYMj8i?usp=share_link
-
-i have created an script which creates full sdcard-Images including rootfs and kernel (except BPI-R4):
-
-https://github.com/frank-w/BPI-Router-Images

@@ -46,11 +46,11 @@ boot19_dt=setenv kernel ${kernel419_nodt}; setenv fdt ${fdt419}; setenv dtolist 
 
 bootmenu_default=2
 
-bootmenu_0=1. Enter kernel-name to boot from SD/EMMC.=run boot0
-bootmenu_1=2. Boot kernel from TFTP.=run bootnet
-bootmenu_2=3. Boot from SD/EMMC.=run boot1
-bootmenu_3=4. Boot from SD/EMMC 4.14.=run boot14
-bootmenu_4=5. Boot from SD/EMMC 4.19 (fdt/dto).=run boot19_dt
+bootmenu_0=Enter kernel-name to boot from SD/EMMC.=run boot0
+bootmenu_1=Boot kernel from TFTP.=run bootnet
+bootmenu_2=Boot from SD/EMMC.=run boot1
+bootmenu_3=Boot from SD/EMMC 4.14.=run boot14
+bootmenu_4=Boot from SD/EMMC 4.19 (fdt/dto).=run boot19_dt
 
 #automatic reload from sd/emmc
 bootdelay=0

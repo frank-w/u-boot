@@ -42,8 +42,8 @@ newboot=run checkrd; run buildargs;if printenv fit;then if run loadkernel; then 
 reloadmenu=run selectmmc;if run checkenv; then run loadbootenv; else echo file not found; fi;bootmenu;
 
 #bootmenu
-bootmenu_0=1. Boot from SD/EMMC.=run newboot
-bootmenu_1=2. Standard Boot.=run distro_bootcmd
+bootmenu_0=Boot from SD/EMMC.=run newboot
+bootmenu_1=Standard Boot.=run distro_bootcmd
 bootmenu_default=0
 
 #automatic reload from sd/emmc

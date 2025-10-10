@@ -79,9 +79,9 @@ askubootnet=run lstftpu askuboot;if printenv ubootinput; then setenv ufile "${ub
 askuboot64net=run lstftpu askuboot;if printenv ubootinput ;then setenv ufile "${ubootinput}"; run uboot64net;fi
 
 #bootmenu
-bootmenu_0=1. Enter kernel-name to boot from SD/EMMC.=run askboot
-bootmenu_1=2. Boot kernel from TFTP.=run askbootnetfit
-bootmenu_2=3. Boot from SD/EMMC.=run newboot
+bootmenu_0=Enter kernel-name to boot from SD/EMMC.=run askboot
+bootmenu_1=Boot kernel from TFTP.=run askbootnetfit
+bootmenu_2=Boot from SD/EMMC.=run newboot
 
 bootmenu_default=2
 

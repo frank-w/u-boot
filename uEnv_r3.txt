@@ -90,9 +90,9 @@ askkernel=askenv kernelinput "enter kernel name:";
 
 boot0=run lskernel;run askkernel;if printenv kernelinput ;then setenv fit ${kernelinput}; run newboot; fi;
 
-bootmenu_0=1. Enter kernel-name to boot from SD/EMMC.=run boot0
-bootmenu_1=2. Boot kernel from TFTP.=run askbootnetfit
-bootmenu_2=3. Boot from SD/EMMC.=run newboot
-bootmenu_3=4. Boot kernel from NVME.=run bootnvme
+bootmenu_0=Enter kernel-name to boot from SD/EMMC.=run boot0
+bootmenu_1=Boot kernel from TFTP.=run askbootnetfit
+bootmenu_2=Boot from SD/EMMC.=run newboot
+bootmenu_3=Boot kernel from NVME.=run bootnvme
 
 bootmenu_default=2

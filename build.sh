@@ -117,7 +117,7 @@ case $board in
 		FILE_SOC=include/configs/mt7986.h
 		UBOOT_FILE=u-boot.bin
 	;;
-	"bpi-r4")
+	"bpi-r4"|"bpi-r4pro")
 		export ARCH=arm64
 		export CROSS_COMPILE=aarch64-linux-gnu-
 
@@ -130,6 +130,12 @@ case $board in
 
 		#DTS=mt7988a-${dev}-rfb
 		DTS=mt7988-sd-rfb
+
+		if [[ "$board" == "bpi-r4pro" ]];then
+			DTS=mt7988-sd-bpi-r4pro
+			FILE_DEFCFG=mt7988a_bpir4pro_${dev}_defconfig
+		fi
+
 		FILE_DTS=arch/arm/dts/${DTS}.dts
 		FILE_DTSI=arch/arm/dts/mt7988.dtsi
 

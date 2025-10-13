@@ -34,5 +34,5 @@ time {
         ./build.sh rename
     fi
     rm build.conf
-    git checkout -f 2025-07-bpi
+    git checkout -f 2025-10-bpi
 }

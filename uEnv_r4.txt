@@ -64,7 +64,7 @@ checkrd=if printenv initrd;then if load ${device} ${partition} ${rdaddr} ${initr
 newboot=run checkrd; run setbootconf; run buildargs;if printenv fit;then setenv kernel ${fit};if run loadkernel; then run umountubi; bootm ${kaddr}${bootconf}; fi;fi;
 bootnetfit=run checkrd; run setbootconf;run buildargs;if tftp $kaddr ${bootfile}; then bootm ${kaddr}${bootconf};fi
 
-checkmmc=if mmc partconf 0; then echo "emmc available";mmcdev="emmc";else echo "sd available";mmcdev="sd";setenv ovmmc "#ov-$mmcdev";fi
+checkmmc=if mmc partconf 0; then echo "emmc available";mmcdev="emmc";else echo "sd available";mmcdev="sd";fi;setenv ovmmc "#ov-$mmcdev";
 checkspi=if sf probe; then echo "NOR available";spidev="nor";else echo "NAND available";spidev="nand";fi
 checksata=if test -n "$sata_en" && test $sata_en -eq 1;then setenv satacfg "#sata"; fi
 checkwifi=if test -n "$wifi_en" && test $wifi_en -eq 1;then setenv wificfg "#wifi"; fi

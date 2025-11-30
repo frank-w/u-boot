@@ -32,7 +32,7 @@ version="$(git rev-parse --short HEAD)-${board}-${device}"
 case $board in
 	"bpi-r64") PLAT="mt7622";makeflags="DDR3_FLYBY=1";;
 	"bpi-r3"|"bpi-r3mini") PLAT="mt7986";makeflags="DRAM_USE_DDR4=1";FIP_COMPRESS=1;;
-	"bpi-r4") PLAT="mt7988";makeflags="DRAM_USE_COMB=1";FIP_COMPRESS=1;;
+	"bpi-r4"|"bpi-r4pro") PLAT="mt7988";makeflags="DRAM_USE_COMB=1";FIP_COMPRESS=1;;
 	"bpi-r4lite") PLAT="mt7987";makeflags="DRAM_USE_COMB=1 SPIM_CTRL=2";FIP_COMPRESS=1;;
 esac
 
@@ -89,7 +89,7 @@ case $1 in
 				sudo dd if=${SRCFIP} of=${DEV} bs=512 seek=2048 conv=notrunc,fsync #1> /dev/null 2>&1
 				set +x
 			;;
-			"bpi-r3"|"bpi-r4"|"bpi-r4lite")
+			"bpi-r3"|"bpi-r4"|"bpi-r4pro"|"bpi-r4lite")
 				set -x
 				sudo dd if=${SRCBL2} of=${DEV}1 conv=notrunc,fsync #1> /dev/null 2>&1
 				sudo dd if=${SRCFIP} of=${DEV}4 conv=notrunc,fsync #1> /dev/null 2>&1
@@ -154,7 +154,7 @@ case $1 in
 				sudo mkfs.vfat "${LDEV}p4" -n BPI-BOOT #1> /dev/null 2>&1
 				sudo mkfs.ext4 -O ^metadata_csum,^64bit "${LDEV}p5" -L BPI-ROOT #1> /dev/null 2>&1
 			;;
-			"bpi-r3"|"bpi-r3mini"|"bpi-r4"|"bpi-r4lite")
+			"bpi-r3"|"bpi-r3mini"|"bpi-r4"|"bpi-r4pro"|"bpi-r4lite")
 				bootstart=17408
 				bootend=$(( ${bootstart}+(${bootsize}*1024*2)-1 ))
 				rootstart=$(( ${bootend}+1 ))

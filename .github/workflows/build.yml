@@ -332,7 +332,7 @@ jobs:
           git checkout build.conf
 
           git checkout mtk-atf-2025
-          echo -e "board=bpi-r4\ndevice=sdmmc" > build.conf
+          echo -e "board=bpi-r4pro\ndevice=sdmmc" > build.conf
           bash build.sh build
           bash build.sh rename
           make realclean

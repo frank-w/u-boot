@@ -21,13 +21,13 @@ buildargs=setenv bootargs "board=${board} ${console} root=${root} ${bootopts} ${
 
 checkenv=test -e ${device} ${partition} ${bpi}/${board}/${service}/${bootenv}
 importenv=env import -t ${scriptaddr} ${filesize}
-loadbootenv=if fatload ${device} ${partition} ${scriptaddr} ${bpi}/${board}/${service}/${bootenv};then run importenv;else echo "fatload (${bootenv}) failed";fi
+loadbootenv=if load ${device} ${partition} ${scriptaddr} ${bpi}/${board}/${service}/${bootenv};then run importenv;else echo "load (${bootenv}) failed";fi
 resetenv=env default -a;printenv;
 
-checksd=fatinfo ${device} 1:1
+checksd=info ${device} 1:1
 selectmmc=if run checksd; then echo Boot from SD ; setenv partition 1:1;else echo Boot from eMMC; setenv partition 0:1 ; fi;
 
-newboot=run buildargs;printenv bootargs;fatload ${device} ${partition} ${loadaddr} ${bpi}/${board}/${service}/${kernel}; bootm
+newboot=run buildargs;printenv bootargs;load ${device} ${partition} ${loadaddr} ${bpi}/${board}/${service}/${kernel}; bootm
 
 reloadmenu=run selectmmc;if run checkenv; then run loadbootenv; else echo file not found; fi;bootmenu;
 
@@ -90,10 +90,10 @@ kernel419_nodt=uImage_4.19.13-main_nodt
 fdt419=4.19.13-main.dtb
 dtolist419=bpi-r2-mac.dtb
 
-loadfdt=fatload ${device} ${partition} ${dtaddr} ${bpi}/${board}/${service}/dtb/${fdt}
-loadkernel=echo "loading kernel ${kernel}...";fatload ${device} ${partition} ${loadaddr} ${bpi}/${board}/${service}/${kernel}
+loadfdt=load ${device} ${partition} ${dtaddr} ${bpi}/${board}/${service}/dtb/${fdt}
+loadkernel=echo "loading kernel ${kernel}...";load ${device} ${partition} ${loadaddr} ${bpi}/${board}/${service}/${kernel}
 
-loaddto=echo "loaddto:${dto}";fdt addr ${dtaddr};fdt resize 8192; setexpr fdtovaddr ${dtaddr} + F000;fatload ${device} ${partition} ${fdtovaddr} ${bpi}/${board}/${service}/dtb/${dto} && fdt apply ${fdtovaddr}
+loaddto=echo "loaddto:${dto}";fdt addr ${dtaddr};fdt resize 8192; setexpr fdtovaddr ${dtaddr} + F000;load ${device} ${partition} ${fdtovaddr} ${bpi}/${board}/${service}/dtb/${dto} && fdt apply ${fdtovaddr}
 loaddtolist=for dto in ${dtolist} ; do run loaddto ; done
 
 bootall=if printenv fdt; then run loadfdt; if printenv dtolist;then run loaddtolist;fi; bootm ${loadaddr} - ${dtaddr} ;else bootm; fi
@@ -107,8 +107,8 @@ dirsata=EFI/ubuntu
 filesata=test.txt
 kernelsata=uImage_4.14.117-main
 
-loadfilesata=fatload scsi ${partsata} ${scriptaddr} ${dirsata}/${filesata};setexpr listend ${scriptaddr} + ${filesize};mw.b ${listend} 00 2;strings ${scriptaddr};
-loadkernelsata=fatload scsi ${partsata} ${loadaddr} ${dirsata}/${kernelsata};bootm
+loadfilesata=load scsi ${partsata} ${scriptaddr} ${dirsata}/${filesata};setexpr listend ${scriptaddr} + ${filesize};mw.b ${listend} 00 2;strings ${scriptaddr};
+loadkernelsata=load scsi ${partsata} ${loadaddr} ${dirsata}/${kernelsata};bootm
 lssata=ls scsi ${partsata} ${$dirsata}
 
 askaddr=askenv addrinput "enter address:";

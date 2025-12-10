@@ -241,28 +241,28 @@ ifndef toolchain-mk
         #
 
         # Arm Compiler for Embedded
-        toolchain-guess-tool-arm-clang = $(shell $(1) --version 2>&1 </dev/null | grep -o "Tool: armclang")
-        toolchain-guess-tool-arm-link = $(shell $(1) --help 2>&1 </dev/null | grep -o "Tool: armlink")
-        toolchain-guess-tool-arm-fromelf = $(shell $(1) --help 2>&1 </dev/null | grep -o "Tool: fromelf")
-        toolchain-guess-tool-arm-ar = $(shell $(1) --version 2>&1 </dev/null | grep -o "Tool: armar")
+        toolchain-guess-tool-arm-clang = $(shell LANG=C $(1) --version 2>&1 </dev/null | grep -o "Tool: armclang")
+        toolchain-guess-tool-arm-link = $(shell LANG=C $(1) --help 2>&1 </dev/null | grep -o "Tool: armlink")
+        toolchain-guess-tool-arm-fromelf = $(shell LANG=C $(1) --help 2>&1 </dev/null | grep -o "Tool: fromelf")
+        toolchain-guess-tool-arm-ar = $(shell LANG=C $(1) --version 2>&1 </dev/null | grep -o "Tool: armar")
 
         # LLVM Project
-        toolchain-guess-tool-llvm-clang = $(shell $(1) -v 2>&1 </dev/null | grep -o "clang version")
-        toolchain-guess-tool-llvm-lld = $(shell $(1) --help 2>&1 </dev/null | grep -o "OVERVIEW: lld")
-        toolchain-guess-tool-llvm-objcopy = $(shell $(1) --help 2>&1 </dev/null | grep -o "llvm-objcopy tool")
-        toolchain-guess-tool-llvm-objdump = $(shell $(1) --help 2>&1 </dev/null | grep -o "llvm object file dumper")
-        toolchain-guess-tool-llvm-ar = $(shell $(1) --help 2>&1 </dev/null | grep -o "LLVM Archiver")
+        toolchain-guess-tool-llvm-clang = $(shell LANG=C $(1) -v 2>&1 </dev/null | grep -o "clang version")
+        toolchain-guess-tool-llvm-lld = $(shell LANG=C $(1) --help 2>&1 </dev/null | grep -o "OVERVIEW: lld")
+        toolchain-guess-tool-llvm-objcopy = $(shell LANG=C $(1) --help 2>&1 </dev/null | grep -o "llvm-objcopy tool")
+        toolchain-guess-tool-llvm-objdump = $(shell LANG=C $(1) --help 2>&1 </dev/null | grep -o "llvm object file dumper")
+        toolchain-guess-tool-llvm-ar = $(shell LANG=C $(1) --help 2>&1 </dev/null | grep -o "LLVM Archiver")
 
         # GNU Compiler Collection & GNU Binary Utilities
-        toolchain-guess-tool-gnu-gcc = $(shell $(1) -v 2>&1 </dev/null | grep -o "gcc version")
-        toolchain-guess-tool-gnu-ld = $(shell $(1) -v 2>&1 </dev/null | grep -o "GNU ld")
-        toolchain-guess-tool-gnu-objcopy = $(shell $(1) --version 2>&1 </dev/null | grep -o "GNU objcopy")
-        toolchain-guess-tool-gnu-objdump = $(shell $(1) --version 2>&1 </dev/null | grep -o "GNU objdump")
-        toolchain-guess-tool-gnu-ar = $(shell $(1) --version 2>&1 </dev/null | grep -o "GNU ar")
+        toolchain-guess-tool-gnu-gcc = $(shell LANG=C $(1) -v 2>&1 </dev/null | grep -o "gcc version")
+        toolchain-guess-tool-gnu-ld = $(shell LANG=C $(1) -v 2>&1 </dev/null | grep -o "GNU ld")
+        toolchain-guess-tool-gnu-objcopy = $(shell LANG=C $(1) --version 2>&1 </dev/null | grep -o "GNU objcopy")
+        toolchain-guess-tool-gnu-objdump = $(shell LANG=C $(1) --version 2>&1 </dev/null | grep -o "GNU objdump")
+        toolchain-guess-tool-gnu-ar = $(shell LANG=C $(1) --version 2>&1 </dev/null | grep -o "GNU ar")
 
         # Other tools
-        toolchain-guess-tool-generic-dtc = $(shell $(1) --version 2>&1 </dev/null | grep -o "Version: DTC")
-        toolchain-guess-tool-generic-poetry = $(shell $(1) --version 2>&1 </dev/null)
+        toolchain-guess-tool-generic-dtc = $(shell LANG=C $(1) --version 2>&1 </dev/null | grep -o "Version: DTC")
+        toolchain-guess-tool-generic-poetry = $(shell LANG=C $(1) --version 2>&1 </dev/null)
 
         toolchain-guess-tool = $(if $(2),$(firstword $(foreach candidate,$(1),$\
                 $(if $(call toolchain-guess-tool-$(candidate),$(2)),$(candidate)))))

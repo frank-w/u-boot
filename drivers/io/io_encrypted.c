@@ -22,6 +22,7 @@
 #include <plat/common/platform.h>
 #include <tools_share/firmware_encrypted.h>
 #include <tools_share/uuid.h>
+#include <explicit_zeroize.h>
 
 static uintptr_t backend_dev_handle;
 static uintptr_t backend_dev_spec;
@@ -209,7 +210,7 @@ static int enc_file_read(io_entity_t *entity, uintptr_t buffer, size_t length,
 					 key_len, key_flags, header.iv,
 					 header.iv_len, header.tag,
 					 header.tag_len);
-	memset(key, 0, key_len);
+	explicit_zeroize(key, key_len);
 
 	if (result != 0) {
 		ERROR("File decryption failed (%i)\n", result);

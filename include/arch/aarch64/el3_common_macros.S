@@ -13,6 +13,7 @@
 #include <context.h>
 #include <lib/el3_runtime/cpu_data.h>
 #include <lib/per_cpu/per_cpu_macros.S>
+#include <lib/xlat_tables/xlat_tables_defs.h>
 
 	/*
 	 * Helper macro to initialise EL3 registers we care about.

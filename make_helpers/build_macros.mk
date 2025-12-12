@@ -176,6 +176,13 @@ define IMG_BIN
     ${BUILD_PLAT}/$(1).bin
 endef
 
+# IMG_CPR_BIN defines the default compress image file corresponding to a
+# BL stage
+#  $(1) = BL stage
+define IMG_CPR_BIN
+    $(BUILD_PLAT)/$(1).bin$($($(1)_PRE_TOOL_FILTER)_SUFFIX)
+endef
+
 # IMG_ENC_BIN defines the default encrypted image file corresponding to a
 # BL stage
 #   $(1) = BL stage
@@ -255,6 +262,7 @@ endef
 #   $(2) = command line option for fiptool (--scp-fw, --nt-fw, etc)
 #   $(3) = FIP prefix (optional) (if FWU_, target is fwu_fip instead of fip)
 #   $(4) = Image encryption flag (optional) (0, 1)
+#   $(5) = Image Compress flag (optional) (0, 1)
 # Example:
 #   $(eval $(call TOOL_ADD_IMG,bl33,--nt-fw))
 define TOOL_ADD_IMG
@@ -275,9 +283,17 @@ define TOOL_ADD_IMG
     CHECK_$(3)FIP_CMD += $$(check_$(1)_cmd)
 ifeq ($(4),1)
     $(eval ENC_BIN := ${BUILD_PLAT}/$(1)_enc.bin)
+    $(eval CPR_BIN := $(call IMG_CPR_BIN,$(BL)))
+ifeq ($(5),1)
+    FIP_DEPS += $(ENC_BIN)
+    $(call ENCRYPT_FW,$(CPR_BIN),$(ENC_BIN))
+    $(call TOOL_ADD_IMG_PAYLOAD,$(BL),$(value $(_V)),$(2),$(value $(_V)),$(3), \
+		$(ENC_BIN))
+else
     $(call ENCRYPT_FW,$(value $(_V)),$(ENC_BIN))
     $(call TOOL_ADD_IMG_PAYLOAD,$(BL),$(value $(_V)),$(2),$(ENC_BIN),$(3), \
 		$(ENC_BIN))
+endif
 else
     $(call TOOL_ADD_IMG_PAYLOAD,$(BL),$(value $(_V)),$(2),$(if $(wildcard $(value $(_V))),$(value $(_V)),FORCE),$(3))
 endif
@@ -586,6 +602,7 @@ endef
 #   $(2) = FIP command line option (if empty, image will not be included in the FIP)
 #   $(3) = FIP prefix (optional) (if FWU_, target is fwu_fip instead of fip)
 #   $(4) = BL encryption flag (optional) (0, 1)
+#   $(5) = BL Compress flag (optional) (0, 1)
 define MAKE_BL
         $(eval BL         := $(call uppercase,$(1)))
         $(eval BUILD_DIR  := ${BUILD_PLAT}/$(1))
@@ -598,6 +615,7 @@ define MAKE_BL
         $(eval BIN        := $(call IMG_BIN,$(1)))
         $(eval ENC_BIN    := $(call IMG_ENC_BIN,$(1)))
         $(eval BL_LIBS    := $($(BL)_LIBS))
+	$(eval BL_CPR	  := $(call IMG_CPR_BIN,$(BL)))
 
         $(eval DEFAULT_LINKER_SCRIPT_SOURCE := $($(BL)_DEFAULT_LINKER_SCRIPT_SOURCE))
         $(eval DEFAULT_LINKER_SCRIPT := $(call linker_script_path,$(DEFAULT_LINKER_SCRIPT_SOURCE)))
@@ -664,9 +682,15 @@ endif
 all: $(1)
 
 ifeq ($(4),1)
+ifeq ($(5),1)
+FIP_DEPS += $(ENC_BIN)
+$(call ENCRYPT_FW,$(BL_CPR),$(ENC_BIN))
+$(if $(2),$(call TOOL_ADD_IMG_PAYLOAD,$(BL),$(BIN),--$(2),$(BIN),$(3),$(ENC_BIN)))
+else
 $(call ENCRYPT_FW,$(BIN),$(ENC_BIN))
 $(if $(2),$(call TOOL_ADD_IMG_PAYLOAD,$(BL),$(BIN),--$(2),$(ENC_BIN),$(3), \
 		$(ENC_BIN)))
+endif
 else
 $(if $(2),$(call TOOL_ADD_IMG_PAYLOAD,$(BL),$(BIN),--$(2),$(BIN),$(3)))
 endif

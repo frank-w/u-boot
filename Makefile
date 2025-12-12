@@ -1033,7 +1033,7 @@ BL31_SOURCES += ${SPD_SOURCES}
 BL31_SOURCES := $(sort ${BL31_SOURCES})
 ifneq (${DECRYPTION_SUPPORT},none)
 $(if ${BL31}, $(eval $(call TOOL_ADD_IMG,bl31,--soc-fw,,$(ENCRYPT_BL31))),\
-	$(eval $(call MAKE_BL,bl31,soc-fw,,$(ENCRYPT_BL31))))
+	$(eval $(call MAKE_BL,bl31,soc-fw,,$(ENCRYPT_BL31),$(FIP_COMPRESS))))
 else
 $(if ${BL31}, $(eval $(call TOOL_ADD_IMG,bl31,--soc-fw)),\
 	$(eval $(call MAKE_BL,bl31,soc-fw)))
@@ -1050,7 +1050,7 @@ BUILD_BL32 := $(if $(BL32),,$(if $(BL32_SOURCES),1))
 
 ifneq (${DECRYPTION_SUPPORT},none)
 $(if ${BUILD_BL32}, $(eval $(call MAKE_BL,bl32,tos-fw,,$(ENCRYPT_BL32))),\
-	$(eval $(call TOOL_ADD_IMG,bl32,--tos-fw,,$(ENCRYPT_BL32))))
+	$(eval $(call TOOL_ADD_IMG,bl32,--tos-fw,,$(ENCRYPT_BL32),$(FIP_COMPRESS))))
 else
 $(if ${BUILD_BL32}, $(eval $(call MAKE_BL,bl32,tos-fw)),\
 	$(eval $(call TOOL_ADD_IMG,bl32,--tos-fw)))

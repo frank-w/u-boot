@@ -109,12 +109,25 @@
 	status = "disabled";
 };
 
-/* PCIE3 not working in u-boot */
 &pcie3 {
-	status = "disabled";
+	status = "okay";
 };
 
 &pio {
+	/* 1L0 0=key-b (CN15), 1=key-m (CN13) */
+	/*pcie-2-hog {
+		gpio-hog;
+		gpios = <79 GPIO_ACTIVE_HIGH>;
+		output-high;
+	};*/
+
+	/* 1L1 0=key-b (CN18), 1=key-m (CN14) */
+	pcie-3-hog {
+		gpio-hog;
+		gpios = <63 GPIO_ACTIVE_HIGH>;
+		output-high;
+	};
+
 	i2c1_pins: i2c1-pins {
 		mux {
 			function = "i2c";

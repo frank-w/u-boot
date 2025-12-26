@@ -109,9 +109,8 @@
 	status = "disabled";
 };
 
-/* PCIE3 not working in u-boot */
 &pcie3 {
-	status = "disabled";
+	status = "okay";
 };
 
 &pio {

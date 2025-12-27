@@ -353,7 +353,7 @@ jobs:
           git checkout build.conf
 
           git checkout mtk-atf-2025
-          echo -e "board=bpi-r4\ndevice=emmc" > build.conf
+          echo -e "board=bpi-r4pro\ndevice=emmc" > build.conf
           bash build.sh build
           bash build.sh rename
           make realclean
@@ -374,7 +374,7 @@ jobs:
           git checkout build.conf
 
           git checkout mtk-atf-2025
-          echo -e "board=bpi-r4\ndevice=spim-nand" > build.conf
+          echo -e "board=bpi-r4pro\ndevice=spim-nand" > build.conf
           bash build.sh build
           bash build.sh rename
           make realclean
@@ -403,7 +403,7 @@ jobs:
           git checkout build.conf uEnv_r4.txt
 
           git checkout mtk-atf-2025
-          echo -e "board=bpi-r4\ndevice=ram" > build.conf
+          echo -e "board=bpi-r4pro\ndevice=ram" > build.conf
           bash build.sh build
           bash build.sh rename
           make realclean

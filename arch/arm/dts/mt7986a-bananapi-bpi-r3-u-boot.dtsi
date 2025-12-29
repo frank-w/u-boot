@@ -169,14 +169,3 @@
 	};
 };
 
-&mmc0 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&mmc0_pins_default>;
-	bus-width = <4>;
-	max-frequency = <52000000>;
-	cap-sd-highspeed;
-	r_smpl = <1>;
-	vmmc-supply = <&reg_3p3v>;
-	vqmmc-supply = <&reg_3p3v>;
-	status = "okay";
-};

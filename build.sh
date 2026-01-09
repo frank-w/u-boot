@@ -129,7 +129,7 @@ case $board in
 		FILE_DEFCFG=mt7988a_bpir4_${dev}_defconfig
 
 		#DTS=mt7988a-${dev}-rfb
-		DTS=mt7988-sd-rfb
+		DTS=mt7988-sd-bpi-r4
 
 		if [[ "$board" == "bpi-r4pro" ]];then
 			DTS=mt7988-sd-bpi-r4pro

@@ -8,11 +8,14 @@
 #include <asm/io.h>
 #include <linux/libfdt.h>
 #include <fdt_support.h>
+#include <asm/global_data.h>
 
 #define	MT7988_BOOT_NOR		0
 #define	MT7988_BOOT_SPIM_NAND	1
 #define	MT7988_BOOT_EMMC	2
 #define	MT7988_BOOT_SNFI_NAND	3
+
+DECLARE_GLOBAL_DATA_PTR;
 
 int board_init(void)
 {
@@ -47,9 +50,18 @@ void getBootDevice(void)
 	env_set("bootmedia",media);
 }
 
+void getRAMSize(void)
+{
+	if (gd->ram_size > (6ULL << 30))
+		env_set("ram_gb", "8");
+	else
+		env_set("ram_gb", "4");
+}
+
 int board_late_init(void)
 {
 	getBootDevice();
+	getRAMSize();
 	return 0;
 }
 

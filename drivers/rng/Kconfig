@@ -45,6 +45,15 @@ config RNG_MTK
 	  Enable support for the hardware random number generator
 	  on Mediatek SoCs (e.g. MT7623, MT7986).
 
+config RNG_MTK_V2
+	bool "Mediatek Random Number Generator support (v2/SMC)"
+	depends on DM_RNG && ARCH_MEDIATEK && ARM_SMCCC
+	help
+	  Enable support for the hardware random number generator
+	  on newer Mediatek SoCs (e.g. MT7981, MT7987, MT7988) where
+	  the RNG is only accessible via Secure Monitor Calls to
+	  ARM Trusted Firmware.
+
 config RNG_NPCM
 	bool "Nuvoton NPCM SoCs Random Number Generator support"
 	depends on DM_RNG && !LIB_RAND

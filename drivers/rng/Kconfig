@@ -38,6 +38,13 @@ config RNG_MSM
 	  This driver provides support for the Random Number
 	  Generator hardware found on Qualcomm SoCs.
 
+config RNG_MTK
+	bool "Mediatek Random Number Generator support"
+	depends on DM_RNG && ARCH_MEDIATEK
+	help
+	  Enable support for the hardware random number generator
+	  on Mediatek SoCs (e.g. MT7623, MT7986).
+
 config RNG_NPCM
 	bool "Nuvoton NPCM SoCs Random Number Generator support"
 	depends on DM_RNG && !LIB_RAND

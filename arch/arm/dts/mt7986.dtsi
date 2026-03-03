@@ -191,6 +191,14 @@
 		bootph-all;
 	};
 
+	rng@1020f000 {
+		compatible = "mediatek,mt7986-rng",
+			     "mediatek,mt7623-rng";
+		reg = <0x1020f000 0x100>;
+		clocks = <&infracfg CLK_INFRA_TRNG_CK>;
+		clock-names = "rng";
+	};
+
 	uart0: serial@11002000 {
 		compatible = "mediatek,hsuart";
 		reg = <0x11002000 0x400>;

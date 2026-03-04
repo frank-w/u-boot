@@ -44,6 +44,10 @@
 		};
 	};
 
+	rng {
+		compatible = "mediatek,mt7987-rng";
+	};
+
 	cpus {
 		#address-cells = <1>;
 		#size-cells = <0>;

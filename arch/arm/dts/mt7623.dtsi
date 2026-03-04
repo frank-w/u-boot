@@ -168,6 +168,13 @@
 		#clock-cells = <1>;
 	};
 
+	rng: rng@1020f000 {
+		compatible = "mediatek,mt7623-rng";
+		reg = <0x1020f000 0x1000>;
+		clocks = <&infracfg CLK_INFRA_TRNG>;
+		clock-names = "rng";
+	};
+
 	gic: interrupt-controller@10211000 {
 		compatible = "arm,cortex-a7-gic";
 		interrupt-controller;

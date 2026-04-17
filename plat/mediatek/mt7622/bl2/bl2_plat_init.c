@@ -37,11 +37,11 @@ const struct initcall bl2_initcalls[] = {
 	INITCALL(mtk_wdt_print_status),
 	INITCALL(mtk_print_cpu),
 	INITCALL(mtk_pin_init),
+	INITCALL(mtk_pwrap_init),
+	INITCALL(mtk_pmic_init),
 #ifndef IMAGE_BL2PL
 	INITCALL(mtk_pll_init),
 #endif
-	INITCALL(mtk_pwrap_init),
-	INITCALL(mtk_pmic_init),
 	INITCALL(mtk_mem_init),
 	INITCALL(mtk_wdt_init),
 

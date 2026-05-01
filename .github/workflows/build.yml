@@ -51,7 +51,7 @@ jobs:
 
       - name: Fetch mtk-atf branch
         run: |
-          git fetch origin mtk-atf-2025
+          git fetch origin mtk-atf-2026
 
       - name: Build for BananaPi-R2
         run: |
@@ -70,7 +70,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf
 
-          git checkout mtk-atf-2025
+          git checkout mtk-atf-2026
           echo -e "board=bpi-r64\ndevice=sdmmc" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -103,7 +103,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf
 
-          git checkout mtk-atf-2025
+          git checkout mtk-atf-2026
           echo -e "board=bpi-r3\ndevice=sdmmc" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -119,7 +119,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf
 
-          git checkout mtk-atf-2025
+          git checkout mtk-atf-2026
           echo -e "board=bpi-r3\ndevice=emmc" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -135,7 +135,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf
 
-          git checkout mtk-atf-2025
+          git checkout mtk-atf-2026
           echo -e "board=bpi-r3\ndevice=spim-nand" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -154,7 +154,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf
 
-          git checkout mtk-atf-2025
+          git checkout mtk-atf-2026
           echo -e "board=bpi-r3\ndevice=nor" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -174,7 +174,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf uEnv_r3.txt
 
-          git checkout mtk-atf-2025
+          git checkout mtk-atf-2026
           echo -e "board=bpi-r3\ndevice=ram" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -189,7 +189,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf
 
-          git checkout mtk-atf-2025
+          git checkout mtk-atf-2026
           echo -e "board=bpi-r3mini\ndevice=emmc" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -205,7 +205,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf
 
-          git checkout mtk-atf-2025
+          git checkout mtk-atf-2026
           echo -e "board=bpi-r3mini\ndevice=spim-nand" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -225,7 +225,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf uEnv_r3.txt
 
-          git checkout mtk-atf-2025
+          git checkout mtk-atf-2026
           echo -e "board=bpi-r3mini\ndevice=ram" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -240,7 +240,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf
 
-          git checkout mtk-atf-2025
+          git checkout mtk-atf-2026
           echo -e "board=bpi-r4\ndevice=sdmmc" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -261,7 +261,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf
 
-          git checkout mtk-atf-2025
+          git checkout mtk-atf-2026
           echo -e "board=bpi-r4\ndevice=emmc" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -282,7 +282,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf
 
-          git checkout mtk-atf-2025
+          git checkout mtk-atf-2026
           echo -e "board=bpi-r4\ndevice=spim-nand" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -311,7 +311,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf uEnv_r4.txt
 
-          git checkout mtk-atf-2025
+          git checkout mtk-atf-2026
           echo -e "board=bpi-r4\ndevice=ram" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -331,7 +331,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf
 
-          git checkout mtk-atf-2025
+          git checkout mtk-atf-2026
           echo -e "board=bpi-r4pro\ndevice=sdmmc" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -352,7 +352,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf
 
-          git checkout mtk-atf-2025
+          git checkout mtk-atf-2026
           echo -e "board=bpi-r4pro\ndevice=emmc" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -373,7 +373,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf
 
-          git checkout mtk-atf-2025
+          git checkout mtk-atf-2026
           echo -e "board=bpi-r4pro\ndevice=spim-nand" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -402,7 +402,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf uEnv_r4.txt
 
-          git checkout mtk-atf-2025
+          git checkout mtk-atf-2026
           echo -e "board=bpi-r4pro\ndevice=ram" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -423,7 +423,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf uEnv_r4.txt
 
-          git checkout mtk-atf-2025
+          git checkout mtk-atf-2026
           echo -e "board=bpi-r4lite\ndevice=sdmmc" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -441,7 +441,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf uEnv_r4.txt
 
-          git checkout mtk-atf-2025
+          git checkout mtk-atf-2026
           echo -e "board=bpi-r4lite\ndevice=emmc" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -460,7 +460,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf uEnv_r4.txt
 
-          git checkout mtk-atf-2025
+          git checkout mtk-atf-2026
           echo -e "board=bpi-r4lite\ndevice=spim-nand" > build.conf
           echo -e "extraflags=UBI=1" >> build.conf
           bash build.sh build
@@ -483,7 +483,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf uEnv_r4.txt
 
-          git checkout mtk-atf-2025
+          git checkout mtk-atf-2026
           echo -e "board=bpi-r4lite\ndevice=nor" > build.conf
           bash build.sh build
           bash build.sh rename
@@ -505,7 +505,7 @@ jobs:
           bash build.sh rename
           git checkout build.conf uEnv_r4.txt
 
-          git checkout mtk-atf-2025
+          git checkout mtk-atf-2026
           echo -e "board=bpi-r4lite\ndevice=ram" > build.conf
           bash build.sh build
           bash build.sh rename

@@ -106,7 +106,7 @@ case $board in
 		export ARCH=arm64
 		export CROSS_COMPILE=${CCACHE}aarch64-linux-gnu-
 
-		if [[ "$device" =~ (emmc|spi-nand|spi-nor) ]];then
+		if [[ "$device" =~ (emmc|spi-nand|spi-nor|ram) ]];then
 			dev=emmc
 		else
 			dev=$device
@@ -130,7 +130,7 @@ case $board in
 		export ARCH=arm64
 		export CROSS_COMPILE=${CCACHE}aarch64-linux-gnu-
 
-		if [[ "$device" =~ (emmc|spi-nand|spi-nor) ]];then
+		if [[ "$device" =~ (emmc|spi-nand|spi-nor|ram) ]];then
 			dev=emmc
 		else
 			dev=$device
@@ -156,7 +156,7 @@ case $board in
 		export ARCH=arm64
 		export CROSS_COMPILE=${CCACHE}aarch64-linux-gnu-
 
-		if [[ "$device" =~ (emmc|spi-nand|spi-nor) ]];then
+		if [[ "$device" =~ (emmc|spi-nand|spi-nor|ram) ]];then
 			dev=emmc
 		else
 			dev=$device

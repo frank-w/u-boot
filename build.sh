@@ -1,6 +1,11 @@
 #!/bin/bash
-export ARCH=arm;
-export CROSS_COMPILE=arm-linux-gnueabihf-
+
+#check for ccache
+if command -v ccache >/dev/null 2>&1; then
+	CCACHE="ccache "
+else
+	CCACHE=""
+fi
 
 uver=$(make ubootversion)
 commit=$(git log -n 1 --pretty='%h')
@@ -51,6 +56,8 @@ function edit()
 
 case $board in
 	"bpi-r2")
+		export ARCH=arm
+		export CROSS_COMPILE=${CCACHE}arm-linux-gnueabihf-
 		FILE_DTS=arch/arm/dts/mt7623n-bananapi-bpi-r2.dts
 		FILE_DTSI=arch/arm/dts/mt7623.dtsi
 		FILE_DEFCFG=mt7623n_bpir2_defconfig
@@ -60,10 +67,12 @@ case $board in
 
 		#start-values in kB
 		UBOOT_START=320
-		UBOOT_FILE=u-boot.bin
 		ENV_START=1024 #ENV_OFFSET = 0x100000
+		UBOOT_FILE=u-boot.bin
 	;;
 	"bpi-r64")
+		export ARCH=arm64
+		export CROSS_COMPILE=${CCACHE}aarch64-linux-gnu-
 		FILE_DTS=arch/arm/dts/mt7622-bananapi-bpi-r64.dts
 		FILE_DEFCFG=mt7622_bpi-r64_defconfig
 		FILE_DTSI=arch/arm/dts/mt7622.dtsi
@@ -74,11 +83,11 @@ case $board in
 		#~40kb bl31+~640kb uboot =~ 682kb fip @0x160000 <0x300000
 		UBOOT_START=1064 #1024k + 40k
 		ENV_START=3072 #ENV_OFFSET (bytes) = 0x300000 (0x1800 /2 kbytes)
-		export ARCH=arm64
-		export CROSS_COMPILE=aarch64-linux-gnu-
 		UBOOT_FILE=u-boot.bin
 	;;
 	"bpi-r2pro")
+		export ARCH=arm64
+		export CROSS_COMPILE=${CCACHE}aarch64-linux-gnu-
 		FILE_DTS=arch/arm/dts/rk3568-bpi-r2-pro.dts
 		FILE_DTSI=arch/arm/dts/rk3568.dtsi
 		FILE_DEFCFG=bpi-r2-pro-rk3568_defconfig
@@ -91,13 +100,11 @@ case $board in
 		#start-values in kB
 		UBOOT_START=32
 		#ENV_START=1024 #ENV_OFFSET = 0x100000
-		export ARCH=arm64
-		export CROSS_COMPILE=aarch64-linux-gnu-
 		UBOOT_FILE=u-boot-rockchip.bin
 	;;
 	"bpi-r3"|"bpi-r3mini")
 		export ARCH=arm64
-		export CROSS_COMPILE=aarch64-linux-gnu-
+		export CROSS_COMPILE=${CCACHE}aarch64-linux-gnu-
 
 		if [[ "$device" =~ (emmc|spi-nand|spi-nor) ]];then
 			dev=emmc
@@ -121,7 +128,7 @@ case $board in
 	;;
 	"bpi-r4"|"bpi-r4pro")
 		export ARCH=arm64
-		export CROSS_COMPILE=aarch64-linux-gnu-
+		export CROSS_COMPILE=${CCACHE}aarch64-linux-gnu-
 
 		if [[ "$device" =~ (emmc|spi-nand|spi-nor) ]];then
 			dev=emmc
@@ -147,7 +154,7 @@ case $board in
 	;;
 	"bpi-r4lite")
 		export ARCH=arm64
-		export CROSS_COMPILE=aarch64-linux-gnu-
+		export CROSS_COMPILE=${CCACHE}aarch64-linux-gnu-
 
 		if [[ "$device" =~ (emmc|spi-nand|spi-nor) ]];then
 			dev=emmc
@@ -201,6 +208,8 @@ case $1 in
 		LANG=C
 		CFLAGS=-j$(grep ^processor /proc/cpuinfo  | wc -l)
 		echo "LV: -$ubranch, crosscompile: $CROSS_COMPILE, CFLAGS: $CFLAGS"
+		export CCACHE_DIR="$HOME/.cache/ccache/${board}"
+		mkdir -p "${CCACHE_DIR}"
 		make LOCALVERSION="-$ubranch" ${CFLAGS} 2> >(tee "build.log")
 		if [[ $? -eq 0 ]];then
 			FILESIZE=$(stat -c%s "u-boot.bin");

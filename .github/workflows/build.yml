@@ -167,6 +167,7 @@ jobs:
         with:
           name: uboot-${{ matrix.board }}
           path: |
-            *.bin
-            *.img
-            *.img.gz
+            ${{ matrix.board }}*_fip.bin
+            u-boot-${{ matrix.board }}_*.bin
+            ${{ matrix.board }}*_bl2.img
+            ${{ matrix.board }}_*.img.gz

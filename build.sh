@@ -180,7 +180,7 @@ fi
 function generate_filename
 {
 	#grep '^CONFIG_MT7531=y' .config >/dev/null;if [[ $? -eq 0 ]];then ETH="MT7531";fi
-	filename=u-boot-${board//bpi-/}_${uver}-${ubranch}-${ARCH}-${device}.bin
+	filename=u-boot-${board}_${uver}-${ubranch}-${ARCH}-${device}.bin
 	echo $filename
 }
 

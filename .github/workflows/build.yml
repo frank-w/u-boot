@@ -35,7 +35,7 @@ jobs:
             atf: true
 
           - board: bpi-r2pro
-            boots: "sdmmc emmc"
+            boots: "sdmmc"
             atf: false
 
           - board: bpi-r3
@@ -112,9 +112,9 @@ jobs:
             bash build.sh build
             bash build.sh rename
 
-            git checkout build.conf
             # ATF builds (optional)
             if [ "${{ matrix.atf }}" = "true" ]; then
+              git checkout build.conf
               echo "---- ATF build for $boot ----"
 
               git checkout $ATF_BRANCH
@@ -135,11 +135,11 @@ jobs:
                 bash build.sh build
                 bash build.sh rename
               fi
+              rm -f build.conf
             else
               bash build.sh createimg non-interactive
+              git checkout build.conf
             fi
-
-            rm -f build.conf
           done
 
       - name: Upload artifacts

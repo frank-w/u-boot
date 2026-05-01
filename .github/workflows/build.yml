@@ -86,7 +86,7 @@ jobs:
             ccache libssl-dev u-boot-tools \
             gcc-arm-linux-gnueabihf \
             gcc-aarch64-linux-gnu \
-            make python3-pyelftools
+            make python3-pyelftools ccache
 
       - name: Fetch mtk-atf branch
         if: matrix.atf == true
@@ -133,8 +133,8 @@ jobs:
                 bash build.sh rename
               fi
 
-              # optional: special NAND/UBI case
-              if [[ "$boot" == *"nand"* ]]; then
+              # optional special NAND/UBI case
+              if [[ "$boot" =~ nand|nor ]]; then
                 echo "extraflags=UBI=1" >> build.conf
                 bash build.sh build
                 bash build.sh rename
@@ -144,6 +144,11 @@ jobs:
                   bash build.sh build
                   bash build.sh rename
                 fi
+              fi
+              # we do not need u-boot.bin for all devices
+              # only one sdmmc and emmc version (chain loading)
+              if [[ "$boot" != *"mmc"* ]]; then
+                rm u-boot*.bin
               fi
               rm -f build.conf
             else

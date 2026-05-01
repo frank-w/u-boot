@@ -42,27 +42,27 @@ jobs:
             ram8g: false
 
           - board: bpi-r3
-            boots: "sdmmc emmc spi-nand spi-nor"
+            boots: "sdmmc emmc spi-nand spi-nor ram"
             atf: true
             ram8g: false
 
           - board: bpi-r3mini
-            boots: "emmc spi-nand"
+            boots: "emmc spi-nand ram"
             atf: true
             ram8g: false
 
           - board: bpi-r4
-            boots: "sdmmc emmc spi-nand"
+            boots: "sdmmc emmc spi-nand ram"
             atf: true
             ram8g: true
 
           - board: bpi-r4lite
-            boots: "sdmmc emmc spi-nand"
+            boots: "sdmmc emmc spi-nand ram"
             atf: true
             ram8g: false
 
           - board: bpi-r4pro
-            boots: "sdmmc emmc spi-nand"
+            boots: "sdmmc emmc spi-nand ram"
             atf: true
             ram8g: true
 

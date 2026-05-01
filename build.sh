@@ -27,6 +27,8 @@ then
 	. build.conf
 fi
 
+if [[ "$device" == "sdmmc" ]];then device=sd; fi
+
 ENV_START=0
 
 FILE_UENV=/media/$USER/BPI-BOOT/uEnv.txt

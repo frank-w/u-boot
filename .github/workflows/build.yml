@@ -93,36 +93,34 @@ jobs:
         run: |
           git fetch origin $ATF_BRANCH --depth=1
 
-      - &build_boot
-        env:
-          BOARD: ${{ matrix.board }}
-          ATF: ${{ matrix.atf }}
-          RAM8G: ${{ matrix.ram8g }}
+      - name: Init build helpers
+        shell: bash
         run: |
-          set -e
+          build_boot() {
+            BOOT="$1"
+            set -euo pipefail
 
-          for boot in ${{ matrix.boots }}; do
             echo "::group::${boot}"
             echo "===================================="
-            echo "Building ${BOARD} for ${BOOT}
+            echo "Building ${BOARD} for ${BOOT}"
             echo "===================================="
 
             git checkout $UBOOT_BRANCH
 
-            printf "board=%s\ndevice=%s\n" "${BOARD}" "${BOOT}" > build.conf
+            echo "board=${{ matrix.board }}\ndevice=${BOOT}\n" > build.conf
 
             bash build.sh importconfig
             bash build.sh build
             bash build.sh rename
 
             # ATF builds (optional)
-            if [ "${ATF}" = "true" ]; then
+            if [ "${{ matrix.atf }}" = "true" ]; then
               git checkout build.conf
-              echo "---- ATF build for $boot ----"
+              echo "---- ATF build for ${BOOT} ----"
 
               git checkout $ATF_BRANCH
 
-              echo -e "board=${{ matrix.board }}\ndevice=$boot" > build.conf
+              echo -e "board=${{ matrix.board }}\ndevice=${BOOT}" > build.conf
 
               # normal ATF build
               bash build.sh build
@@ -132,7 +130,7 @@ jobs:
                 bash build.sh createimg non-interactive
               fi
 
-              if [ "${RAM8G}" == "true" ]; then
+              if [ "${{ matrix.ram8g }}" == "true" ]; then
                 echo "extraflags=DDR4_4BG_MODE=1" >> build.conf
                 bash build.sh build
                 bash build.sh rename
@@ -144,7 +142,7 @@ jobs:
                 bash build.sh build
                 bash build.sh rename
 
-                if [ "${RAM8G}" == "true" ]; then
+                if [ "${{ matrix.ram8g }}" == "true" ]; then
                   echo "extraflags=UBI=1 DDR4_4BG_MODE=1" >> build.conf
                   bash build.sh build
                   bash build.sh rename
@@ -161,52 +159,38 @@ jobs:
               git checkout build.conf
             fi
             echo "::endgroup::"
-          done
+          }
+          export -f build_boot
 
-      - <<: *build_boot
-        name: Build sdmmc
+      - name: Build sdmmc
         if: contains(matrix.boots, 'sdmmc')
-        env:
-          BOARD: ${{ matrix.board }}
-          ATF: ${{ matrix.atf }}
-          RAM8G: ${{ matrix.ram8g }}
-          BOOT: sdmmc
+        shell: bash
+        run: |
+          build_boot sdmmc
 
-      - <<: *build_boot
-        name: Build emmc
+      - name: Build emmc
         if: contains(matrix.boots, 'emmc')
-        env:
-          BOARD: ${{ matrix.board }}
-          ATF: ${{ matrix.atf }}
-          RAM8G: ${{ matrix.ram8g }}
-          BOOT: emmc
+        shell: bash
+        run: |
+          build_boot emmc
 
-      - <<: *build_boot
-        name: Build spi-nand
+      - name: Build spi-nand
         if: contains(matrix.boots, 'spi-nand')
-        env:
-          BOARD: ${{ matrix.board }}
-          ATF: ${{ matrix.atf }}
-          RAM8G: ${{ matrix.ram8g }}
-          BOOT: spi-nand
+        shell: bash
+        run: |
+          build_boot spi-nand
 
-      - <<: *build_boot
-        name: Build spi-nor
+      - name: Build spi-nor
         if: contains(matrix.boots, 'spi-nor')
-        env:
-          BOARD: ${{ matrix.board }}
-          ATF: ${{ matrix.atf }}
-          RAM8G: ${{ matrix.ram8g }}
-          BOOT: spi-nor
+        shell: bash
+        run: |
+          build_boot spi-nor
 
-      - <<: *build_boot
-        name: Build ram
+      - name: Build ram
         if: contains(matrix.boots, 'ram')
-        env:
-          BOARD: ${{ matrix.board }}
-          ATF: ${{ matrix.atf }}
-          RAM8G: ${{ matrix.ram8g }}
-          BOOT: ram
+        shell: bash
+        run: |
+          build_boot ram
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

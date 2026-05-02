@@ -96,31 +96,33 @@ jobs:
       - name: Init build helpers
         shell: bash
         run: |
+          cat > build_helpers.sh <<'EOF'
           build_boot() {
             BOOT="$1"
             set -euo pipefail
 
-            echo "::group::${boot}"
+            echo "::group::${BOOT}"
             echo "===================================="
             echo "Building ${BOARD} for ${BOOT}"
             echo "===================================="
 
             git checkout $UBOOT_BRANCH
 
-            echo "board=${{ matrix.board }}\ndevice=${BOOT}\n" > build.conf
+            echo -e "board=${BOARD}\ndevice=${BOOT}\n" > build.conf
+            cat build.conf
 
             bash build.sh importconfig
             bash build.sh build
             bash build.sh rename
 
             # ATF builds (optional)
-            if [ "${{ matrix.atf }}" = "true" ]; then
+            if [ "${ATF}" = "true" ]; then
               git checkout build.conf
               echo "---- ATF build for ${BOOT} ----"
 
               git checkout $ATF_BRANCH
 
-              echo -e "board=${{ matrix.board }}\ndevice=${BOOT}" > build.conf
+              echo -e "board=${BOARD}\ndevice=${BOOT}" > build.conf
 
               # normal ATF build
               bash build.sh build
@@ -130,7 +132,7 @@ jobs:
                 bash build.sh createimg non-interactive
               fi
 
-              if [ "${{ matrix.ram8g }}" == "true" ]; then
+              if [ "${RAM8G}" == "true" ]; then
                 echo "extraflags=DDR4_4BG_MODE=1" >> build.conf
                 bash build.sh build
                 bash build.sh rename
@@ -142,7 +144,7 @@ jobs:
                 bash build.sh build
                 bash build.sh rename
 
-                if [ "${{ matrix.ram8g }}" == "true" ]; then
+                if [ "${RAM8G}" == "true" ]; then
                   echo "extraflags=UBI=1 DDR4_4BG_MODE=1" >> build.conf
                   bash build.sh build
                   bash build.sh rename
@@ -160,37 +162,62 @@ jobs:
             fi
             echo "::endgroup::"
           }
-          export -f build_boot
+          EOF
 
       - name: Build sdmmc
         if: contains(matrix.boots, 'sdmmc')
         shell: bash
         run: |
+          source build_helpers.sh
           build_boot sdmmc
+        env:
+          BOARD: ${{ matrix.board }}
+          ATF: ${{ matrix.atf }}
+          RAM8G: ${{ matrix.ram8g }}
 
       - name: Build emmc
         if: contains(matrix.boots, 'emmc')
         shell: bash
         run: |
+          source build_helpers.sh
           build_boot emmc
+        env:
+          BOARD: ${{ matrix.board }}
+          ATF: ${{ matrix.atf }}
+          RAM8G: ${{ matrix.ram8g }}
 
       - name: Build spi-nand
         if: contains(matrix.boots, 'spi-nand')
         shell: bash
         run: |
+          source build_helpers.sh
           build_boot spi-nand
+        env:
+          BOARD: ${{ matrix.board }}
+          ATF: ${{ matrix.atf }}
+          RAM8G: ${{ matrix.ram8g }}
 
       - name: Build spi-nor
         if: contains(matrix.boots, 'spi-nor')
         shell: bash
         run: |
+          source build_helpers.sh
           build_boot spi-nor
+        env:
+          BOARD: ${{ matrix.board }}
+          ATF: ${{ matrix.atf }}
+          RAM8G: ${{ matrix.ram8g }}
 
       - name: Build ram
         if: contains(matrix.boots, 'ram')
         shell: bash
         run: |
+          source build_helpers.sh
           build_boot ram
+        env:
+          BOARD: ${{ matrix.board }}
+          ATF: ${{ matrix.atf }}
+          RAM8G: ${{ matrix.ram8g }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

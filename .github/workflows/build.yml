@@ -101,7 +101,6 @@ jobs:
             BOOT="$1"
             set -euo pipefail
 
-            echo "::group::${BOOT}"
             echo "===================================="
             echo "Building ${BOARD} for ${BOOT}"
             echo "===================================="
@@ -111,13 +110,16 @@ jobs:
             echo -e "board=${BOARD}\ndevice=${BOOT}\n" > build.conf
             cat build.conf
 
+            echo "::group::u-boot"
             bash build.sh importconfig
             bash build.sh build
             bash build.sh rename
+            echo "::endgroup::"
 
             # ATF builds (optional)
             if [ "${ATF}" = "true" ]; then
               git checkout build.conf
+              echo "::group::atf"
               echo "---- ATF build for ${BOOT} ----"
 
               git checkout $ATF_BRANCH
@@ -127,11 +129,15 @@ jobs:
               # normal ATF build
               bash build.sh build
               bash build.sh rename
+              echo "::endgroup::"
 
               if [[ "${BOOT}" == *"mmc"* ]]; then
+                echo "::group::baseimage"
                 bash build.sh createimg non-interactive
+                echo "::endgroup::"
               fi
 
+              echo "::group::atf extended"
               if [ "${RAM8G}" == "true" ]; then
                 echo "extraflags=DDR4_4BG_MODE=1" >> build.conf
                 bash build.sh build
@@ -150,6 +156,7 @@ jobs:
                   bash build.sh rename
                 fi
               fi
+              echo "::endgroup::"
               # we do not need u-boot.bin for all devices
               # only one sdmmc and emmc version (chain loading)
               if [[ "${BOOT}" != *"mmc"* ]]; then
@@ -157,10 +164,11 @@ jobs:
               fi
               rm -f build.conf
             else
+              echo "::group::baseimage"
               bash build.sh createimg non-interactive
+              echo "::endgroup::"
               git checkout build.conf
             fi
-            echo "::endgroup::"
           }
           EOF
 

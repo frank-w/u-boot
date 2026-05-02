@@ -98,6 +98,7 @@ jobs:
           set -e
 
           for boot in ${{ matrix.boots }}; do
+            echo "::group::${boot}"
             echo "===================================="
             echo "Building ${{ matrix.board }} for $boot"
             echo "===================================="
@@ -155,6 +156,7 @@ jobs:
               bash build.sh createimg non-interactive
               git checkout build.conf
             fi
+            echo "::endgroup::"
           done
 
       - name: Upload artifacts

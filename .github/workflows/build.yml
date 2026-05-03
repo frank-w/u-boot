@@ -139,22 +139,25 @@ jobs:
 
               echo "::group::atf extended"
               if [ "${RAM8G}" == "true" ]; then
+                echo "---- 8G RAM build ----"
                 echo "extraflags=DDR4_4BG_MODE=1" >> build.conf
-                make realclean
+                bash build.sh clean
                 bash build.sh build
                 bash build.sh rename
               fi
 
               # optional special NAND/UBI case
               if [[ "${BOOT}" =~ nand|nor ]]; then
+                echo "---- UBI build ----"
                 echo "extraflags=UBI=1" >> build.conf
-                make realclean
+                bash build.sh clean
                 bash build.sh build
                 bash build.sh rename
 
                 if [ "${RAM8G}" == "true" ]; then
+                  echo "---- 8G RAM + UBI build ----"
                   echo "extraflags=UBI=1 DDR4_4BG_MODE=1" >> build.conf
-                  make realclean
+                  bash build.sh clean
                   bash build.sh build
                   bash build.sh rename
                 fi
@@ -167,7 +170,7 @@ jobs:
               fi
               rm -f build.conf
             else
-              echo "::group::baseimage"
+              echo "::group::baseimage-no-atf"
               bash build.sh createimg non-interactive
               echo "::endgroup::"
               git checkout build.conf

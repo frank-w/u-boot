@@ -275,7 +275,8 @@ jobs:
 
       - name: Generate changelog
         run: |
-          echo -e "# Release\n**Commit:** ${{ github.sha }}\n**Branch:** ${{ env.BRANCH }}\n**Version:** ${{ env.UBOOTVER }}\n\n## Changelog\n" > CHANGELOG.md
+          echo -e "# Release\n**Commit:** ${{ github.sha }}\n**Branch:** ${{ env.BRANCH }}\n**Version:** ${{ env.UBOOTVER }}\n" > CHANGELOG.md
+          echo -e "Built by workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\n## Changelog\n" >> CHANGELOG.md
           git log --pretty=format:"- %h %ad **%s** %d by %an" --date=short --no-merges >> CHANGELOG.md
 
       - name: Create release

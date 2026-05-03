@@ -174,7 +174,7 @@ jobs:
             fi
             if [[ ! "${BOOT}" =~ mmc ]]; then
               echo "cleanup non-mmc u-boot.bin"
-              rm u-boot*.bin
+              rm u-boot*${BOOT}.bin
             fi
             ls -lh *.bin *.img*
           }

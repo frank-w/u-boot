@@ -165,15 +165,15 @@ jobs:
               echo "::endgroup::"
               # we do not need u-boot.bin for all devices
               # only one sdmmc and emmc version (chain loading)
-              if [[ "${BOOT}" != *"mmc"* ]]; then
-                rm u-boot*.bin
-              fi
               rm -f build.conf
             else
               echo "::group::baseimage-no-atf"
               bash build.sh createimg non-interactive
               echo "::endgroup::"
               git checkout build.conf
+            fi
+            if [[ ! "${BOOT}" =~ mmc ]]; then
+              rm u-boot*.bin
             fi
           }
           EOF

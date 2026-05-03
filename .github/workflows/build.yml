@@ -173,8 +173,10 @@ jobs:
               git checkout build.conf
             fi
             if [[ ! "${BOOT}" =~ mmc ]]; then
+              echo "cleanup non-mmc u-boot.bin"
               rm u-boot*.bin
             fi
+            ls -lh *.bin *.img*
           }
           EOF
 

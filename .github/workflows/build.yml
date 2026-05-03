@@ -13,519 +13,276 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: Checkout
-        uses: actions/checkout@v4
+    env:
+      UBOOT_BRANCH: ${{ github.head_ref || github.ref_name }}
+      ATF_BRANCH: mtk-atf-2026
 
-      - name: Install depencies
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - board: bpi-r2
+            boots: [sdmmc]
+            atf: false
+            ram8g: false
+
+          - board: bpi-r64
+            boots: [sdmmc, emmc]
+            atf: true
+            ram8g: false
+
+          - board: bpi-r2pro
+            boots: [sdmmc]
+            atf: false
+            ram8g: false
+
+          - board: bpi-r3
+            boots: [sdmmc, emmc, spi-nand, spi-nor, ram]
+            atf: true
+            ram8g: false
+
+          - board: bpi-r3mini
+            boots: [emmc, spi-nand, ram]
+            atf: true
+            ram8g: false
+
+          - board: bpi-r4
+            boots: [sdmmc, emmc, spi-nand, ram]
+            atf: true
+            ram8g: true
+
+          - board: bpi-r4lite
+            boots: [sdmmc, emmc, spi-nand, ram]
+            atf: true
+            ram8g: false
+
+          - board: bpi-r4pro
+            boots: [sdmmc, emmc, spi-nand, ram]
+            atf: true
+            ram8g: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ccache restore
+      - name: Restore ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ccache
+          key: ccache-${{ matrix.board }}-${{ github.ref_name }}
+          restore-keys: |
+            ccache-${{ matrix.board }}-
+            ccache-
+
+      - name: Install deps
         run: |
-          sudo apt update
-          sudo apt install ccache libssl-dev u-boot-tools gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu make python3-pyelftools
+          sudo apt-get update
+          sudo apt-get install -y \
+            ccache libssl-dev u-boot-tools \
+            gcc-arm-linux-gnueabihf \
+            gcc-aarch64-linux-gnu \
+            make python3-pyelftools ccache
+
+      - name: Fetch mtk-atf branch
+        if: matrix.atf == true
+        run: |
+          git fetch origin $ATF_BRANCH --depth=1
+
+      - name: Init build helpers
+        shell: bash
+        run: |
+          cat > build_helpers.sh <<'EOF'
+          build_boot() {
+            BOOT="$1"
+            set -euo pipefail
+
+            echo "===================================="
+            echo "Building ${BOARD} for ${BOOT}"
+            echo "===================================="
+
+            git checkout $UBOOT_BRANCH
+
+            echo -e "board=${BOARD}\ndevice=${BOOT}\n" > build.conf
+            cat build.conf
+
+            echo "::group::u-boot"
+            bash build.sh importconfig
+            bash build.sh build
+            bash build.sh rename
+            echo "::endgroup::"
+
+            # ATF builds (optional)
+            if [ "${ATF}" = "true" ]; then
+              git checkout build.conf
+              echo "::group::atf"
+              echo "---- ATF build for ${BOOT} ----"
+
+              git checkout $ATF_BRANCH
+
+              echo -e "board=${BOARD}\ndevice=${BOOT}" > build.conf
+
+              # normal ATF build
+              bash build.sh build
+              bash build.sh rename
+              echo "::endgroup::"
+
+              if [[ "${BOOT}" == *"mmc"* ]]; then
+                echo "::group::baseimage"
+                bash build.sh createimg non-interactive
+                echo "::endgroup::"
+              fi
+
+              echo "::group::atf extended"
+              if [ "${RAM8G}" == "true" ]; then
+                echo "---- 8G RAM build ----"
+                echo "extraflags=DDR4_4BG_MODE=1" >> build.conf
+                bash build.sh clean
+                bash build.sh build
+                bash build.sh rename
+              fi
+
+              # optional special NAND/UBI case
+              if [[ "${BOOT}" =~ nand|nor ]]; then
+                echo "---- UBI build ----"
+                echo "extraflags=UBI=1" >> build.conf
+                bash build.sh clean
+                bash build.sh build
+                bash build.sh rename
+
+                if [ "${RAM8G}" == "true" ]; then
+                  echo "---- 8G RAM + UBI build ----"
+                  echo "extraflags=UBI=1 DDR4_4BG_MODE=1" >> build.conf
+                  bash build.sh clean
+                  bash build.sh build
+                  bash build.sh rename
+                fi
+              fi
+              echo "::endgroup::"
+              # we do not need u-boot.bin for all devices
+              # only one sdmmc and emmc version (chain loading)
+              rm -f build.conf
+            else
+              echo "::group::baseimage-no-atf"
+              bash build.sh createimg non-interactive
+              echo "::endgroup::"
+              git checkout build.conf
+            fi
+            if [[ ! "${BOOT}" =~ mmc ]]; then
+              echo "cleanup non-mmc u-boot.bin"
+              rm u-boot*${BOOT}.bin
+            fi
+            ls -lh *.bin *.img*
+          }
+          EOF
+
+      - name: Build sdmmc
+        if: contains(matrix.boots, 'sdmmc')
+        shell: bash
+        run: |
+          source build_helpers.sh
+          build_boot sdmmc
+        env:
+          BOARD: ${{ matrix.board }}
+          ATF: ${{ matrix.atf }}
+          RAM8G: ${{ matrix.ram8g }}
+
+      - name: Build emmc
+        if: contains(matrix.boots, 'emmc')
+        shell: bash
+        run: |
+          source build_helpers.sh
+          build_boot emmc
+        env:
+          BOARD: ${{ matrix.board }}
+          ATF: ${{ matrix.atf }}
+          RAM8G: ${{ matrix.ram8g }}
+
+      - name: Build spi-nand
+        if: contains(matrix.boots, 'spi-nand')
+        shell: bash
+        run: |
+          source build_helpers.sh
+          build_boot spi-nand
+        env:
+          BOARD: ${{ matrix.board }}
+          ATF: ${{ matrix.atf }}
+          RAM8G: ${{ matrix.ram8g }}
+
+      - name: Build spi-nor
+        if: contains(matrix.boots, 'spi-nor')
+        shell: bash
+        run: |
+          source build_helpers.sh
+          build_boot spi-nor
+        env:
+          BOARD: ${{ matrix.board }}
+          ATF: ${{ matrix.atf }}
+          RAM8G: ${{ matrix.ram8g }}
+
+      - name: Build ram
+        if: contains(matrix.boots, 'ram')
+        shell: bash
+        run: |
+          source build_helpers.sh
+          build_boot ram
+        env:
+          BOARD: ${{ matrix.board }}
+          ATF: ${{ matrix.atf }}
+          RAM8G: ${{ matrix.ram8g }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: uboot-${{ matrix.board }}
+          path: |
+            ${{ matrix.board }}*_fip.bin
+            u-boot-${{ matrix.board }}_*.bin
+            ${{ matrix.board }}*_bl2.img
+            ${{ matrix.board }}_*.img.gz
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout (longer history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 50
 
       - name: Setup env
         run: |
           echo "DT=$(date +'%Y-%m-%d_%H%M')" >> $GITHUB_ENV
           echo "UBOOTVER=$(make ubootversion)" >> $GITHUB_ENV
           echo "BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
-
-      - name: Print env
-        run: |
           echo $BRANCH $UBOOTVER $DT
 
-      - name: Setup cache
-        id: cache
-        uses: actions/cache@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
         with:
-          path: ~/.cache/ccache/
-          key: ${{ runner.os }}-ccache-uboot-${{ env.UBOOTVER }}
-          restore-keys: ${{ runner.os }}-ccache-uboot-${{ env.UBOOTVER }}
+          path: artifacts
 
-      - name: Fetch mtk-atf branch
+      - name: Copy files for release
         run: |
-          git fetch origin mtk-atf-2026
+          mkdir release
+          find artifacts -type f \( -name "*.bin" -o -name "*.img.gz*" -o -name "*.img" \) \
+            -exec cp {} release/ \;
 
-      - name: Build for BananaPi-R2
+      - name: Generate changelog
         run: |
-          export PATH=/usr/lib/ccache:$PATH
-          echo -e "board=bpi-r2" > build.conf
-          bash build.sh importconfig
-          bash build.sh build
-          bash build.sh createimg
-          bash build.sh rename
+          echo -e "# Release\n**Commit:** ${{ github.sha }}\n**Branch:** ${{ env.BRANCH }}\n**Version:** ${{ env.UBOOTVER }}\n\n## Changelog\n" > CHANGELOG.md
+          git log --pretty=format:"- %h %ad **%s** %d by %an" --date=short --no-merges >> CHANGELOG.md
 
-      - name: Build for BananaPi-R64
-        run: |
-          echo -e "board=bpi-r64" > build.conf
-          bash build.sh importconfig
-          bash build.sh build
-          bash build.sh rename
-          git checkout build.conf
-
-          git checkout mtk-atf-2026
-          echo -e "board=bpi-r64\ndevice=sdmmc" > build.conf
-          bash build.sh build
-          bash build.sh rename
-          bash build.sh createimg non-interactive
-
-          make realclean
-          echo -e "board=bpi-r64\ndevice=emmc" > build.conf
-          bash build.sh build
-          bash build.sh rename
-          bash build.sh createimg non-interactive
-
-          rm build.conf
-
-          git checkout ${{ env.BRANCH }}
-
-      - name: Build for BananaPi-R2Pro
-        run: |
-          echo -e "board=bpi-r2pro" > build.conf
-          bash build.sh importconfig
-          bash build.sh build
-          bash build.sh createimg
-          bash build.sh rename
-          git checkout build.conf
-
-      - name: Build for BananaPi-R3 (SD)
-        run: |
-          echo -e "board=bpi-r3" > build.conf
-          bash build.sh importconfig
-          bash build.sh build
-          bash build.sh rename
-          git checkout build.conf
-
-          git checkout mtk-atf-2026
-          echo -e "board=bpi-r3\ndevice=sdmmc" > build.conf
-          bash build.sh build
-          bash build.sh rename
-          bash build.sh createimg non-interactive
-          rm build.conf
-
-      - name: Build for BananaPi-R3 (EMMC)
-        run: |
-          git checkout ${{ env.BRANCH }}
-          echo -e "board=bpi-r3\ndevice=emmc" > build.conf
-          bash build.sh importconfig
-          bash build.sh build
-          bash build.sh rename
-          git checkout build.conf
-
-          git checkout mtk-atf-2026
-          echo -e "board=bpi-r3\ndevice=emmc" > build.conf
-          bash build.sh build
-          bash build.sh rename
-          bash build.sh createimg non-interactive
-          rm build.conf
-
-      - name: Build for BananaPi-R3 (NAND)
-        run: |
-          git checkout ${{ env.BRANCH }}
-          echo -e "board=bpi-r3\ndevice=spi-nand" > build.conf
-          bash build.sh importconfig
-          bash build.sh build
-          bash build.sh rename
-          git checkout build.conf
-
-          git checkout mtk-atf-2026
-          echo -e "board=bpi-r3\ndevice=spim-nand" > build.conf
-          bash build.sh build
-          bash build.sh rename
-          make realclean
-          echo -e "extraflags=UBI=1" >> build.conf
-          bash build.sh build
-          bash build.sh rename
-          rm build.conf
-
-      - name: Build for BananaPi-R3 (NOR)
-        run: |
-          git checkout ${{ env.BRANCH }}
-          echo -e "board=bpi-r3\ndevice=spi-nor" > build.conf
-          bash build.sh importconfig
-          bash build.sh build
-          bash build.sh rename
-          git checkout build.conf
-
-          git checkout mtk-atf-2026
-          echo -e "board=bpi-r3\ndevice=nor" > build.conf
-          bash build.sh build
-          bash build.sh rename
-          make realclean
-          echo -e "extraflags=UBI=1" >> build.conf
-          bash build.sh build
-          bash build.sh rename
-          rm build.conf
-
-      - name: Build for BananaPi-R3 (RAM/EMMC)
-        run: |
-          git checkout ${{ env.BRANCH }}
-          echo -e "board=bpi-r3\ndevice=emmc" > build.conf
-          sed -i 's/^bootcmd/#bootcmd/' uEnv_r3.txt
-          bash build.sh importconfig
-          bash build.sh build
-          bash build.sh rename
-          git checkout build.conf uEnv_r3.txt
-
-          git checkout mtk-atf-2026
-          echo -e "board=bpi-r3\ndevice=ram" > build.conf
-          bash build.sh build
-          bash build.sh rename
-          rm build.conf
-
-      - name: Build for BananaPi-R3Mini (EMMC)
-        run: |
-          git checkout ${{ env.BRANCH }}
-          echo -e "board=bpi-r3mini\ndevice=emmc" > build.conf
-          bash build.sh importconfig
-          bash build.sh build
-          bash build.sh rename
-          git checkout build.conf
-
-          git checkout mtk-atf-2026
-          echo -e "board=bpi-r3mini\ndevice=emmc" > build.conf
-          bash build.sh build
-          bash build.sh rename
-          bash build.sh createimg non-interactive
-          rm build.conf
-
-      - name: Build for BananaPi-R3Mini (NAND)
-        run: |
-          git checkout ${{ env.BRANCH }}
-          echo -e "board=bpi-r3mini\ndevice=spi-nand" > build.conf
-          bash build.sh importconfig
-          bash build.sh build
-          bash build.sh rename
-          git checkout build.conf
-
-          git checkout mtk-atf-2026
-          echo -e "board=bpi-r3mini\ndevice=spim-nand" > build.conf
-          bash build.sh build
-          bash build.sh rename
-          make realclean
-          echo -e "extraflags=UBI=1" >> build.conf
-          bash build.sh build
-          bash build.sh rename
-          rm build.conf
-
-      - name: Build for BananaPi-R3Mini (RAM/EMMC)
-        run: |
-          git checkout ${{ env.BRANCH }}
-          echo -e "board=bpi-r3mini\ndevice=emmc" > build.conf
-          sed -i 's/^bootcmd/#bootcmd/' uEnv_r3.txt
-          bash build.sh importconfig
-          bash build.sh build
-          bash build.sh rename
-          git checkout build.conf uEnv_r3.txt
-
-          git checkout mtk-atf-2026
-          echo -e "board=bpi-r3mini\ndevice=ram" > build.conf
-          bash build.sh build
-          bash build.sh rename
-          rm build.conf
-
-      - name: Build for BananaPi-R4 (SD)
-        run: |
-          git checkout ${{ env.BRANCH }}
-          echo -e "board=bpi-r4" > build.conf
-          bash build.sh importconfig
-          bash build.sh build
-          bash build.sh rename
-          git checkout build.conf
-
-          git checkout mtk-atf-2026
-          echo -e "board=bpi-r4\ndevice=sdmmc" > build.conf
-          bash build.sh build
-          bash build.sh rename
-          bash build.sh createimg non-interactive
-          make realclean
-          echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
-          bash build.sh build
-          bash build.sh rename
-
-          rm build.conf
-
-      - name: Build for BananaPi-R4 (EMMC)
-        run: |
-          git checkout ${{ env.BRANCH }}
-          echo -e "board=bpi-r4\ndevice=emmc" > build.conf
-          bash build.sh importconfig
-          bash build.sh build
-          bash build.sh rename
-          git checkout build.conf
-
-          git checkout mtk-atf-2026
-          echo -e "board=bpi-r4\ndevice=emmc" > build.conf
-          bash build.sh build
-          bash build.sh rename
-          bash build.sh createimg non-interactive
-          make realclean
-          echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
-          bash build.sh build
-          bash build.sh rename
-
-          rm build.conf
-
-      - name: Build for BananaPi-R4 (NAND)
-        run: |
-          git checkout ${{ env.BRANCH }}
-          echo -e "board=bpi-r4\ndevice=spi-nand" > build.conf
-          bash build.sh importconfig
-          bash build.sh build
-          bash build.sh rename
-          git checkout build.conf
-
-          git checkout mtk-atf-2026
-          echo -e "board=bpi-r4\ndevice=spim-nand" > build.conf
-          bash build.sh build
-          bash build.sh rename
-          make realclean
-          echo -e "extraflags=UBI=1" >> build.conf
-          bash build.sh build
-          bash build.sh rename
-          make realclean
-          echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
-          bash build.sh build
-          bash build.sh rename
-          make realclean
-          echo -e "extraflags='UBI=1 DDR4_4BG_MODE=1'" >> build.conf
-          bash build.sh build
-          bash build.sh rename
-
-          rm build.conf
-
-      - name: Build for BananaPi-R4 (RAM/EMMC)
-        run: |
-          git checkout ${{ env.BRANCH }}
-          echo -e "board=bpi-r4\ndevice=emmc" > build.conf
-          sed -i 's/^bootcmd/#bootcmd/' uEnv_r4.txt
-          bash build.sh importconfig
-          bash build.sh build
-          bash build.sh rename
-          git checkout build.conf uEnv_r4.txt
-
-          git checkout mtk-atf-2026
-          echo -e "board=bpi-r4\ndevice=ram" > build.conf
-          bash build.sh build
-          bash build.sh rename
-          make realclean
-          echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
-          bash build.sh build
-          bash build.sh rename
-
-          rm build.conf
-
-      - name: Build for BananaPi-R4 Pro (SD)
-        run: |
-          git checkout ${{ env.BRANCH }}
-          echo -e "board=bpi-r4pro" > build.conf
-          bash build.sh importconfig
-          bash build.sh build
-          bash build.sh rename
-          git checkout build.conf
-
-          git checkout mtk-atf-2026
-          echo -e "board=bpi-r4pro\ndevice=sdmmc" > build.conf
-          bash build.sh build
-          bash build.sh rename
-          make realclean
-          echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
-          bash build.sh build
-          bash build.sh rename
-          bash build.sh createimg non-interactive
-
-          rm build.conf
-
-      - name: Build for BananaPi-R4 Pro (EMMC)
-        run: |
-          git checkout ${{ env.BRANCH }}
-          echo -e "board=bpi-r4pro\ndevice=emmc" > build.conf
-          bash build.sh importconfig
-          bash build.sh build
-          bash build.sh rename
-          git checkout build.conf
-
-          git checkout mtk-atf-2026
-          echo -e "board=bpi-r4pro\ndevice=emmc" > build.conf
-          bash build.sh build
-          bash build.sh rename
-          make realclean
-          echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
-          bash build.sh build
-          bash build.sh rename
-          bash build.sh createimg non-interactive
-
-          rm build.conf
-
-      - name: Build for BananaPi-R4 Pro (NAND)
-        run: |
-          git checkout ${{ env.BRANCH }}
-          echo -e "board=bpi-r4pro\ndevice=spi-nand" > build.conf
-          bash build.sh importconfig
-          bash build.sh build
-          bash build.sh rename
-          git checkout build.conf
-
-          git checkout mtk-atf-2026
-          echo -e "board=bpi-r4pro\ndevice=spim-nand" > build.conf
-          bash build.sh build
-          bash build.sh rename
-          make realclean
-          echo -e "extraflags=UBI=1" >> build.conf
-          bash build.sh build
-          bash build.sh rename
-          make realclean
-          echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
-          bash build.sh build
-          bash build.sh rename
-          make realclean
-          echo -e "extraflags='UBI=1 DDR4_4BG_MODE=1'" >> build.conf
-          bash build.sh build
-          bash build.sh rename
-
-          rm build.conf
-
-      - name: Build for BananaPi-R4 Pro (RAM/EMMC)
-        run: |
-          git checkout ${{ env.BRANCH }}
-          echo -e "board=bpi-r4pro\ndevice=emmc" > build.conf
-          sed -i 's/^bootcmd/#bootcmd/' uEnv_r4.txt
-          bash build.sh importconfig
-          bash build.sh build
-          bash build.sh rename
-          git checkout build.conf uEnv_r4.txt
-
-          git checkout mtk-atf-2026
-          echo -e "board=bpi-r4pro\ndevice=ram" > build.conf
-          bash build.sh build
-          bash build.sh rename
-          make realclean
-          echo -e "extraflags=DDR4_4BG_MODE=1" >> build.conf
-          bash build.sh build
-          bash build.sh rename
-
-          rm build.conf
-
-      - name: Build for BananaPi-R4 Lite (SD)
-        run: |
-          git checkout ${{ env.BRANCH }}
-          echo -e "board=bpi-r4lite" > build.conf
-          echo "isr4lite=1" >> uEnv_r4.txt
-          bash build.sh importconfig
-          bash build.sh build
-          bash build.sh rename
-          git checkout build.conf uEnv_r4.txt
-
-          git checkout mtk-atf-2026
-          echo -e "board=bpi-r4lite\ndevice=sdmmc" > build.conf
-          bash build.sh build
-          bash build.sh rename
-          bash -x build.sh createimg non-interactive
-
-          rm build.conf
-
-      - name: Build for BananaPi-R4 Lite (EMMC)
-        run: |
-          git checkout ${{ env.BRANCH }}
-          echo -e "board=bpi-r4lite\ndevice=emmc" > build.conf
-          echo "isr4lite=1" >> uEnv_r4.txt
-          bash build.sh importconfig
-          bash build.sh build
-          bash build.sh rename
-          git checkout build.conf uEnv_r4.txt
-
-          git checkout mtk-atf-2026
-          echo -e "board=bpi-r4lite\ndevice=emmc" > build.conf
-          bash build.sh build
-          bash build.sh rename
-          bash build.sh createimg non-interactive
-
-          rm build.conf
-
-      - name: Build for BananaPi-R4 Lite (NAND)
-        run: |
-          git checkout ${{ env.BRANCH }}
-          echo -e "board=bpi-r4lite\ndevice=spi-nand" > build.conf
-          echo "isr4lite=1" >> uEnv_r4.txt
-          sed -i 's/^bootmenu_default=2/bootmenu_default=4/' uEnv_r4.txt
-          bash build.sh importconfig
-          bash build.sh build
-          bash build.sh rename
-          git checkout build.conf uEnv_r4.txt
-
-          git checkout mtk-atf-2026
-          echo -e "board=bpi-r4lite\ndevice=spim-nand" > build.conf
-          echo -e "extraflags=UBI=1" >> build.conf
-          bash build.sh build
-          bash build.sh rename
-          make realclean
-          echo -e "extraflags=UBI=1" >> build.conf
-          bash build.sh build
-          bash build.sh rename
-
-          rm build.conf
-
-      - name: Build for BananaPi-R4 Lite (NOR)
-        run: |
-          git checkout ${{ env.BRANCH }}
-          echo -e "board=bpi-r4lite\ndevice=spi-nor" > build.conf
-          echo "isr4lite=1" >> uEnv_r4.txt
-          sed -i 's/^bootmenu_default=2/bootmenu_default=4/' uEnv_r4.txt
-          bash build.sh importconfig
-          bash build.sh build
-          bash build.sh rename
-          git checkout build.conf uEnv_r4.txt
-
-          git checkout mtk-atf-2026
-          echo -e "board=bpi-r4lite\ndevice=nor" > build.conf
-          bash build.sh build
-          bash build.sh rename
-          make realclean
-          echo -e "extraflags=UBI=1" >> build.conf
-          bash build.sh build
-          bash build.sh rename
-
-          rm build.conf
-
-      - name: Build for BananaPi-R4 Lite (RAM/EMMC)
-        run: |
-          git checkout ${{ env.BRANCH }}
-          echo -e "board=bpi-r4lite\ndevice=emmc" > build.conf
-          echo "isr4lite=1" >> uEnv_r4.txt
-          sed -i 's/^bootcmd/#bootcmd/' uEnv_r4.txt
-          bash build.sh importconfig
-          bash build.sh build
-          bash build.sh rename
-          git checkout build.conf uEnv_r4.txt
-
-          git checkout mtk-atf-2026
-          echo -e "board=bpi-r4lite\ndevice=ram" > build.conf
-          bash build.sh build
-          bash build.sh rename
-
-          rm build.conf
-
-      - name: Upload binaries to release
-        if: endsWith(github.ref,'-bpi') && contains(env.UBOOTVER,'-rc') == false
-        uses: marvinpinto/action-automatic-releases@latest
+      - name: Create release
+        if: endsWith(github.ref_name, '-main') || endsWith(github.ref_name, '-ci')
+        uses: softprops/action-gh-release@v2
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "CI-BUILD-${{ env.BRANCH }}-${{ env.UBOOTVER }}-${{ env.DT }}"
-          prerelease: false
-          title: "Build for branch ${{ env.BRANCH }} (${{ env.UBOOTVER }})"
-          files: |
-            u-boot-r2*.bin
-            u-boot-r64*.bin
-            u-boot-r3*.bin
-            u-boot-r4*.bin
-            *_fip.bin
-            *_bl2.img
-            *ram*_bl2.bin
-            *.img.gz
+          files: release/*
+          body_path: CHANGELOG.md
+          draft: ${{ endsWith(github.ref, '-ci') }}
+          tag_name: "CI-BUILD-${{ env.BRANCH }}-${{ env.UBOOTVER }}-${{ env.DT }}"

@@ -279,7 +279,7 @@ jobs:
           git log --pretty=format:"- %h %ad **%s** %d by %an" --date=short --no-merges >> CHANGELOG.md
 
       - name: Create release
-        if: endsWith(github.ref_name, '-main') || endsWith(github.ref_name, '-ci')
+        if: endsWith(github.ref_name, '-bpi') || endsWith(github.ref_name, '-ci')
         uses: softprops/action-gh-release@v2
         with:
           files: release/*

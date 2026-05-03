@@ -140,6 +140,7 @@ jobs:
               echo "::group::atf extended"
               if [ "${RAM8G}" == "true" ]; then
                 echo "extraflags=DDR4_4BG_MODE=1" >> build.conf
+                make realclean
                 bash build.sh build
                 bash build.sh rename
               fi
@@ -147,11 +148,13 @@ jobs:
               # optional special NAND/UBI case
               if [[ "${BOOT}" =~ nand|nor ]]; then
                 echo "extraflags=UBI=1" >> build.conf
+                make realclean
                 bash build.sh build
                 bash build.sh rename
 
                 if [ "${RAM8G}" == "true" ]; then
                   echo "extraflags=UBI=1 DDR4_4BG_MODE=1" >> build.conf
+                  make realclean
                   bash build.sh build
                   bash build.sh rename
                 fi

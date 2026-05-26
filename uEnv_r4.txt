@@ -50,7 +50,7 @@ loadenv=if run checkenv;then run loadenvfile;fi
 resetenv=env default -a;printenv;
 
 loadkernel=load $device $partition $kaddr ${kernel}
-buildargs=setenv bootargs "board=${board} console=${console} root=${root} ${bootopts}
+buildargs=setenv bootargs "board=${board} console=${console} root=${root} ${bootopts}"
 
 useusb=if usb info; then usb reset;else usb start;fi; if ls usb $usb_part $usb_path; then setenv device usb;setenv partition $usb_part;fi
 usenvme=pci enum; nvme scan;nvme info; if ls nvme $nvme_boot;then setenv device "nvme";setenv partition $nvme_boot;setenv root $nvme_root;else echo "nvme partition not found";fi

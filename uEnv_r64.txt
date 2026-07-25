@@ -31,19 +31,19 @@ loaddt=load $device $partition $dtaddr ${bpi}/${board}/${service}/dtb/${fdt}
 loadkernel=load $device $partition $kaddr ${bpi}/${board}/${service}/${kernel}
 
 checksd=mmc dev 1
-checkgpt=if gpt guid $device $devnum;then setenv partnum 4;setenv root "/dev/mmcblk1p5 rootfstype=ext4 rootwait";else setenv partnum 1;fi
+checkgpt=if gpt guid $device $devnum;then env set partnum 4;env set root "/dev/mmcblk1p5 rootfstype=ext4 rootwait";else env set partnum 1;fi
 checkfat=fatinfo $device $devnum:$partnum
-selectmmc=if run checksd; then echo Boot from SD ; setenv devnum 1;else echo Boot from eMMC; setenv devnum 0; fi;run checkgpt;setenv partition $devnum:$partnum;
+selectmmc=if run checksd; then echo Boot from SD ; env set devnum 1;else echo Boot from eMMC; env set devnum 0; fi;run checkgpt;env set partition $devnum:$partnum;
 
 bootenv=uEnv.txt
 checkenv=test -e ${device} ${partition} ${bpi}/${board}/${service}/${bootenv}
 loadenvfile=if load ${device} ${partition} ${loadaddr} ${bpi}/${board}/${service}/${bootenv};then env import -t ${loadaddr} ${filesize};else echo "load (${bootenv}) failed";fi
 
 loadenv=if run checkenv;then run loadenvfile;fi
-resetenv=env default -a;printenv;
+reenv set=env default -a;env print;
 
-buildargs=setenv bootargs "board=${board} console=${console} root=${root} service=${service} ${bootopts}"
-newboot=run buildargs;if printenv fit;then setenv kernel ${fit};if run loadkernel; then bootm ${kaddr}; fi; else if run loadkernel; then if run loaddt; then bootm ${kaddr} - ${dtaddr};fi;fi;fi
+buildargs=env set bootargs "board=${board} console=${console} root=${root} service=${service} ${bootopts}"
+newboot=run buildargs;if env print fit;then env set kernel ${fit};if run loadkernel; then bootm ${kaddr}; fi; else if run loadkernel; then if run loaddt; then bootm ${kaddr} - ${dtaddr};fi;fi;fi
 
 #netboot
 ipaddr=192.168.0.19
@@ -72,11 +72,11 @@ askkernel=askenv kernelinput "enter uImage-name:";
 askdtb=askenv dtbinput "enter dtb-name:";
 askuboot=askenv ubootinput "enter uboot-name:";
 
-askboot=run lskernel askkernel;if printenv kernelinput; then setenv kernel "${kernelinput}"; run lsdtb askdtb; if printenv dtbinput; then setenv fdt "${dtbinput}";run newboot; fi;fi
-askbootnet=run lstftp askkernel;if printenv kernelinput; then setenv bootfile "${kernelinput}"; run lstftpdt askdtb; if printenv dtbinput; then setenv bootdtbfile "${dtbinput}";run bootnet; fi;fi
-askbootnetfit=run lstftp askkernel;if printenv kernelinput; then setenv bootfile "${kernelinput}"; run bootnetfit;fi
-askubootnet=run lstftpu askuboot;if printenv ubootinput; then setenv ufile "${ubootinput}"; run ubootnet;fi
-askuboot64net=run lstftpu askuboot;if printenv ubootinput ;then setenv ufile "${ubootinput}"; run uboot64net;fi
+askboot=run lskernel askkernel;if env print kernelinput; then env set kernel "${kernelinput}"; run lsdtb askdtb; if env print dtbinput; then env set fdt "${dtbinput}";run newboot; fi;fi
+askbootnet=run lstftp askkernel;if env print kernelinput; then env set bootfile "${kernelinput}"; run lstftpdt askdtb; if env print dtbinput; then env set bootdtbfile "${dtbinput}";run bootnet; fi;fi
+askbootnetfit=run lstftp askkernel;if env print kernelinput; then env set bootfile "${kernelinput}"; run bootnetfit;fi
+askubootnet=run lstftpu askuboot;if env print ubootinput; then env set ufile "${ubootinput}"; run ubootnet;fi
+askuboot64net=run lstftpu askuboot;if env print ubootinput ;then env set ufile "${ubootinput}"; run uboot64net;fi
 
 #bootmenu
 bootmenu_0=Enter kernel-name to boot from SD/EMMC.=run askboot
@@ -89,4 +89,4 @@ reloadmenu=run selectmmc;run loadenv; bootmenu;
 
 #automatic reload from sd/emmc
 bootdelay=0
-bootcmd=setenv bootdelay 3; run reloadmenu;
+bootcmd=env set bootdelay 3; run reloadmenu;

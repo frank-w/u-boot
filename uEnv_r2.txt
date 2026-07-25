@@ -17,17 +17,17 @@ root=/dev/mmcblk0p2 rootfstype=ext4 rootwait
 bootopts=vmalloc=496M debug=7 initcall_debug=0
 graphic=video=1920x1080 console=tty1 fbcon=map:0 drm.debug=0x7
 
-buildargs=setenv bootargs "board=${board} ${console} root=${root} ${bootopts} ${graphic}"
+buildargs=env set bootargs "board=${board} ${console} root=${root} ${bootopts} ${graphic}"
 
 checkenv=test -e ${device} ${partition} ${bpi}/${board}/${service}/${bootenv}
 importenv=env import -t ${scriptaddr} ${filesize}
 loadbootenv=if load ${device} ${partition} ${scriptaddr} ${bpi}/${board}/${service}/${bootenv};then run importenv;else echo "load (${bootenv}) failed";fi
-resetenv=env default -a;printenv;
+reenv set=env default -a;env print;
 
 checksd=info ${device} 1:1
-selectmmc=if run checksd; then echo Boot from SD ; setenv partition 1:1;else echo Boot from eMMC; setenv partition 0:1 ; fi;
+selectmmc=if run checksd; then echo Boot from SD ; env set partition 1:1;else echo Boot from eMMC; env set partition 0:1 ; fi;
 
-newboot=run buildargs;printenv bootargs;load ${device} ${partition} ${loadaddr} ${bpi}/${board}/${service}/${kernel}; bootm
+newboot=run buildargs;env print bootargs;load ${device} ${partition} ${loadaddr} ${bpi}/${board}/${service}/${kernel}; bootm
 
 reloadmenu=run selectmmc;if run checkenv; then run loadbootenv; else echo file not found; fi;bootmenu;
 
@@ -38,11 +38,11 @@ askdtb=askenv dtbinput "enter dtb-name:";
 askuboot=askenv ubootinput "enter uboot-name:";
 
 #bootmenu
-boot0=run lskernel;run askkernel;if printenv kernelinput ;then setenv kernel ${kernelinput};run lsdtb;run askdtb;if printenv dtbinput ;then setenv fdt ${dtbinput};fi; run newboot2; fi;
+boot0=run lskernel;run askkernel;if env print kernelinput ;then env set kernel ${kernelinput};run lsdtb;run askdtb;if env print dtbinput ;then env set fdt ${dtbinput};fi; run newboot2; fi;
 boot1=run selectmmc; run loadbootenv; run importenv; run newboot;
-boot14=setenv kernel ${kernel414}; run newboot;
-boot19=setenv kernel ${kernel419}; run newboot;
-boot19_dt=setenv kernel ${kernel419_nodt}; setenv fdt ${fdt419}; setenv dtolist ${dtolist419}; run newboot2;
+boot14=env set kernel ${kernel414}; run newboot;
+boot19=env set kernel ${kernel419}; run newboot;
+boot19_dt=env set kernel ${kernel419_nodt}; env set fdt ${fdt419}; env set dtolist ${dtolist419}; run newboot2;
 
 bootmenu_default=2
 
@@ -54,7 +54,7 @@ bootmenu_4=Boot from SD/EMMC 4.19 (fdt/dto).=run boot19_dt
 
 #automatic reload from sd/emmc
 bootdelay=0
-bootcmd=setenv bootdelay 3; run reloadmenu;
+bootcmd=env set bootdelay 3; run reloadmenu;
 
 png=ping ${serverip}
 
@@ -73,13 +73,13 @@ lstftpu=if tftp ${loadaddr} ${serverip}:bootfiles.lst;then setexpr listend ${loa
 #md.b ${loadaddr} 60;
 
 ubootaddr=0x81E00000
-bootnet=run lstftp;run askkernel;if printenv kernelinput ;then setenv bootfile "${kernelinput}"; fi;printenv; setenv bootargs "${netbootargs} ${console} ${graphic}";if tftp ${loadaddr} ${bootfile};then bootm;fi
-ubootnet=run lstftpu;run askuboot;if printenv ubootinput ;then setenv ubootfile "${ubootinput}"; fi; if tftp ${ubootaddr} ${ubootfile};then icache off;dcache off;go ${ubootaddr};fi
+bootnet=run lstftp;run askkernel;if env print kernelinput ;then env set bootfile "${kernelinput}"; fi;env print; env set bootargs "${netbootargs} ${console} ${graphic}";if tftp ${loadaddr} ${bootfile};then bootm;fi
+ubootnet=run lstftpu;run askuboot;if env print ubootinput ;then env set ubootfile "${ubootinput}"; fi; if tftp ${ubootaddr} ${ubootfile};then icache off;dcache off;go ${ubootaddr};fi
 
 #NFS
 nfsip=192.168.0.11
 nfsrfs=/var/nfs/bpi-r2
-setnfsargs=setenv netbootargs "root=/dev/nfs rw nfsroot=${nfsip}:${nfsrfs},nfsvers=3,tcp nfsrootdebug";
+setnfsargs=env set netbootargs "root=/dev/nfs rw nfsroot=${nfsip}:${nfsrfs},nfsvers=3,tcp nfsrootdebug";
 bootnfs=run setnfsargs bootnet
 
 #separate fdt+dto
@@ -96,8 +96,8 @@ loadkernel=echo "loading kernel ${kernel}...";load ${device} ${partition} ${load
 loaddto=echo "loaddto:${dto}";fdt addr ${dtaddr};fdt resize 8192; setexpr fdtovaddr ${dtaddr} + F000;load ${device} ${partition} ${fdtovaddr} ${bpi}/${board}/${service}/dtb/${dto} && fdt apply ${fdtovaddr}
 loaddtolist=for dto in ${dtolist} ; do run loaddto ; done
 
-bootall=if printenv fdt; then run loadfdt; if printenv dtolist;then run loaddtolist;fi; bootm ${loadaddr} - ${dtaddr} ;else bootm; fi
-newboot2=run buildargs; printenv bootargs; run loadkernel; run bootall;
+bootall=if env print fdt; then run loadfdt; if env print dtolist;then run loaddtolist;fi; bootm ${loadaddr} - ${dtaddr} ;else bootm; fi
+newboot2=run buildargs; env print bootargs; run loadkernel; run bootall;
 
 #sata/ahci
 initsata=pci enum;scsi scan;
@@ -112,5 +112,5 @@ loadkernelsata=load scsi ${partsata} ${loadaddr} ${dirsata}/${kernelsata};bootm
 lssata=ls scsi ${partsata} ${$dirsata}
 
 askaddr=askenv addrinput "enter address:";
-lsmem=run askaddr;if printenv addrinput;then setenv baseaddr ${addrinput};run listmem; fi
-listmem=if printenv baseaddr;then setenv i 0;while test ${i} -lt 10;do setenv j 0;while test ${j} -lt 10;do setenv offset "${i}${j}00";setexpr addr $baseaddr + ${offset};md $addr;setexpr j ${j} + 1; done;setexpr i ${i} + 1;done;fi
+lsmem=run askaddr;if env print addrinput;then env set baseaddr ${addrinput};run listmem; fi
+listmem=if env print baseaddr;then env set i 0;while test ${i} -lt 10;do env set j 0;while test ${j} -lt 10;do env set offset "${i}${j}00";setexpr addr $baseaddr + ${offset};md $addr;setexpr j ${j} + 1; done;setexpr i ${i} + 1;done;fi

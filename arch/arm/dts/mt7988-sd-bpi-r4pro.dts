@@ -80,11 +80,16 @@
 	phy-mode = "usxgmii";
 	mediatek,switch = "mt7988";
 
+	pinctrl-0 = <&mdio0_pins>;
+	pinctrl-names = "default";
+
 	fixed-link {
 		speed = <10000>;
 		full-duplex;
 		pause;
 	};
+
+	mdio {};
 };
 
 &pio {
@@ -128,6 +133,18 @@
 		mux {
 			function = "spi";
 			groups = "spi0", "spi0_wp_hold";
+		};
+	};
+
+	mdio0_pins: mdio0-pins {
+		mux {
+			function = "eth";
+			groups = "mdc_mdio0";
+		};
+
+		conf {
+			pins = "SMI_0_MDC", "SMI_0_MDIO";
+			drive-strength = <8>;
 		};
 	};
 

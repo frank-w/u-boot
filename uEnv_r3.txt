@@ -2,7 +2,7 @@ board=bpi-r3
 device=mmc
 partition=0:5
 bootenv=uEnv.txt
-bootdevice=sd
+bootdevice=spi-nand
 
 fit=bpi-r3.itb
 #bootconf="#conf-2"
@@ -27,6 +27,9 @@ usb_part=0:1
 nvme_boot=0:1
 nvme_root=/dev/nvme0n1p2
 
+ubi_part=0:3
+ubi_partname=rootfs
+
 en8811h_fw_part=0:6
 en8811h_fw_dm_dir=/lib/firmware/airoha/EthMD32.dm.bin
 en8811h_fw_dsp_dir=/lib/firmware/airoha/EthMD32.DSP.bin
@@ -45,6 +48,7 @@ askbootnetfit=run lstftp askkernel;if env print kernelinput; then env set bootfi
 
 bootnvme=run usenvme; if test "$device" = "nvme"; then run loadenv; run newboot;fi
 askbootnvme=run usenvme; if test "$device" = "nvme"; then run askkernel;if env print kernelinput; then env set fit $kernelinput;run newboot;fi;fi
+bootubi=run useubi; if test "$device" = "ubi"; then run loadenv; env print; run newboot;fi
 
 bootnetfit=run buildargs;run setbootconf;if tftp $kaddr ${bootfile}; then bootm ${kaddr}${bootconf};;fi
 bootfile=bpi-r3.itb
@@ -62,11 +66,13 @@ buildargs=env set bootargs "board=${board} earlycon=uart8250,mmio32,0x11002000 $
 
 useusb=if usb info; then usb reset;else usb start;fi; if ls usb $usb_part $usb_path; then env set device usb;env set partition $usb_part;fi
 usenvme=pci enum; nvme scan;nvme info; if ls nvme $nvme_boot;then env set device "nvme";env set partition $nvme_boot;env set root $nvme_root;else echo "nvme partition not found";fi
+useubi=ubi part ubi;ubifsmount ubi0:$ubi_partname;if ls ubi $ubi_part;then env set device "ubi";env set partition $ubi_part;else echo "ubi partition $ubi_part not found";fi
+umountubi=if test $device == "ubi";then ubifsumount;fi
 
 useinitrd=env set bootopts "${bootopts} initrd=${rdaddr},20M";
 checkrd=if env print initrd;then if load ${device} ${partition} ${rdaddr} ${initrd};then run useinitrd;fi;fi
 
-newboot=run checkrd; run setbootconf; run buildargs;if env print fit;then env set kernel ${fit};if run loadkernel; then bootm ${kaddr}${bootconf}; fi;fi;
+newboot=run checkrd; run setbootconf; run buildargs;if env print fit;then env set kernel ${fit};if run loadkernel; then run umountubi; bootm ${kaddr}${bootconf}; fi;fi;
 bootnetfit=run checkrd; run setbootconf;run buildargs;if tftp $kaddr ${bootfile}; then bootm ${kaddr}${bootconf};fi
 
 loadnor=sf read ${rdaddr} 0x180000 0xa80000;sf read ${kaddr} 0xc00000 0x1400000;
@@ -97,5 +103,6 @@ bootmenu_0=Enter kernel-name to boot from SD/EMMC.=run boot0
 bootmenu_1=Boot kernel from TFTP.=run askbootnetfit
 bootmenu_2=Boot from SD/EMMC.=run newboot
 bootmenu_3=Boot kernel from NVME.=run bootnvme
+bootmenu_4=Boot kernel from UBI.=run bootubi
 
 bootmenu_default=2

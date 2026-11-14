@@ -24,7 +24,7 @@ echo "ver:$uver,ubranch:$ubranch"
 device=sd
 #device=emmc
 #bpi-r3-only:
-#device=spi-nand
+device=spi-nand
 #device=spi-nor
 
 if [[ -e "build.conf" ]];
@@ -234,10 +234,11 @@ case $1 in
 			echo "importing $FILE_DEFCFG"
 			if [[ "$board" =~ bpi-r3(mini)? ]]; then
 				rm configs/${FILE_DEFCFG}.bak 2>/dev/null
+				cp uEnv_r3.txt{,.bak}
 				if [[ "$device" =~ "spi" ]];then
 					sed -i.bak '/^CONFIG_ENV_IS_IN_MMC/d' configs/$FILE_DEFCFG
+					sed -i 's/^\(bootcmd=\)/\1run useubi;/' uEnv_r3.txt
 				fi
-				cp uEnv_r3.txt{,.bak}
 				sed -i 's/\(bootdevice=\).*/\1'${device}'/' uEnv_r3.txt
 				if [[ "$board" == "bpi-r3mini" ]];then
 					sed -i 's/\(setbootconf=\).*/\1setenv bootconf "#conf-emmc-mini"/' uEnv_r3.txt
